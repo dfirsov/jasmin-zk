@@ -1,0 +1,14 @@
+
+inline fn __randombit() -> reg u8
+{
+  stack u8[1] byte;
+  reg ptr u8[1] byte_p;
+  reg u8 bit;
+  
+  byte_p = byte;
+  byte_p = #randombytes(byte_p);
+  bit = byte[0];
+  bit &= 0x1;
+  return bit;
+}
+

@@ -1,0 +1,89 @@
+###
+
+TOP = $(abspath $(dir $(filter %Makefile.common,$(MAKEFILE_LIST)))../)
+SRC = $(TOP)/src/
+CDIR = $(abspath $(dir $(abspath $(firstword $(MAKEFILE_LIST)))))
+RDIR = $(subst $(SRC),,$(CDIR))
+PDIR = $(TOP)/proof/$(RDIR)
+
+#
+CIDIR =
+CIT =
+ifeq ($(CI),1)
+CIDIR := .ci
+CIT = 2> $(CIDIR)/$(@F).log && rm -f $(CIDIR)/$(@F).error || \
+     (echo $$? > $(CIDIR)/$(@F).error && \
+      cat $(CIDIR)/$(@F).log >> $(CIDIR)/$(@F).error && \
+      rm $(CIDIR)/$(@F).log && \
+      exit 127)
+endif
+
+#
+JEXT     ?= jazz
+JFLAGS   := $(JFLAGS) -noinsertarraycopy
+JINCLUDE ?= 
+JASMIN   ?= $(TOP)/env/jasmin/compiler/jasminc
+JASMINC  := $(JASMIN) $(JFLAGS) $(JINCLUDE)
+COMPILE  = ($(JASMINC) -o $@ $<) $(CIT)
+
+#
+ECDIR := $(PDIR)
+ECFLAGS = $(ECFN) -oec $(notdir $@)
+EXTRACT_S = (cd $(ECDIR) && $(JASMINC) $(ECFLAGS) $(CDIR)/$<) $(CIT)
+
+#
+DEPSDIR := .deps
+DEPS = ((printf "$@: "; $(JASMINC) -print-dependencies $<) > $(DEPSDIR)/$(@F).d) $(CIT)
+
+###
+
+compile: $(SRCS:%.$(JEXT)=%.s)
+	@true
+
+###
+
+extract: extract_s
+	@true
+
+extract_s: $(SRCS:%.$(JEXT)=$(ECDIR)/%_s.ec)
+	@true
+
+###
+
+%.s : %.$(JEXT)
+%.s : %.$(JEXT) $(DEPSDIR)/%.s.d | $(DEPSDIR) $(CIDIR)
+	@$(DEPS)
+	@$(COMPILE)
+
+###
+
+$(ECDIR)/%_s.ec : %.$(JEXT)
+$(ECDIR)/%_s.ec : %.$(JEXT) $(DEPSDIR)/%_s.ec.d | $(DEPSDIR) $(ECDIR) $(CIDIR)
+	@$(DEPS)
+	@$(EXTRACT_S)
+
+###
+
+$(DEPSDIR): ; @mkdir -p $@
+$(ECDIR): ; @mkdir -p $@; touch $@/.gitkeep
+ifeq ($(CI),1)
+$(CIDIR): ; @mkdir -p $@
+endif
+
+
+DEPFILES := \
+ $(SRCS:%.$(JEXT)=$(DEPSDIR)/%.s.d) \
+ $(SRCS:%.$(JEXT)=$(DEPSDIR)/%_s.ec.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))
+
+###
+.PHONY: clean-ci clean
+
+clean-ci:
+	@rm -fr $(CIDIR)
+
+clean: clean-ci
+	@rm -fr $(DEPSDIR) *.s *.o *.a
+
