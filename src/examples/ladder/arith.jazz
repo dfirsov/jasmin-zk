@@ -44,15 +44,13 @@ inline fn mulm( reg u64 p a b ) -> reg u64 {
 }
 
 /* montgomery ladder simple (leaky according to EasyCrypt extraction) */
-inline fn expm(reg u64  p x n) -> reg u64
+inline fn expm_naive(reg u64  p x n) -> reg u64
 {
   reg u64 ctr x1 x2 bit;
 
-  ctr = 4;
-  
+  ctr = 4;  
   x1 = x;
   x2 = mulm(p,x1,x1);
-
 
 while{
     ctr -= 1;
@@ -103,12 +101,12 @@ export fn __mulm( reg u64 p a b ) -> reg u64 {
   return r;
 }
 
-export fn __expm( reg u64 p a b ) -> reg u64 { 
+export fn __expm_naive( reg u64 p a b ) -> reg u64 { 
   reg u64 _p, _a, _b, _r, r;
   _a = a;
   _b = b;
   _p = p;
-  _r = expm(_p, _a, _b);
+  _r = expm_naive(_p, _a, _b);
   r = _r;
   return r;
 }
