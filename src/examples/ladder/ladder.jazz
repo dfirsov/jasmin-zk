@@ -1,8 +1,9 @@
-
+require "swap.jazz"
 require "arith.jazz"
 
 
-fn main() -> reg u64 {
+
+fn test_expm() -> reg u64 {
   reg u64 p x n r;
   p = 13;  
   x = 5;
@@ -10,6 +11,16 @@ fn main() -> reg u64 {
   r = expm(p, x, n);
   return r;
 }
+
+
+fn main() -> (reg u64, reg u64)  {
+  reg u64 x1 x2; 
+  x1 = 5;
+  x2 = 7;
+  x1, x2 = swap(x1,x2,0);
+  return x1, x2;
+}
+
 
 
 exec main()

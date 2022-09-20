@@ -20,7 +20,7 @@ endif
 
 #
 JEXT     ?= jazz
-JFLAGS   := $(JFLAGS) -noinsertarraycopy
+JFLAGS   := $(JFLAGS) -CT -noinsertarraycopy
 JINCLUDE ?= 
 #JASMIN   ?= $(TOP)/env/jasmin/compiler/jasminc
 JASMIN ?= /home/aneto/Desktop/jasmin/jasmin-compiler/compiler/jasminc
@@ -42,6 +42,7 @@ compile: $(SRCS:%.$(JEXT)=%.s)
 	@true
 
 ###
+
 
 extract: extract_s
 	@true
