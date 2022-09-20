@@ -1,0 +1,69 @@
+/* i-th bit from 256bit word */
+inline fn __ith_bit256(stack u8[32] k, reg u64 ctr) -> reg u64
+{
+  reg u64 p bit;
+
+  p = ctr;
+  p >>= 3;
+  bit = (64u) k[(int) p];
+
+  p = ctr;
+  p &= 7;
+  bit >>= p;
+
+  bit &= 1;
+
+  return bit;
+}
+
+inline fn main256() -> reg u64 {
+  reg u64 ctr r;
+  stack u8[32] k;
+  inline int i;
+
+  for i=0 to 32{ 
+    k[u8 i] = 7;
+  }
+
+  ctr = 3 + 32;
+
+  r = __ith_bit256(k,ctr);
+  return r;
+
+}
+
+
+
+inline fn __ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 { reg u64 p
+bit;
+
+  bit = (64u) k;
+
+  p = ctr;
+  p &= 7;
+  bit >>= p;
+
+  bit &= 1;
+
+  return bit;
+}
+
+
+/* 
+inline fn main64() -> reg u64 {
+  reg u64 ctr r;
+  stack u64 k;
+  inline int i;
+
+  k = (64u) (5 + 9223372036854775808);
+
+  ctr = 64;
+
+  r = __ith_bit64(k,ctr);
+  return r;
+
+}
+
+exec main64()
+
+*/

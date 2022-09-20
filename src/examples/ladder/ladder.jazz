@@ -1,0 +1,15 @@
+
+require "arith.jazz"
+
+
+fn main() -> reg u64 {
+  reg u64 p x n r;
+  p = 13;  
+  x = 5;
+  n = 19;
+  r = expm(p, x, n);
+  return r;
+}
+
+
+exec main()

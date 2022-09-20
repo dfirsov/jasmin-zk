@@ -1,0 +1,12 @@
+inline fn __decode(reg u64 kp) -> stack u8[32]
+{
+  inline int i;
+  stack u8[32] k;
+  reg u64 t;
+
+  for i=0 to 4
+  { t = [kp + 8*i];
+    k[u64 i] = t; }
+
+  return k;
+}

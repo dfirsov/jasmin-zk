@@ -1,0 +1,116 @@
+require "ithbit.jazz"
+
+/* @requires: is_prime(p)
+   @requires: 0 <= a,b < p
+   @ensures: res = (a+b)%p */
+inline fn addm( reg u64 p a b ) -> reg u64 {
+  reg bool _cf;
+  reg u64 k1, k2, x;
+  k1 = 0;
+  k2 = 0;
+  _cf, x = a + b;
+  k1 = p if _cf;
+  _cf, x = x - p;
+  k2 = p if _cf;
+  x += k2;
+  x -= k1;
+  return x;
+}
+
+/* @requires: is_prime(p)
+   @requires: 0 <= a,b < p
+   @ensures: res = (a-b)%p */
+inline fn subm( reg u64 p a b ) -> reg u64 {
+  reg bool _cf;
+  reg u64 k, x;
+  k = 0;
+  _cf, x = a - b;
+  k = p if _cf;
+  x += k;
+  return x;
+}
+
+/* @requires: is_prime(p)
+   @requires: 0 <= a,b < p
+   @ensures: res = (a*b)%p */
+inline fn mulm( reg u64 p a b ) -> reg u64 {
+  reg u64 ax, bx, mh, ml, q, r, x;
+  ax = a;
+  bx = b;
+  _, _, _, _, _, mh, ml = #MUL( ax, bx );
+  _, _, _, _, _, q, r = #DIV( mh, ml, p );
+  x = r;
+  return x;
+}
+
+/* montgomery ladder */
+inline fn expm(reg u64  p x n) -> reg u64
+{
+  reg u64 ctr x1 x2 bit;
+
+  ctr = 4;
+  
+  x1 = x;
+  x2 = mulm(p,x1,x1);
+
+
+while{
+    ctr -= 1;
+    bit = __ith_bit64(n,ctr);
+    if(bit == 0){
+      x2 = mulm(p,x1,x2);
+      x1 = mulm(p,x1,x1);
+    }else{
+      x1 = mulm(p,x1,x2);
+      x2 = mulm(p,x2,x2);
+    }
+
+  } (ctr  > 0)
+
+  return x1;
+}
+
+
+
+
+export fn __addm( reg u64 p a b ) -> reg u64 { 
+  reg u64 _p, _a, _b, _r, r;
+  _a = a;
+  _b = b;
+  _p = p;
+  _r = addm(_p, _a, _b);
+  r = _r;
+  return r;
+}
+
+export fn __subm( reg u64 p a b ) -> reg u64 { 
+  reg u64 _p, _a, _b, _r, r;
+  _a = a;
+  _b = b;
+  _p = p;
+  _r = subm(_p, _a, _b);
+  r = _r;
+  return r;
+}
+
+export fn __mulm( reg u64 p a b ) -> reg u64 { 
+  reg u64 _p, _a, _b, _r, r;
+  _a = a;
+  _b = b;
+  _p = p;
+  _r = mulm(_p, _a, _b);
+  r = _r;
+  return r;
+}
+
+
+
+export fn __expm( reg u64 p a b ) -> reg u64 { 
+  reg u64 _p, _a, _b, _r, r;
+  _a = a;
+  _b = b;
+  _p = p;
+  _r = expm(_p, _a, _b);
+  r = _r;
+  return r;
+}
