@@ -22,7 +22,8 @@ endif
 JEXT     ?= jazz
 JFLAGS   := $(JFLAGS) -noinsertarraycopy
 JINCLUDE ?= 
-JASMIN   ?= $(TOP)/env/jasmin/compiler/jasminc
+#JASMIN   ?= $(TOP)/env/jasmin/compiler/jasminc
+JASMIN ?= /home/aneto/Desktop/jasmin/jasmin-compiler/compiler/jasminc
 JASMINC  := $(JASMIN) $(JFLAGS) $(JINCLUDE)
 COMPILE  = ($(JASMINC) -o $@ $<) $(CIT)
 
