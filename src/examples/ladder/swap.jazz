@@ -1,0 +1,24 @@
+
+
+inline fn swap(reg u64 x1 x2 toswap)
+  ->
+  reg u64,
+  reg u64
+{
+ reg u64 x1r x2r t mask;
+
+ ?{}, mask = #set0();
+ mask -= toswap;
+
+  x2r = x2;
+  x1r = x2;
+  t = x2r;
+  t ^= x1r;
+  t &= mask;
+  x1r ^= t;
+  x2r ^= t;
+  x1 = x1r;
+  x2 = x2r;
+  
+ return x1, x2;
+}
