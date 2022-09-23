@@ -1,7 +1,7 @@
 require import AllCore IntDiv.
 require import JModel.
 
- require import Fp_small.
+require import Fp_small.
 
 require import ZModP.
 
@@ -17,6 +17,7 @@ clone import ZModP.ZModField as Zp with
         proof prime_p by exact p_prime.
 
 import Zp.
+
 
 module ASpecFp = {
   (********************)
@@ -37,6 +38,12 @@ module ASpecFp = {
     r <- a * b;
     return r;
   }
+  proc expm(a : zp,  b: int): zp = {
+    var r;
+    r <- witness;
+    return r;
+  }
+
 }.
 
 
