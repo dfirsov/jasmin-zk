@@ -60,7 +60,53 @@ module M = {
     return x1;
   }  
 
+  proc expm (x:int, n:bits) : int = {
+    
+    var x1, x2, x3, x4 : int;
+    var ctr:int;
+    var bit, d, p, par :bool;    
+    d <- ith_bit n (size n - 1);
+    (x1,x2,x3, x4) <- (1,1,x,x * x);
+
+    ctr <- size n - 1;
+    p <- d;
+    (x1,x3) <- d ? (x3,x1) : (x1,x3);
+    (x2,x4) <- d ? (x4,x2) : (x2,x4);
+
+    while (0 < ctr) {
+      ctr <- (ctr - 1);
+      p <- d;
+      d <- d || ith_bit n ctr;
+      par <- ith_bit n (ctr + 1) ^ ith_bit n ctr;
+      (x1,x2) <- if par then (x2,x1) else (x1, x2);
+      x1 <- x1 * x2;
+      x2 <- x2 * x2;
+      (x1,x3) <- d ^ p ? (x3,x1) : (x1,x3);
+      (x2,x4) <- d ^ p ? (x4,x2) : (x2,x4);
+    }
+    (x1,x2) <- if ! ith_bit n 0 then (x2,x1) else (x1, x2);    
+    return x1;
+  }  
 }.
+
+
+lemma exp_eq_naive :
+ equiv[ M.expm_naive ~ M.expm : ={arg} /\  0 < size n{1} ==> ={res}].
+proc.
+wp.
+while (={ctr, n, d, p, x3, x4} /\ 0 < ctr{2} + 1 <= size n{2}
+   /\ (ith_bit n{2} (ctr{2}  ) => x2{2} = x2{1} /\ x1{2} = x1{1})
+   /\ ((!ith_bit n{2} (ctr{2} ) ) => (x1{1} = x2{2} /\ x2{1} = x1{2}))
+   ).
+wp. skip. progress. smt().     smt. smt.
+rewrite H5. simplify. smt().
+rewrite H5. simplify. smt().
+rewrite H5. simplify. smt().
+rewrite H5. simplify. smt().
+wp.  
+skip. progress. smt(). smt(). 
+smt().
+qed.
 
 
 op has_true (bs : bits) : bool = has (fun x => x = true) bs.
