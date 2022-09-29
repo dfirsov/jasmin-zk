@@ -42,7 +42,7 @@ module M = {
     var ctr:int;
     var bit, d, p :bool;    
     d <- ith_bit n (size n - 1);
-    (x1,x2,x3, x4) <- (0,0,x,x * x);
+    (x1,x2,x3, x4) <- (1,1,x,x * x);
 
     ctr <- size n - 1;
     p <- d;
@@ -66,21 +66,38 @@ module M = {
 op has_true (bs : bits) : bool = has (fun x => x = true) bs.
 
 
-lemma hast1 : forall xs ctr, 0 <= ctr <= size xs => (has_true (drop ctr xs) || ith_bit xs (ctr - 1)) =
-has_true (drop (ctr - 1) xs).
+lemma hast1 : forall xs ctr, 0 <= ctr <= size xs => (has_true (drop ctr xs) || ith_bit xs (ctr - 1)) = has_true (drop (ctr - 1) xs).
 admitted.
 
+
+lemma hast3 xs :  drop (size xs - 1) xs = [ith_bit xs (size xs - 1) ] .
+admitted.
+lemma hast2 xs :  ith_bit xs (size xs - 1) = has_true (drop (size xs - 1) xs).
+admitted.
+
+lemma hast4  : forall xs (x : int), ! (has_true xs) => x ^ (tonat xs) = 1.
+elim. smt.
+smt.
+qed.
+
+lemma hast5  : forall xs, ! (has_true xs) => (bs2int xs) = 0.
+elim. smt.
+smt.
+qed.
+
+
+
 lemma exp_naive_correct xx nn : 
-  equiv[ M.expm_naive ~ M.expm_spec : ={arg} /\ arg{1} = (xx, nn){1} /\  0 < size nn (* /\ ith_bit nn (size nn - 1){1} *)  ==> ={res}].
-    proof.
+  equiv[ M.expm_naive ~ M.expm_spec : ={arg} /\ arg{1} = (xx, nn){1} /\  0 < size nn ==> ={res}].
+proof.
 proc. 
 
-while {1} (d{1} = has_true (drop ctr n) /\ ctr <= size n /\ (has_true (drop ctr n) =>
+while {1} (d{1} = has_true (drop ctr n) /\ ctr < size n /\ (has_true (drop ctr n) =>
   (x1 = x ^ tonat (drop ctr n) 
-    /\ x2 = x1 * x  /\ (x3,x4){1} = (0, 0)) ) /\ (!has_true (drop ctr n) => x1 = 0 /\ x2 = 0 /\ x3 = x /\ x4 = x * x) ){1} (ctr{1}). 
+    /\ x2 = x1 * x  /\ (x3,x4){1} = (1, 1)) ) /\ (!has_true (drop ctr n) => x1 = 1 /\ x2 = 1 /\ x3 = x /\ x4 = x * x) ){1} (ctr{1}). 
 
 progress.
-wp. skip.  progress. apply hast1. progress.
+wp. skip.  progress. apply hast1. progress. smt().
 smt(). smt().
 
 
@@ -89,8 +106,20 @@ case (ith_bit n{hr} (ctr{hr} - 1 )). progress.
    rewrite casef.
   have -> : true ^ false  = true. smt(@Bool). simplify.
   have -> : x3{hr} = x{hr}. smt(). 
-
-  admit. simplify.
+  have -> : (drop (ctr{hr} - 1) n{hr}) = true :: (drop (ctr{hr} ) n{hr}).  
+  rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). smt().
+   rewrite /tonat. 
+rewrite  bs2int_cons.
+rewrite /b2i. simplify.
+have -> : x{hr} ^ (1 + 2 * bs2int (drop ctr{hr} n{hr}))
+  = x{hr} * x{hr} ^ (2 * bs2int (drop ctr{hr} n{hr})).
+smt.
+have ->: x{hr} ^ (2 * bs2int (drop ctr{hr} n{hr}))
+ = x{hr} ^ (bs2int (drop ctr{hr} n{hr})) * x{hr} ^ (bs2int (drop ctr{hr} n{hr})).
+smt.
+have -> : bs2int (drop ctr{hr} n{hr})  = 0.
+rewrite  hast5. auto. auto. smt.
+simplify.
 move => casef. rewrite casef. 
   have -> : true ^ true  = false. smt(@Bool). simplify.
   have -> : (drop (ctr{hr} - 1) n{hr}) = true :: (drop (ctr{hr} ) n{hr}).  
@@ -103,22 +132,24 @@ smt().
 rewrite /ith_bit in H4. rewrite H4. auto.
 rewrite prop3. 
 have -> : x1{hr} * x2{hr} = x{hr} ^ tonat (drop ctr{hr} n{hr}) * x{hr} ^ tonat (drop ctr{hr} n{hr}) * x{hr}.
-smt().
-admit.
+smt(). smt.
 
 progress.
 
-
-have z: has_true (drop ctr{hr} n{hr}) = true.
-
-admit.
+have z: has_true (drop ctr{hr} n{hr}) = true. 
+have x : drop (ctr{hr} - 1) n{hr} = ith_bit n{hr} (ctr{hr} - 1) :: drop ctr{hr} n{hr}.
+rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). rewrite H4.
+simplify. rewrite - H4. rewrite /ith_bit. auto.
+smt.
 
 rewrite z.
 have -> : true ^ true  = false. smt(@Bool). simplify.
-admit.
 
+have -> : x1{hr} * x1{hr} = x{hr} ^ tonat (drop ctr{hr} n{hr}) * x{hr} ^ tonat (drop ctr{hr} n{hr}).
+smt. 
 
-smt().
+rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). smt.
+smt.
 smt.
 smt.
 smt.
@@ -128,34 +159,31 @@ smt.
 smt.
 
 wp.  skip.  progress.
-admit.
+
+
+rewrite (drop_nth witness (size n{2} - 1)). smt(). simplify.
+smt.
 smt.
 
-have -> : ith_bit n{2} (size n{2} - 1). admit.
-simplify.
-admit.
-have -> : ith_bit n{2} (size n{2} - 1). admit.
-simplify. auto.
-have -> : ith_bit n{2} (size n{2} - 1). admit.
-simplify. auto.
-have -> : ith_bit n{2} (size n{2} - 1). admit.
-simplify. auto.
+rewrite hast2. rewrite H0. simplify.
+rewrite hast3. rewrite hast2. rewrite H0. smt.
+rewrite hast2. rewrite H0. simplify. auto.
 
-have -> : ith_bit n{2} (size n{2} - 1) = false. admit.
-simplify. auto.
-have -> : ith_bit n{2} (size n{2} - 1) = false. admit.
-simplify. auto.
-have -> : ith_bit n{2} (size n{2} - 1) = false. admit.
-simplify. auto.
-
-have -> : ith_bit n{2} (size n{2} - 1) = false. admit.
-simplify. auto.
-
-smt.
-
+rewrite hast2 H0 =>//. 
+rewrite hast2 H0 =>//. 
+rewrite hast2 H0 =>//. 
+rewrite hast2 H0 =>//. 
+rewrite hast2 H0 =>//. 
+rewrite hast2 H0 =>//.
+smt. 
 
 have : ctr_L <= 0. smt().
-have : has_true (drop ctr_L n{2}). admit.
-progress.
+
+case (has_true (drop ctr_L n{2})).
 smt.
+progress.
+have -> : x1_L = 1. smt().
+have x : (drop ctr_L n{2}) = n{2}.  smt.
+have y : !has_true n{2}. smt.
+rewrite hast4. auto. auto.
 qed.
