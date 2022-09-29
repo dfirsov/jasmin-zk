@@ -68,8 +68,7 @@ module M = {
       x2 <- x2 * x2;
     }
     (x1,x2) <- if ! ith_bit n 0 then (x2,x1) else (x1, x2);    
-    return x1;
-    
+    return x1;    
  }
 }.
 
