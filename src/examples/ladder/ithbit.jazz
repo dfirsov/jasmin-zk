@@ -32,17 +32,6 @@ inline fn main256() -> reg u64 {
 
 }
 
-/*
-inline fn __ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 { reg u64 p
-bit;
-
-  reg u64 r;
-  r = 1;
-  return r;
-
-}
-*/
-
 
 inline fn __ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 { reg u64 p
 bit;
@@ -50,7 +39,7 @@ bit;
   bit = (64u) k;
 
   p = ctr;
-  p &= 7;
+  p &= 63;
   bit >>= p;
 
   bit &= 1;
@@ -59,22 +48,3 @@ bit;
 
 }
 
-
-/* 
-inline fn main64() -> reg u64 {
-  reg u64 ctr r;
-  stack u64 k;
-  inline int i;
-
-  k = (64u) (5 + 9223372036854775808);
-
-  ctr = 64;
-
-  r = __ith_bit64(k,ctr);
-  return r;
-
-}
-
-exec main64()
-
-*/
