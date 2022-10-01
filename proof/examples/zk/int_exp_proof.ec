@@ -222,3 +222,16 @@ have x : (drop ctr_L n{2}) = n{2}.  smt().
 have y : !has_true n{2}. smt().
 rewrite hast4. auto. auto.
 qed.
+
+
+lemma expm_correct : 
+  equiv[ M.expm ~ M.expm_spec : ={arg} /\  0 < size arg{1}.`2 ==> ={res}].
+transitivity M.expm_naive 
+  (={arg}  /\  0 < size arg{1}.`2 ==> ={res})
+  (={arg}  /\  0 < size arg{1}.`2 ==> ={res}).
+smt().
+auto. symmetry.
+conseq exp_eq_naive. auto. auto.
+exists* n{1}, x{1}. elim*. progress.
+conseq (exp_naive_correct f0 f). progress. smt().
+qed.

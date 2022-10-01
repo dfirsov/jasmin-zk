@@ -60,11 +60,6 @@ abbrev ImplFp (a : t) (b : zp) = ImplWord a (asint b).
 abbrev M = W64.modulus.
 
 
-
-equiv expm_spec:
- M.expm ~ ASpecFp.expm:
-  ImplWord m{1} P /\ ImplFp x{1} a{2} /\ b{2} = n{1}   ==> ImplFp res{1}.`1 res{2}.
-
 equiv addm_spec:
  M.addm ~ ASpecFp.addm:
   ImplWord p{1} P /\ ImplFp a{1} a{2} /\ ImplFp b{1} b{2}
