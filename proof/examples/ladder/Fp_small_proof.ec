@@ -11,6 +11,8 @@ op P: int.
 axiom p_prime: prime P.
 axiom p_small: 0 <= P < W64.modulus.
 
+
+
 clone import ZModP.ZModField as Zp with
         op p <= P
         rename "zmod" as "zp"
@@ -18,6 +20,8 @@ clone import ZModP.ZModField as Zp with
 
 import Zp.
 
+
+op (^) (x : zp)(n : t) : zp = inzp (asint x ^ W64.to_uint n).
 
 module ASpecFp = {
   (********************)
@@ -38,9 +42,9 @@ module ASpecFp = {
     r <- a * b;
     return r;
   }
-  proc expm(a : zp,  b: int): zp = {
+  proc expm(a : zp,  b: t): zp = {
     var r;
-    r <- witness;
+    r <- a ^ b;
     return r;
   }
 
@@ -51,7 +55,15 @@ abbrev ImplWord (x : t) (y : int) = W64.to_uint x = y.
 abbrev ImplFp (a : t) (b : zp) = ImplWord a (asint b).
 
 
+
+
 abbrev M = W64.modulus.
+
+
+
+equiv expm_spec:
+ M.expm ~ ASpecFp.expm:
+  ImplWord m{1} P /\ ImplFp x{1} a{2} /\ b{2} = n{1}   ==> ImplFp res{1}.`1 res{2}.
 
 equiv addm_spec:
  M.addm ~ ASpecFp.addm:
@@ -132,3 +144,5 @@ rewrite modz_small.
  by move: to_uint_cmp modz_cmp; smt.
 by rewrite mulE Ha Hb.
 qed.
+
+

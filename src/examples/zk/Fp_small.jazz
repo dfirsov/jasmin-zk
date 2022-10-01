@@ -1,9 +1,8 @@
-/*
-   SPECIFIC CODE FOR SMALL-MODULUS (64bit) 
-*/
+require "ithbit.jazz"
+require "swap.jazz"
 
-#ifndef JASMIN_BN_SMALL
-#define JASMIN_BN_SMALL
+param int bsize = 63;
+
 
 
 /* @requires: is_prime(p)
@@ -49,9 +48,49 @@ inline fn mulm( reg u64 p a b ) -> reg u64 {
   return x;
 }
 
+/* @requires: is_prime(p)
+   @requires: 0 <= a,b < p
+   @ensures: res = (a^b)%p */
+inline fn expm(reg u64 m x n) -> (reg u64, reg u64)
+{
+  reg u64 ctr x1 x2 x3 x4 bit d p par t1 t2 cbit lbit q;
+  ctr = bsize;
+
+  d = __ith_bit64(n,ctr);
+  x1 = 1;
+  x2 = 1;
+  x3 = x;
+  x4 = mulm(m,x,x);
+  p = d;
+  (x1,x3) = swap(x1,x3,d);
+  (x2,x4) = swap(x2,x4,d);
+
+while(ctr > 0){
+   lbit = ctr;
+   ctr = ctr - 1;
+
+   t1 =  __ith_bit64(n,lbit);
+   t2 =  __ith_bit64(n,ctr);
+   p = d; 
+   q = d;
+   d = d | t2;
+   par = t1 ^ t2;
+   (x1,x2) = swap(x1,x2,par);
+   x1 = mulm(m,x1,x2);
+   x2 = mulm(m,x2,x2);
+   q |= t2;
+   cbit = q ^ p;
+   (x1,x3) = swap(x1,x3,cbit);
+   (x2,x4) = swap(x2,x4,cbit); 
+
+} 
+
+  par = __ith_bit64(n,0);
+  (x1,x2) = swap(x2,x1,par); 
+  return (x1,x2);
+}
 
 
-#ifdef BN_SMALL_EXPORT
 export fn __addm( reg u64 p a b ) -> reg u64 { 
   reg u64 _p, _a, _b, _r, r;
   _a = a;
@@ -82,11 +121,7 @@ export fn __mulm( reg u64 p a b ) -> reg u64 {
   return r;
 }
 
-#endif
-// end: BN_SMALL_EXPORT
 
-#ifdef BN_SMALL_TOEC
-// export all modular operations to EC
 inline fn toEC()
 {
   reg u64 p a b r;
@@ -94,10 +129,5 @@ inline fn toEC()
   r = addm(p, a, b);
   r = subm(p, a, b);
   r = mulm(p, a, b);
+  r = expm(p, a, b);
 }
-#endif
-// end: BN_SMALL_TOEC
-
-
-#endif
-//end: JASMIN_BN_SMALL

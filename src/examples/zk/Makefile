@@ -1,3 +1,3 @@
-SRCS := ladder_all.jazz
-ECFN ?=  -ec expm -ec expm_naive
+SRCS := Fp_small.jazz
+ECFN ?=  -ec toEC 
 include ../../Makefile.common

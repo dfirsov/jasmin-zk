@@ -5,6 +5,46 @@ require import JModel.
 
 
 module M = {
+  proc __ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
+    
+    var bit:W64.t;
+    var p:W64.t;
+    
+    bit <- k;
+    p <- ctr;
+    p <- (p `&` (W64.of_int 63));
+    bit <- (bit `>>` (truncateu8 p));
+    bit <- (bit `&` (W64.of_int 1));
+    return (bit);
+  }
+  
+  proc swap_0 (x1:W64.t, x2:W64.t, toswap:W64.t) : W64.t * W64.t = {
+    
+    var _of_:bool;
+    var _cf_:bool;
+    var _sf_:bool;
+    var _zf_:bool;
+    var mask:W64.t;
+    var x2r:W64.t;
+    var x1r:W64.t;
+    var t:W64.t;
+    var  _0:bool;
+    
+    (_of_, _cf_, _sf_,  _0, _zf_, mask) <- set0_64 ;
+    mask <- (mask - toswap);
+    x2r <- x2;
+    x1r <- x1;
+    t <- x2r;
+    t <- (t `^` x1r);
+    t <- (t `&` mask);
+    x1r <- (x1r `^` t);
+    x2r <- (x2r `^` t);
+    x1 <- x1r;
+    x2 <- x2r;
+    return (x1, x2);
+  }
+  
+
   proc addm (p:W64.t, a:W64.t, b:W64.t) : W64.t = {
     
     var x:W64.t;
@@ -64,16 +104,66 @@ module M = {
     return (x);
   }
   
+  proc expm (m:W64.t, x:W64.t, n:W64.t) : W64.t * W64.t = {
+    
+    var x1:W64.t;
+    var x2:W64.t;
+    var ctr:W64.t;
+    var d:W64.t;
+    var x3:W64.t;
+    var x4:W64.t;
+    var p:W64.t;
+    var lbit:W64.t;
+    var t1:W64.t;
+    var t2:W64.t;
+    var q:W64.t;
+    var par:W64.t;
+    var cbit:W64.t;
+    
+    ctr <- (W64.of_int 63);
+    d <@ __ith_bit64 (n, ctr);
+    x1 <- (W64.of_int 1);
+    x2 <- (W64.of_int 1);
+    x3 <- x;
+    x4 <@ mulm (m, x, x);
+    p <- d;
+    (x1, x3) <@ swap_0 (x1, x3, d);
+    (x2, x4) <@ swap_0 (x2, x4, d);
+    
+    while (((W64.of_int 0) \ult ctr)) {
+      lbit <- ctr;
+      ctr <- (ctr - (W64.of_int 1));
+      t1 <@ __ith_bit64 (n, lbit);
+      t2 <@ __ith_bit64 (n, ctr);
+      p <- d;
+      q <- d;
+      d <- (d `|` t2);
+      par <- (t1 `^` t2);
+      (x1, x2) <@ swap_0 (x1, x2, par);
+      x1 <@ mulm (m, x1, x2);
+      x2 <@ mulm (m, x2, x2);
+      q <- (q `|` t2);
+      cbit <- (q `^` p);
+      (x1, x3) <@ swap_0 (x1, x3, cbit);
+      (x2, x4) <@ swap_0 (x2, x4, cbit);
+    }
+    par <@ __ith_bit64 (n, (W64.of_int 0));
+    (x1, x2) <@ swap_0 (x2, x1, par);
+    return (x1, x2);
+  }
+  
   proc toEC () : unit = {
     
     var p:W64.t;
     var a:W64.t;
     var b:W64.t;
     var r:W64.t;
+    var  _0:W64.t;
     
     r <@ addm (p, a, b);
     r <@ subm (p, a, b);
     r <@ mulm (p, a, b);
+    ( _0, r) <@ expm (p, a, b);
     return ();
   }
 }.
