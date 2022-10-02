@@ -48,3 +48,22 @@ bit;
 
 }
 
+
+
+inline fn __ith_bitb64(reg u64 k, reg u64 ctr) -> reg bool {
+  reg u64 p bit;
+  reg bool r;
+
+  bit = (64u) k;
+
+  p = ctr;
+  p &= 63;
+  bit >>= p;
+
+  bit &= 1;
+
+  r = bit == 1;
+  return r;
+
+}
+
