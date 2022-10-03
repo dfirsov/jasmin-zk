@@ -12,7 +12,7 @@ import Zp.
 import IterOp.
 
 op as_bool (x : W64.t) : bool  = (x = W64.one).
-op as_word (x : bool) : W64.t  = x ? W64.one : W64.zero.
+
 
 op ith_bitlist (n : bits) (x : int)  : W64.t = as_word (ith_bit n x).
 

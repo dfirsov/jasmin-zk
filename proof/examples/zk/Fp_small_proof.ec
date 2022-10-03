@@ -25,11 +25,15 @@ op ( *** ) (a b : t) : t = W64.of_int ((to_uint a * to_uint b)  %%  P).
 
 op (^) (x : zp)(n : t) : zp = inzp (asint x ^ W64.to_uint n).
 
+op as_word (x : bool) : W64.t  = x ? W64.one : W64.zero.
+op ith_bitword64 (n : W64.t) (x : int)  : W64.t = as_word (n.[x]).
 
 module ASpecFp = {
-  (********************)
-  (* Finite Field Ops *)
-  (********************)
+
+  proc ith_bit (k:W64.t, ctr:int) : W64.t = {
+    return ith_bitword64 k ctr;
+  }
+  
   proc addm(a b: zp): zp = {
     var r;
     r <- a + b;

@@ -15,8 +15,6 @@ import IterOp.
 
 
 
-op ith_bitword64 (n : W64.t) (x : int)  : W64.t = as_word (n.[x]).
-
 
 module M4 = {
 
@@ -110,7 +108,7 @@ smt (qqq www).
 smt (qqq www).
 smt (qqq www).
 smt (qqq www).
-smt (qqq www).
+
 qed.
 
 
