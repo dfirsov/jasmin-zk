@@ -4,6 +4,7 @@ require import JModel.
 require import BitEncoding.
 import BS2Int.
 
+require import Fp_small.
 require import Fp_small_proof.
 require import W64_exp_proof_1.
 require import W64_exp_proof_2.
@@ -25,7 +26,7 @@ module M4 = {
     var ctr:int;
 
     d <- ith_bitword64 n (W64.size - 1);
-    (x1,x2,x3, x4) <- (W64.one,W64.one,x,x * x);
+    (x1,x2,x3, x4) <- (W64.one,W64.one,x,x *** x);
 
     ctr <- W64.size - 1;
     p <- d;
@@ -38,8 +39,8 @@ module M4 = {
       d <-  d `|` ith_bitword64 n ctr;
       par <- ith_bitword64 n (ctr + 1) `^` ith_bitword64 n ctr;
       (x1,x2) <- if as_bool par then (x2,x1) else (x1, x2);
-      x1 <- x1 * x2;
-      x2 <- x2 * x2;
+      x1 <- x1 *** x2;
+      x2 <- x2 *** x2;
       (x1,x3) <- as_bool (d `^` p) ? (x3,x1) : (x1,x3);
       (x2,x4) <- as_bool (d `^` p)  ? (x4,x2) : (x2,x4);
     }
@@ -66,23 +67,23 @@ while (={ctr,  x1,x2,  x3, x4, d, p}
    /\ W64.bits2w n{1} = n{2}
    /\ size n{1} = 64).
 wp. skip. progress. 
-smt.
-smt.
-smt.
-smt.
-smt.
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
 wp. 
 skip. 
 progress.
-smt.
-smt.
-smt.
-smt.
-smt.
-smt.
-smt.
-smt.
-smt.
+smt().
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt().
+smt (qqq www).
 qed.
 
 
@@ -95,21 +96,21 @@ while (={ctr,  x1,x2,  x3, x4, d, p}
    /\ n{1} = W64.w2bits n{2}
    /\ size n{1} = 64).
 wp. skip. progress. 
-smt.
-smt.
-smt.
-smt.
-smt.
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
 wp. 
 skip. 
 progress.
-smt.
-smt.
-smt.
-smt.
-smt.
-smt.
-smt.
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
+smt (qqq www).
 qed.
 
 

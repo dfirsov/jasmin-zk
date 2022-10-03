@@ -25,7 +25,7 @@ module M3 = {
     var ctr:int;
 
     d <- ith_bitlist n (size n - 1);
-    (x1,x2,x3, x4) <- (W64.one,W64.one,x,x * x);
+    (x1,x2,x3, x4) <- (W64.one,W64.one,x,x *** x);
 
     ctr <- size n - 1;
     p <- d;
@@ -38,8 +38,8 @@ module M3 = {
       d <-  d `|` ith_bitlist n ctr;
       par <- ith_bitlist n (ctr + 1) `^` ith_bitlist n ctr;
       (x1,x2) <- if as_bool par then (x2,x1) else (x1, x2);
-      x1 <- x1 * x2;
-      x2 <- x2 * x2;
+      x1 <- x1 *** x2;
+      x2 <- x2 *** x2;
       (x1,x3) <- as_bool (d `^` p) ? (x3,x1) : (x1,x3);
       (x2,x4) <- as_bool (d `^` p)  ? (x4,x2) : (x2,x4);
     }

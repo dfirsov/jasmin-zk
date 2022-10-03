@@ -20,7 +20,7 @@ module M2 = {
     var ctr:int;
     var bit, d, p, par :bool;    
     d <- ith_bit n (size n - 1);
-    (x1,x2,x3, x4) <- (W64.one,W64.one,x,x * x);
+    (x1,x2,x3, x4) <- (W64.one,W64.one,x,x *** x);
 
     ctr <- size n - 1;
     p <- d;
@@ -33,8 +33,8 @@ module M2 = {
       d <- d || ith_bit n ctr;
       par <- ith_bit n (ctr + 1) ^ ith_bit n ctr;
       (x1,x2) <- if par then (x2,x1) else (x1, x2);
-      x1 <- x1 * x2;
-      x2 <- x2 * x2;
+      x1 <- x1 *** x2;
+      x2 <- x2 *** x2;
       (x1,x3) <- d ^ p ? (x3,x1) : (x1,x3);
       (x2,x4) <- d ^ p ? (x4,x2) : (x2,x4);
     }
@@ -47,7 +47,7 @@ module M2 = {
 
 
 lemma exp_eq_naive :
- equiv[ M.expm_naive ~ M2.expm : ={arg} /\  0 < size n{1} ==> ={res}].
+ equiv[ M1.expm_naive ~ M2.expm : ={arg} /\  0 < size n{1} ==> ={res}].
 proc.
 wp.
 while (={ctr, n, d, p, x3, x4} /\ 0 < ctr{2} + 1 <= size n{2}
@@ -67,8 +67,8 @@ qed.
 
 
 lemma expm_correct : 
-  equiv[ M2.expm ~ M.expm_spec : ={arg} /\  0 < size arg{1}.`2 ==> ={res}].
-transitivity M.expm_naive 
+  equiv[ M2.expm ~ M1.expm_spec : ={arg} /\  0 < size arg{1}.`2 ==> ={res}].
+transitivity M1.expm_naive 
   (={arg}  /\  0 < size arg{1}.`2 ==> ={res})
   (={arg}  /\  0 < size arg{1}.`2 ==> ={res}).
 smt().

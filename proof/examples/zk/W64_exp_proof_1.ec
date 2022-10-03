@@ -36,12 +36,14 @@ proof. smt. qed.
 
 op has_true (bs : bits) : bool = has (fun x => x = true) bs.
 
-op (^) (x : W64.t) (n : int) : W64.t = if n < 0 then iterop (-n) W64.( * ) x W64.one else iterop n W64.( * ) x W64.one.
+op (^) (x : W64.t) (n : int) : W64.t = if n < 0 then iterop (-n) ( *** ) x W64.one else iterop n ( *** ) x W64.one.
 
 axiom exp_prop1 x : x ^ 0 = W64.one.
 axiom exp_prop2 x : x ^ 1 = x.
-axiom exp_prop3 (x : W64.t) (a b : int) :  x ^ (a + b) = x ^ a * x ^ b.
+axiom exp_prop3 (x : W64.t) (a b : int) :  x ^ (a + b) = x ^ a *** x ^ b.
 axiom exp_prop4 (x : W64.t) (a b : int) :  x ^ (a * b) = (x ^ a) ^ b.
+axiom exp_prop5 (x : W64.t) :  x *** W64.one = x.
+axiom exp_prop6 (a b c : W64.t) :  (a *** b) *** c = a *** (b *** c).
 
 lemma hast3 xs :  0 < size xs => drop (size xs - 1) xs = [ith_bit xs (size xs - 1) ].
 progress. rewrite (drop_nth witness). progress. smt(). smt().
@@ -78,7 +80,7 @@ qed.
 
 
 
-module M = {
+module M1 = {
 
   proc expm_spec (x:W64.t, n:bits) : W64.t = {
 
@@ -91,7 +93,7 @@ module M = {
     var ctr:int;
     var bit, d, p :bool;    
     d <- ith_bit n (size n - 1);
-    (x1,x2,x3, x4) <- (W64.one,W64.one,x,x * x);
+    (x1,x2,x3, x4) <- (W64.one,W64.one,x,x *** x);
 
     ctr <- size n - 1;
     p <- d;
@@ -102,7 +104,7 @@ module M = {
       ctr <- (ctr - 1);
       p <- d;
       d <- d || ith_bit n ctr;
-      (x1,x2) <- (ith_bit n ctr) ? ((x1*x2), (x2*x2)) : ((x1*x1), (x1*x2));
+      (x1,x2) <- (ith_bit n ctr) ? ((x1***x2), (x2***x2)) : ((x1***x1), (x1***x2));
       (x1,x3) <- d ^ p ? (x3,x1) : (x1,x3);
       (x2,x4) <- d ^ p ? (x4,x2) : (x2,x4);
     }
@@ -113,11 +115,11 @@ module M = {
 
 
 lemma exp_naive_correct xx nn : 
-  equiv[ M.expm_naive ~ M.expm_spec : ={arg} /\ arg{1} = (xx, nn){1} /\  0 < size nn ==> ={res}].
+  equiv[ M1.expm_naive ~ M1.expm_spec : ={arg} /\ arg{1} = (xx, nn){1} /\  0 < size nn ==> ={res}].
 proof. proc. 
 while {1} (d{1} = has_true (drop ctr n) /\ ctr < size n /\ (has_true (drop ctr n) =>
   (x1 = x ^ tonat (drop ctr n) 
-    /\ x2 = x1 * x  /\ (x3,x4){1} = (W64.one, W64.one)) ) /\ (!has_true (drop ctr n) => x1 = W64.one /\ x2 = W64.one /\ x3 = x /\ x4 = x * x) ){1} (ctr{1}). 
+    /\ x2 = x1 *** x  /\ (x3,x4){1} = (W64.one, W64.one)) ) /\ (!has_true (drop ctr n) => x1 = W64.one /\ x2 = W64.one /\ x3 = x /\ x4 = x *** x) ){1} (ctr{1}). 
 progress.
 wp. skip.  progress. 
 rewrite (drop_nth witness (ctr{hr} - 1)). smt(). simplify. rewrite /ith_bit. smt().
@@ -133,13 +135,13 @@ case (ith_bit n{hr} (ctr{hr} - 1 )). progress.
 rewrite  bs2int_cons.
 rewrite /b2i. simplify.
 have -> : x{hr} ^ (1 + 2 * bs2int (drop ctr{hr} n{hr}))
-  = x{hr} * x{hr} ^ (2 * bs2int (drop ctr{hr} n{hr})).
-rewrite exp_prop3. smt.
+  = x{hr} *** x{hr} ^ (2 * bs2int (drop ctr{hr} n{hr})).
+rewrite exp_prop3. rewrite exp_prop2. auto.
 have ->: x{hr} ^ (2 * bs2int (drop ctr{hr} n{hr}))
- = x{hr} ^ (bs2int (drop ctr{hr} n{hr})) * x{hr} ^ (bs2int (drop ctr{hr} n{hr})).
+ = x{hr} ^ (bs2int (drop ctr{hr} n{hr})) *** x{hr} ^ (bs2int (drop ctr{hr} n{hr})).
 smt.
 have -> : bs2int (drop ctr{hr} n{hr})  = 0.
-rewrite  hast5. auto. auto. rewrite exp_prop1. smt.
+rewrite  hast5. auto. auto. rewrite exp_prop1. rewrite exp_prop5. rewrite exp_prop5. auto.
 simplify.
 move => casef. rewrite casef. 
   have -> : true ^ true  = false. smt(@Bool). simplify.
@@ -150,11 +152,12 @@ smt().
 simplify.
 rewrite /ith_bit in H4. rewrite H4. auto.
 rewrite prop3. 
-have -> : x1{hr} * x2{hr} = x{hr} ^ tonat (drop ctr{hr} n{hr}) * x{hr} ^ tonat (drop ctr{hr} n{hr}) * x{hr}.
+have -> : x1{hr} *** x2{hr} = x{hr} ^ tonat (drop ctr{hr} n{hr}) *** x{hr} ^ tonat (drop ctr{hr} n{hr}) *** x{hr}.
 rewrite H0. auto.
 rewrite H0. auto. 
 rewrite H0. auto.  
-timeout 20. smt. 
+pose n := tonat (drop ctr{hr} n{hr}).
+smt (exp_prop6).
 pose n := tonat (drop ctr{hr} n{hr}).
 rewrite exp_prop3. rewrite exp_prop2. smt.
 progress.
@@ -165,11 +168,9 @@ simplify. rewrite - H4. rewrite /ith_bit. auto.
 smt.
 rewrite z.
 have -> : true ^ true  = false. smt(@Bool). simplify.
-have -> : x1{hr} * x1{hr} = x{hr} ^ tonat (drop ctr{hr} n{hr}) * x{hr} ^ tonat (drop ctr{hr} n{hr}).
+have -> : x1{hr} *** x1{hr} = x{hr} ^ tonat (drop ctr{hr} n{hr}) *** x{hr} ^ tonat (drop ctr{hr} n{hr}).
 smt. 
 rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). smt.
-pose z := 10.
-
 have -> : (has_true (drop ctr{hr} n{hr}) || ith_bit n{hr} (ctr{hr} - 1)) = true.
 
 rewrite (hast1 n{hr} ctr{hr} _). progress. smt().
@@ -182,33 +183,32 @@ simplify.
 case ( ith_bit n{hr} (ctr{hr} - 1)).
 progress. rewrite H0. auto.
 rewrite H0. auto. rewrite H0. auto.
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
 progress.
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
 rewrite hast1. smt(). rewrite H3.
 case (has_true (drop ctr{hr} n{hr})).
 progress.
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
 
 rewrite hast1. smt(). rewrite H3.
 case (has_true (drop ctr{hr} n{hr})).
 progress.
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
 
 rewrite hast1. smt(). rewrite H3.
 case (has_true (drop ctr{hr} n{hr})).
 progress.
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
-
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
 rewrite hast1. smt(). rewrite H3.
 case (has_true (drop ctr{hr} n{hr})).
 progress.
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6 @W64).
 
 rewrite hast1. smt(). rewrite H3.
 smt.

@@ -21,7 +21,10 @@ clone import ZModP.ZModField as Zp with
 import Zp.
 
 
+op ( *** ) (a b : t) : t = W64.of_int ((to_uint a * to_uint b)  %%  P).
+
 op (^) (x : zp)(n : t) : zp = inzp (asint x ^ W64.to_uint n).
+
 
 module ASpecFp = {
   (********************)
@@ -42,6 +45,13 @@ module ASpecFp = {
     r <- a * b;
     return r;
   }
+
+  proc mulmw64(a b: t): t = {
+    var r;
+     r <- a *** b;
+    return r;
+  }
+
   proc expm(a : zp,  b: t): zp = {
     var r;
     r <- a ^ b;
@@ -58,6 +68,27 @@ abbrev ImplFp (a : t) (b : zp) = ImplWord a (asint b).
 
 
 abbrev M = W64.modulus.
+
+
+equiv mulm_specw64:
+ M.mulm ~ ASpecFp.mulmw64:
+  arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 /\   ImplWord p{1} P  ==> ={res}.
+proof.
+proc; simplify; wp; skip => &1 &2 />    /=.
+rewrite /DIV_64 /MUL_64 /wdwordu /flags_w2 /flags_w /rflags_undefined /rflags_of_mul /= /mulu /=.
+have ->: (to_uint (mulhi a{2} b{2}) * 18446744073709551616 + to_uint (a{2} * b{2})) = to_uint a{2} * to_uint b{2}.
+ by rewrite -mulhiP /mulu /#.
+rewrite /(\mmod).
+rewrite /ulift2.
+rewrite /( *** ).
+progress.
+rewrite H.
+auto.
+qed.
+
+
+
+
 
 
 equiv addm_spec:
