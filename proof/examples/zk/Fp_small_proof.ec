@@ -33,6 +33,12 @@ module ASpecFp = {
   proc ith_bit (k:W64.t, ctr:int) : W64.t = {
     return ith_bitword64 k ctr;
   }
+
+
+  proc swapw (x1:W64.t, x2:W64.t, toswap:bool) : W64.t * W64.t = {
+    return toswap ? (x2,x1) : (x1,x2);
+  }
+
   
   proc addm(a b: zp): zp = {
     var r;

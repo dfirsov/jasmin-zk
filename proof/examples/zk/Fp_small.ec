@@ -2,8 +2,6 @@ require import AllCore IntDiv CoreMap List.
 require import JModel.
 
 
-
-
 module M = {
   proc __ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
     
