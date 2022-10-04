@@ -218,9 +218,12 @@ qed.
 
 
 
-
-
-
-
-
-
+lemma exp_4_5 :
+ equiv[ M4.expm ~ M5.expm : arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\   ImplWord m{2} P ==> ={res}].
+transitivity M5.expm'
+ (={arg} ==> ={res})
+ (arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\   ImplWord m{2} P ==> ={res}).
+ progress. smt(). smt().
+conseq exp_4_5'.
+conseq exp_4_5''.
+qed.

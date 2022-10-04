@@ -102,7 +102,7 @@ module M = {
     return (x);
   }
   
-  proc expm (m:W64.t, x:W64.t, n:W64.t) : W64.t * W64.t = {
+  proc expm (m:W64.t, x:W64.t, n:W64.t) : W64.t = {
     
     var x1:W64.t;
     var x2:W64.t;
@@ -147,7 +147,7 @@ module M = {
     }
     par <@ __ith_bit64 (n, (W64.of_int 0));
     (x1, x2) <@ swap_0 (x2, x1, par);
-    return (x1, x2);
+    return x1;
   }
   
   proc toEC () : unit = {
@@ -161,7 +161,7 @@ module M = {
     r <@ addm (p, a, b);
     r <@ subm (p, a, b);
     r <@ mulm (p, a, b);
-    ( _0, r) <@ expm (p, a, b);
+    r <@ expm (p, a, b);
     return ();
   }
 }.
