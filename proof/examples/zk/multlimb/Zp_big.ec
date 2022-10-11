@@ -138,6 +138,8 @@ qed.
 op zeroR : R = R.A.of_list W64.zero
                  [ W64.zero; W64.zero; W64.zero; W64.zero ].
 
+
+
 lemma zeroRE: valR zeroR = 0.
 proof.
 by rewrite /zeroR R.bn2seq /= R.A.of_listK 1:/# /bn_seq.
