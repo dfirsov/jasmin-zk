@@ -95,13 +95,9 @@ smt (@IterOp). qed.
 
 
 
-(* INCORRECT  *)
-axiom exp_prop5 (x : R) :  x *** oneR = x. 
-(* 
-CORRECT AXIOM:
 axiom exp_prop5 (x : R) : valR x < P =>  x *** oneR = x. 
 
-*)
+
 
 axiom exp_prop6 (a b c : R) :  (a *** b) *** c = a *** (b *** c).
 axiom exp_prop7 (a b : R) :  a *** b = b *** a.
@@ -268,7 +264,7 @@ lemma exp_naive_correct xx nn :
 proof. proc. 
 while {1} (d{1} = has_true (drop ctr n) /\ ctr < size n /\ (has_true (drop ctr n) =>
   (x1 = x ^ bs2int (drop ctr n) 
-    /\ x2 = x1 *** x  /\ (x3,x4){1} = (oneR, oneR)) ) /\ (!has_true (drop ctr n) => x1 = oneR /\ x2 = oneR /\ x3 = x /\ x4 = x *** x) ){1} (ctr{1}). 
+    /\ x2 = x1 *** x  /\ (x3,x4){1} = (oneR, oneR)) ) /\ (!has_true (drop ctr n) => x1 = oneR /\ x2 = oneR /\ x3 = x /\ x4 = x *** x) /\ valR x1 < P){1}   (ctr{1}). 
 progress.
 wp. skip.  progress. 
 rewrite (drop_nth witness (ctr{hr} - 1)). smt(). simplify. rewrite /ith_bit. smt().
@@ -289,7 +285,7 @@ have ->: x{hr} ^ (2 * bs2int (drop ctr{hr} n{hr}))
  = x{hr} ^ (bs2int (drop ctr{hr} n{hr})) *** x{hr} ^ (bs2int (drop ctr{hr} n{hr})).
 smt.
 have -> : bs2int (drop ctr{hr} n{hr})  = 0.
-rewrite  hast5. auto. auto. rewrite exp_prop1. rewrite exp_prop5. rewrite exp_prop5. auto.
+rewrite  hast5. auto. auto. rewrite exp_prop1. rewrite exp_prop5. smt. rewrite exp_prop5. admit. auto.
 simplify.
 move => casef. rewrite casef. 
   have -> : true ^ true  = false. smt(@Bool). simplify.
@@ -298,7 +294,7 @@ move => casef. rewrite casef.
 progress. smt().
 smt(). 
 simplify.
-rewrite /ith_bit in H4. rewrite H4. auto.
+rewrite /ith_bit in H5. rewrite H5. auto.
 rewrite prop3. 
 have -> : x1{hr} *** x2{hr} = x{hr} ^ bs2int (drop ctr{hr} n{hr}) *** x{hr} ^ bs2int (drop ctr{hr} n{hr}) *** x{hr}.
 rewrite H0. auto.
@@ -311,17 +307,17 @@ rewrite exp_prop3. smt (prop5). auto. rewrite exp_prop2. smt.
 progress.
 have z: has_true (drop ctr{hr} n{hr}) = true. 
 have x : drop (ctr{hr} - 1) n{hr} = ith_bit n{hr} (ctr{hr} - 1) :: drop ctr{hr} n{hr}.
-rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). rewrite H4.
-simplify. rewrite - H4. rewrite /ith_bit. auto.
+rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). rewrite H5.
+simplify. rewrite - H5. rewrite /ith_bit. auto.
 smt.
 rewrite z.
 have -> : true ^ true  = false. smt(@Bool). simplify.
 have -> : x1{hr} *** x1{hr} = x{hr} ^ bs2int (drop ctr{hr} n{hr}) *** x{hr} ^ bs2int (drop ctr{hr} n{hr}).
 smt. 
-rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). smt.
+rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). timeout 20. smt.
 have -> : (has_true (drop ctr{hr} n{hr}) || ith_bit n{hr} (ctr{hr} - 1)) = true.
 rewrite (hast1 n{hr} ctr{hr} _). progress. smt().
-smt(). rewrite H3. auto.
+smt(). rewrite H4. auto.
 case (has_true (drop ctr{hr} n{hr})). progress. 
 have -> : true ^ true = false. smt().
 simplify. 
@@ -332,32 +328,33 @@ smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
 progress.
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
-rewrite hast1. smt(). rewrite H3.
+rewrite hast1. smt(). rewrite H4.
 case (has_true (drop ctr{hr} n{hr})).
 progress.
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
 
-rewrite hast1. smt(). rewrite H3.
+rewrite hast1. smt(). rewrite H4.
 case (has_true (drop ctr{hr} n{hr})).
 progress.
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
 
-rewrite hast1. smt(). rewrite H3.
+rewrite hast1. smt(). rewrite H4.
 case (has_true (drop ctr{hr} n{hr})).
 progress.
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
-rewrite hast1. smt(). rewrite H3.
+rewrite hast1. smt(). rewrite H4.
 case (has_true (drop ctr{hr} n{hr})).
 progress.
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
 smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 exp_prop5 exp_prop6).
-rewrite hast1. smt(). rewrite H3.
+rewrite hast1. smt(). rewrite H4.
 smt.
-rewrite hast1. smt(). rewrite H3.
+rewrite hast1. smt(). rewrite H4.
 smt.
+admit.
 smt().
 wp.  skip.  progress.
 rewrite (drop_nth witness (size n{2} - 1)). smt(). simplify.
@@ -372,6 +369,7 @@ rewrite hast2. smt(). rewrite H0. auto.
    rewrite hast2. smt(). rewrite H0. auto.
  rewrite hast2. smt(). rewrite H0. auto.
 rewrite hast2. smt(). rewrite H0. auto.
+admit.
 smt(). 
 have : ctr_L <= 0. smt().
 case (has_true (drop ctr_L n{2})).
