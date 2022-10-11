@@ -22,18 +22,7 @@ module M8 = {
 }.
 
 
-lemma iii : forall i, 0 <= i => forall  b,
-  iterop (i + 1) ( *** ) b oneR = b *** iterop i ( *** ) b oneR.
-apply intind.
-progress. smt.
-progress. 
-rewrite /iterop. 
-simplify. rewrite iteriS. auto. simplify. 
-have ->: (i + 2) = (i+1) + 1. smt().
-rewrite iteriS. smt().
-rewrite iteriS. smt().
-simplify. smt().
-qed.
+
 
 
 
@@ -48,7 +37,7 @@ have -> : (Sub.val (inzp 1))%Sub = 1. smt.
 smt(valR_one).
 progress.
 have ->: (b ^ (i + 1)) = b *** (b ^ i).
-rewrite exp_prop3. 
+rewrite exp_prop3. auto. auto.
 rewrite exp_prop2.
 rewrite exp_prop7. auto.
 have ->: inzp (asint a ^ (i + 1)) =  inzp (asint a * (asint a ^ i)).
@@ -81,7 +70,7 @@ qed.
 
 
 lemma exp_real_speac2 :
- equiv[ M8.expm_spec ~ M1.expm_spec   : arg{1}.`1 = arg{2}.`1 /\  valR arg{1}.`2 = tonat arg{2}.`2 ==> ={res}] .
+ equiv[ M8.expm_spec ~ M1.expm_spec   : arg{1}.`1 = arg{2}.`1 /\  valR arg{1}.`2 = bs2int arg{2}.`2 ==> ={res}] .
 proc. skip. progress.
 smt().
 qed.
@@ -107,14 +96,14 @@ declare axiom stateless_M (x y : glob M) : x = y.
 lemma exp_real_speac :
  equiv[ M1.expm_spec ~ M7(M).expm  : valR arg{2}.`1 = P 
    /\  arg{1}.`1 = arg{2}.`2
-   /\ tonat arg{1}.`2 = valR arg{2}.`3
+   /\ bs2int arg{1}.`2 = valR arg{2}.`3
    /\ size arg{1}.`2 = Rsize
      ==> ={res}].
 transitivity M2.expm
    (={arg} /\  0 < size arg{1}.`2 ==> ={res}) 
   (valR arg{2}.`1 = P 
    /\  arg{1}.`1 = arg{2}.`2
-   /\ tonat arg{1}.`2 = valR arg{2}.`3
+   /\ bs2int arg{1}.`2 = valR arg{2}.`3
    /\ size arg{1}.`2 = Rsize
      ==> ={res} ).
 progress.  exists arg{1}. progress. smt(Rsize_pos). auto.
@@ -125,7 +114,7 @@ transitivity M3.expm
   (={arg} /\  0 < size n{1} ==> ={res})
   (valR arg{2}.`1 = P 
    /\  arg{1}.`1 = arg{2}.`2
-   /\ tonat arg{1}.`2 = valR arg{2}.`3
+   /\ bs2int arg{1}.`2 = valR arg{2}.`3
    /\ size arg{1}.`2 = Rsize
      ==> ={res} ).
 progress. 
@@ -142,7 +131,7 @@ exists (x{1} , ( n{2})). progress.
 smt (bitsR_prop).
 smt(Rsize_pos). auto.
 conseq exp_3_4_1.  progress.
-  
+ 
 transitivity M5.expm
   (={arg} ==> ={res})
   (valR arg{2}.`1 = P 
@@ -176,10 +165,10 @@ transitivity M8.expm_spec
 progress. exists (x{2},n{2}). progress. smt(). auto.
 conseq exp_real_speacc.   
 transitivity M1.expm_spec  
-  (arg{1}.`1 = arg{2}.`1 /\ valR arg{1}.`2 = tonat arg{2}.`2 ==> ={res})
+  (arg{1}.`1 = arg{2}.`1 /\ valR arg{1}.`2 = bs2int arg{2}.`2 ==> ={res})
   (valR arg{2}.`1 = P 
    /\  arg{1}.`1 = arg{2}.`2
-   /\ tonat arg{1}.`2 = valR arg{2}.`3
+   /\ bs2int arg{1}.`2 = valR arg{2}.`3
    /\ size arg{1}.`2 = Rsize
      ==> ={res}).
 progress. 

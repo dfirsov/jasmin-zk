@@ -4,6 +4,8 @@ require import JModel.
 require import BitEncoding.
 import BS2Int.
 
+
+
 type R.
 
 
@@ -15,15 +17,11 @@ module type BasicOps = {
 
 type bits = bool list.
 
-
-op tonat : bits -> int = bs2int.
 op ith_bit (n : bits) (x : int) : bool = nth witness n x.
 op has_true (bs : bits) : bool = has (fun x => x = true) bs.
 
 op P : int.
-op ( *** ) (a b : R) : R.
-op (^) (x : R) (n : int) : R.
-op oneR : R.
+
 op Rsize : int.
 op Rbits (r : R) : bits.
 op bitsR (r : bits) : R.
@@ -31,33 +29,136 @@ op as_w64 (x : bool) : W64.t  = x ? W64.one : W64.zero.
 op ith_bitR (r : R) (x : int) : W64.t = as_w64 (ith_bit (Rbits r) x).
 op as_bool (x : W64.t) : bool  = (x = W64.one).
 op ith_bitlist (n : bits) (x : int)  : W64.t = as_w64 (ith_bit n x).
-op valR (x : R) : int = tonat (Rbits x).
+op valR (x : R) : int = bs2int (Rbits x).
+op of_int (x : int) : R = bitsR (int2bs Rsize x).
 op ImplR (p : R) (P : int) = (valR p = P).
 
+op oneR : R = of_int 1.
 
+op ( *** ) (a b : R) : R = of_int (valR a * valR b %% P).
+op (^) (x : R) (n : int) : R = if n < 0 then iterop (-n) ( *** ) x oneR else iterop n ( *** ) x oneR.
+
+
+lemma iteropi : forall i, 0 <= i => forall  b,
+  iterop (i + 1) ( *** ) b oneR = b *** iterop i ( *** ) b oneR.
+apply intind.
+progress. 
+ have ->: iterop 0 ( *** ) b oneR = oneR.
+smt(@IterOp).
+  have ->: iterop 1 ( *** ) b oneR = b.
+smt(@IterOp).
+admit.
+progress. 
+rewrite /iterop. 
+simplify. rewrite iteriS. auto. simplify. 
+have ->: (i + 2) = (i+1) + 1. smt().
+rewrite iteriS. smt().
+rewrite iteriS. smt().
+simplify. smt().
+qed.
+
+
+lemma prop1 : bs2int [true] = 1.
+rewrite - (bs2int1 0). rewrite /nseq. rewrite iter0.  auto. auto. 
+qed.
+
+lemma prop2   : bs2int [false] = 0.
+rewrite - (bs2int_nseq_false 1).
+rewrite nseq1. auto.
+qed.
+
+lemma prop3 s : bs2int (true :: s) = 2 * (bs2int s) + 1.
+smt(bs2int_cons).
+qed.
+
+lemma prop4 s : bs2int (false :: s) = 2 * (bs2int s).
+smt(bs2int_cons).
+qed.
+
+lemma prop5 s : 0 <= bs2int s.
+apply bs2int_ge0.
+qed.
+
+axiom Rsize_max : Rsize < W64.max_uint.
+axiom Rsize_pos : 0 < Rsize.
 axiom P_prime: prime P.
+
 axiom qqq n x : ith_bitlist (Rbits n) x = ith_bitR n x.
 axiom www n x : size n = Rsize => ith_bitlist n x = ith_bitR (bitsR n) x.
 axiom iii n : size (Rbits n) = Rsize.
-axiom Rsize_max : Rsize < W64.max_uint.
-axiom Rsize_pos : 0 < Rsize.
-axiom prop1   : tonat[true] = 1.
-axiom prop2   : tonat[false] = 0.
-axiom prop3 s : tonat (true :: s) = 2 * (tonat s) + 1.
-axiom prop4 s : tonat (false :: s) = 2 * (tonat s).
-axiom prop5 s : 0 <= tonat s.
-axiom exp_prop1 x : x ^ 0 = oneR.
-axiom exp_prop2 x : x ^ 1 = x.
-axiom exp_prop3 (x : R) (a b : int) :  x ^ (a + b) = x ^ a *** x ^ b.
-axiom exp_prop4 (x : R) (a b : int) :  x ^ (a * b) = (x ^ a) ^ b.
-axiom exp_prop5 (x : R) :  x *** oneR = x.
+
+lemma exp_prop1 x : x ^ 0 = oneR.
+smt (@IterOp). qed.
+
+lemma exp_prop2 x : x ^ 1 = x.
+smt (@IterOp). qed.
+
+
+
+(* INCORRECT  *)
+axiom exp_prop5 (x : R) :  x *** oneR = x. 
+(* 
+CORRECT AXIOM:
+axiom exp_prop5 (x : R) : valR x < P =>  x *** oneR = x. 
+
+*)
+
 axiom exp_prop6 (a b c : R) :  (a *** b) *** c = a *** (b *** c).
-axiom exp_prop7 (a b : R) :  (a *** b) = b *** a.
+axiom exp_prop7 (a b : R) :  a *** b = b *** a.
+
 axiom to_uintP: forall (x y : R), valR (x *** y) = valR x * valR y %% P.
 axiom rsize_prop (r : R) : size (Rbits r) = Rsize.
-axiom bitsR_prop a b : tonat a = valR b => size a = Rsize => bitsR a = b.
+axiom bitsR_prop a b : bs2int a = valR b => size a = Rsize => bitsR a = b.
 axiom valR_one : valR oneR = 1.
 
+
+lemma exp_prop3' x : forall i, 0 <= i =>  x ^ (1 + i) = x *** x ^ i.
+progress. rewrite /(^).
+have -> : 1 + i < 0 = false. smt().
+simplify.
+have -> : i < 0 = false. smt(). simplify.
+rewrite - iteropi. auto.
+smt().
+qed.
+
+    
+
+lemma exp_prop3 (x : R) : forall (a : int), 0 <= a => forall b,  0 <= b => x ^ (a + b) = x ^ a *** x ^ b.
+apply intind. progress. rewrite exp_prop1. admit.
+progress.
+have ->: (i + 1) = (1 + i). smt().
+have ->: x ^ (1 + i) = x *** x ^ i.
+smt (@IterOp).
+rewrite exp_prop6.
+rewrite - H0.
+smt (exp_prop3').
+have ->:  (1 + i + b) =  (1 + (i + b)). smt().
+smt (exp_prop3').
+qed.
+
+
+lemma exp_prop4' a b : forall i, 0 <= i => (a *** b) ^ i = a ^ i *** b ^ i.
+apply intind. progress. smt.
+progress.
+have -> : (i + 1) = (1 + i). smt().
+rewrite exp_prop3'. auto.
+rewrite exp_prop3'. auto.
+rewrite exp_prop3'. auto.
+rewrite H0.
+smt (exp_prop7 exp_prop6).
+qed.
+
+lemma exp_prop4 (x : R)  : forall (a : int), 0 <= a => forall b, 0 <= b =>  x ^ (a * b) = (x ^ a) ^ b.
+apply intind.
+progress. rewrite exp_prop1. admit.
+progress. 
+have -> : ((i + 1) * b) = (i * b + b). smt().
+rewrite  exp_prop3. smt(). auto.
+rewrite H0. auto.
+have -> : (i + 1) = 1 + i. smt().
+rewrite  exp_prop3'. auto.
+rewrite exp_prop4'. auto. smt(exp_prop7).
+qed.
 
 
 (* Embedding into ring theory *)
@@ -117,13 +218,13 @@ lemma hast5  : forall xs, ! (has_true xs) => (bs2int xs) = 0.
 elim. smt. smt. qed.
 
 
-lemma hast4  : forall xs (x : R), ! (has_true xs) => x ^ (tonat xs) = oneR.
-progress. rewrite /tonat. rewrite hast5. auto.
+lemma hast4  : forall xs (x : R), ! (has_true xs) => x ^ (bs2int xs) = oneR.
+progress. rewrite hast5. auto.
 rewrite /(^). simplify. smt.
 qed.
 
-lemma hast6  : forall xs (x : int), ! (has_true xs) => x ^ (tonat xs) = 1.
-progress. rewrite /tonat. rewrite hast5. auto.
+lemma hast6  : forall xs (x : int), ! (has_true xs) => x ^ (bs2int xs) = 1.
+progress. rewrite hast5. auto.
 smt.
 qed.
 
@@ -132,7 +233,7 @@ qed.
 module M1 = {
 
   proc expm_spec (x:R, n:bits) : R = {
-    return x ^ (tonat n); 
+    return x ^ (bs2int n); 
   }  
 
   proc expm_naive (x:R, n:bits) : R = {
@@ -163,10 +264,10 @@ module M1 = {
 
 
 lemma exp_naive_correct xx nn : 
-  equiv[ M1.expm_naive ~ M1.expm_spec : ={arg} /\ arg{1} = (xx, nn){1} /\  0 < size nn ==> ={res}].
+  equiv[ M1.expm_naive ~ M1.expm_spec : ={arg} /\ arg{1} = (xx, nn){1}  /\  0 < size nn ==> ={res}].
 proof. proc. 
 while {1} (d{1} = has_true (drop ctr n) /\ ctr < size n /\ (has_true (drop ctr n) =>
-  (x1 = x ^ tonat (drop ctr n) 
+  (x1 = x ^ bs2int (drop ctr n) 
     /\ x2 = x1 *** x  /\ (x3,x4){1} = (oneR, oneR)) ) /\ (!has_true (drop ctr n) => x1 = oneR /\ x2 = oneR /\ x3 = x /\ x4 = x *** x) ){1} (ctr{1}). 
 progress.
 wp. skip.  progress. 
@@ -178,13 +279,12 @@ case (ith_bit n{hr} (ctr{hr} - 1 )). progress.
   have -> : true ^ false  = true. smt(@Bool). simplify.
   have -> : x3{hr} = x{hr}. smt(). 
   have -> : (drop (ctr{hr} - 1) n{hr}) = true :: (drop (ctr{hr} ) n{hr}).  
-  rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). smt().
-   rewrite /tonat. 
+  rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). smt(). 
 rewrite  bs2int_cons.
 rewrite /b2i. simplify.
 have -> : x{hr} ^ (1 + 2 * bs2int (drop ctr{hr} n{hr}))
   = x{hr} *** x{hr} ^ (2 * bs2int (drop ctr{hr} n{hr})).
-rewrite exp_prop3. rewrite exp_prop2. auto.
+rewrite exp_prop3. auto. smt(prop5). rewrite exp_prop2. auto.
 have ->: x{hr} ^ (2 * bs2int (drop ctr{hr} n{hr}))
  = x{hr} ^ (bs2int (drop ctr{hr} n{hr})) *** x{hr} ^ (bs2int (drop ctr{hr} n{hr})).
 smt.
@@ -200,14 +300,14 @@ smt().
 simplify.
 rewrite /ith_bit in H4. rewrite H4. auto.
 rewrite prop3. 
-have -> : x1{hr} *** x2{hr} = x{hr} ^ tonat (drop ctr{hr} n{hr}) *** x{hr} ^ tonat (drop ctr{hr} n{hr}) *** x{hr}.
+have -> : x1{hr} *** x2{hr} = x{hr} ^ bs2int (drop ctr{hr} n{hr}) *** x{hr} ^ bs2int (drop ctr{hr} n{hr}) *** x{hr}.
 rewrite H0. auto.
 rewrite H0. auto. 
 rewrite H0. auto.  
-pose n := tonat (drop ctr{hr} n{hr}).
+pose n := bs2int (drop ctr{hr} n{hr}).
 smt (exp_prop6).
-pose n := tonat (drop ctr{hr} n{hr}).
-rewrite exp_prop3. rewrite exp_prop2. smt.
+pose n := bs2int (drop ctr{hr} n{hr}).
+rewrite exp_prop3. smt (prop5). auto. rewrite exp_prop2. smt.
 progress.
 have z: has_true (drop ctr{hr} n{hr}) = true. 
 have x : drop (ctr{hr} - 1) n{hr} = ith_bit n{hr} (ctr{hr} - 1) :: drop ctr{hr} n{hr}.
@@ -216,7 +316,7 @@ simplify. rewrite - H4. rewrite /ith_bit. auto.
 smt.
 rewrite z.
 have -> : true ^ true  = false. smt(@Bool). simplify.
-have -> : x1{hr} *** x1{hr} = x{hr} ^ tonat (drop ctr{hr} n{hr}) *** x{hr} ^ tonat (drop ctr{hr} n{hr}).
+have -> : x1{hr} *** x1{hr} = x{hr} ^ bs2int (drop ctr{hr} n{hr}) *** x{hr} ^ bs2int (drop ctr{hr} n{hr}).
 smt. 
 rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). smt.
 have -> : (has_true (drop ctr{hr} n{hr}) || ith_bit n{hr} (ctr{hr} - 1)) = true.
