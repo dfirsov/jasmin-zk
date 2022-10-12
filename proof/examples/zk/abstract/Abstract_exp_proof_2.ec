@@ -5,7 +5,8 @@ require import BitEncoding.
 import BS2Int.
 
 
-require import Abstract_exp_proof_1.
+require Abstract_exp_proof_1.
+clone include Abstract_exp_proof_1.
 
 import IterOp.
 

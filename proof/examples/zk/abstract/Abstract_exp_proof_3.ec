@@ -5,9 +5,8 @@ require import BitEncoding.
 import BS2Int.
 import IterOp.
 
-require import Abstract_exp_proof_1.
-require import Abstract_exp_proof_2.
-
+require Abstract_exp_proof_2.
+clone include Abstract_exp_proof_2.
 
 
 module M3 = {

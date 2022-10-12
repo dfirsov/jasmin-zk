@@ -4,11 +4,8 @@ require import JModel.
 require import BitEncoding.
 import BS2Int.
 
-require import Abstract_exp_proof_1.
-require import Abstract_exp_proof_2.
-require import Abstract_exp_proof_3.
-require import Abstract_exp_proof_4.
-require import Abstract_exp_proof_5.
+require Abstract_exp_proof_5.
+clone include Abstract_exp_proof_5.
 
 import IterOp.
 
@@ -62,7 +59,7 @@ declare axiom exp_ithbit :
     /\ 0 <= ctr{2} < Rsize ==> ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero) ].
 
 declare axiom exp_mulm : 
-  equiv [ M.mulm ~ Spec.mul: arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 /\   ImplR p{1} P  ==> ={res} ].
+  equiv [ M.mulm ~ Spec.mul: arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2  /\  ImplR p{1} P  ==> ={res} ].
 
     
 lemma exp_5_6 :
@@ -72,7 +69,8 @@ proc.
 wp. 
 call exp_swap.
 call exp_ithbit.
-while ((d{2} = W64.one \/ d{2} = W64.zero) /\ ={ctr, n,  x1,x2,  x3, x4, d, p} /\ ImplR m{1} P /\  0 <= ctr{1} < Rsize).
+while ((d{2} = W64.one \/ d{2} = W64.zero) /\ ={ctr, n,  x1,x2,  x3, x4, d, p} /\ ImplR m{1} P /\  0 <= ctr{1} < Rsize
+  (* /\ valR x1{1} < P /\ valR x2{1} < P /\ valR x4{1} < P /\ valR x3{1} < P *)).
 call exp_swap.
 call exp_swap.
  wp. 
@@ -84,7 +82,7 @@ call exp_ithbit.
 call exp_ithbit.
 wp.
 skip. 
-progress. smt. smt. smt(). smt().  smt(@W64).
+progress. smt. smt. smt(). smt().  smt(@W64). 
 rewrite /as_word.
 rewrite /as_bool.  smt(@W64). smt(@W64).
 wp. 

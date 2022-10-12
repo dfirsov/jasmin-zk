@@ -7,7 +7,13 @@ import BS2Int.
 
 
 type R.
+type bits = bool list.
 
+
+op P : int.
+op Rsize : int.
+op Rbits (r : R) : bits.
+op bitsR (r : bits) : R.
 
 module type BasicOps = {
   proc ith_bit (r : R, p : W64.t) : W64.t
@@ -15,16 +21,12 @@ module type BasicOps = {
   proc swapr (a : R, b : R, c : W64.t) : R * R
 }.
 
-type bits = bool list.
 
-op ith_bit (n : bits) (x : int) : bool = nth witness n x.
+
+op ith_bit (n : bits) (x : int) : bool = nth false n x.
 op has_true (bs : bits) : bool = has (fun x => x = true) bs.
 
-op P : int.
 
-op Rsize : int.
-op Rbits (r : R) : bits.
-op bitsR (r : bits) : R.
 op as_w64 (x : bool) : W64.t  = x ? W64.one : W64.zero.
 op ith_bitR (r : R) (x : int) : W64.t = as_w64 (ith_bit (Rbits r) x).
 op as_bool (x : W64.t) : bool  = (x = W64.one).
@@ -292,7 +294,7 @@ qed.
 lemma hast1 : forall xs ctr, 0 <= ctr -1 < size xs
   => (has_true (drop ctr xs) || ith_bit xs (ctr - 1)) = has_true (drop (ctr - 1) xs).
 progress. 
-rewrite ( drop_nth witness (ctr - 1) ). progress. smt(). 
+rewrite ( drop_nth false (ctr - 1) ). progress. smt(). 
 qed.
 
 
@@ -354,7 +356,7 @@ while {1} (d{1} = has_true (drop ctr n) /\ ctr < size n /\ (has_true (drop ctr n
     /\ x2 = x1 *** x  /\ (x3,x4){1} = (oneR, oneR)) ) /\ (!has_true (drop ctr n) => x1 = oneR /\ x2 = oneR /\ x3 = x /\ x4 = x *** x) /\ valR x1 < P /\  valR x < P){1}   (ctr{1}). 
 progress.
 wp. skip.  progress. 
-rewrite (drop_nth witness (ctr{hr} - 1)). smt(). simplify. rewrite /ith_bit. smt().
+rewrite (drop_nth false (ctr{hr} - 1)). smt(). simplify. rewrite /ith_bit. smt().
 smt(). 
 case (ith_bit n{hr} (ctr{hr} - 1 )). progress.
   case (!has_true (drop ctr{hr} n{hr})). move => casef.  
@@ -362,7 +364,7 @@ case (ith_bit n{hr} (ctr{hr} - 1 )). progress.
   have -> : true ^ false  = true. smt(@Bool). simplify.
   have -> : x3{hr} = x{hr}. smt(). 
   have -> : (drop (ctr{hr} - 1) n{hr}) = true :: (drop (ctr{hr} ) n{hr}).  
-  rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). smt(). 
+  rewrite (drop_nth false (ctr{hr} - 1)).  smt(). smt(). 
 rewrite  bs2int_cons.
 rewrite /b2i. simplify.
 have -> : x{hr} ^ (1 + 2 * bs2int (drop ctr{hr} n{hr}))
@@ -377,7 +379,7 @@ simplify.
 move => casef. rewrite casef. 
   have -> : true ^ true  = false. smt(@Bool). simplify.
   have -> : (drop (ctr{hr} - 1) n{hr}) = true :: (drop (ctr{hr} ) n{hr}).  
-  rewrite (drop_nth witness (ctr{hr} - 1)). 
+  rewrite (drop_nth false (ctr{hr} - 1)). 
 progress. smt().
 smt(). 
 simplify.
@@ -395,14 +397,14 @@ smt.
 progress.
 have z: has_true (drop ctr{hr} n{hr}) = true. 
 have x : drop (ctr{hr} - 1) n{hr} = ith_bit n{hr} (ctr{hr} - 1) :: drop ctr{hr} n{hr}.
-rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). rewrite H6.
-simplify. rewrite - H6. rewrite /ith_bit. auto.
-smt.
+rewrite (drop_nth false (ctr{hr} - 1)).  smt(). rewrite H6.
+simplify. rewrite - H6. rewrite /ith_bit. smt. smt.
+
 rewrite z.
 have -> : true ^ true  = false. smt(@Bool). simplify.
 have -> : x1{hr} *** x1{hr} = x{hr} ^ bs2int (drop ctr{hr} n{hr}) *** x{hr} ^ bs2int (drop ctr{hr} n{hr}).
 smt. 
-rewrite (drop_nth witness (ctr{hr} - 1)).  smt(). timeout 20. smt.
+rewrite (drop_nth false (ctr{hr} - 1)).  smt(). timeout 20. smt.
 have -> : (has_true (drop ctr{hr} n{hr}) || ith_bit n{hr} (ctr{hr} - 1)) = true.
 rewrite (hast1 n{hr} ctr{hr} _). progress. smt().
 smt(). rewrite H5. auto.
@@ -445,7 +447,7 @@ smt.
 smt.
 smt (mult_valr).
 wp.  skip.  progress.
-rewrite (drop_nth witness (size n{2} - 1)). smt(). simplify.
+rewrite (drop_nth false (size n{2} - 1)). smt(). simplify.
 rewrite /ith_bit. smt(@List).
 smt().
 rewrite hast2. smt(). rewrite H1. simplify.

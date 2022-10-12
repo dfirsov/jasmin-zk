@@ -4,12 +4,9 @@ require import JModel.
 require import BitEncoding.
 import BS2Int.
 
-require import Abstract_exp_proof_1.
-require import Abstract_exp_proof_2.
-require import Abstract_exp_proof_3.
-require import Abstract_exp_proof_4.
-require import Abstract_exp_proof_5.
-require import Abstract_exp_proof_6.
+
+require Abstract_exp_proof_6.
+clone include Abstract_exp_proof_6.
 
 import IterOp.
 
