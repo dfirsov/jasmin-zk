@@ -46,19 +46,22 @@ qed.
 
 
 
-
 axiom Rsize_max : Rsize < W64.max_uint.
 axiom Rsize_pos : 0 < Rsize.
 axiom P_prime: prime P.
+axiom valr_pos x : 0 <= valR x.
 axiom iii n : size (Rbits n) = Rsize.
 axiom valr_ofint x : x < P => valR (of_int x) = x.
-axiom valr_pos x : 0 <= valR x.
 axiom ofint_valr x : of_int (valR x) = x.
 axiom rbits_bitsr x : size x = Rsize => Rbits (bitsR x) = x.
 axiom bitsr_rbits x : bitsR (Rbits x) = x.
-axiom to_uintP: forall (x y : R), valR (x *** y) = valR x * valR y %% P.
 
 
+lemma mod_lemm (a b c m : int) : ((a * b %% m) * c) %% m = ((a * b) * c) %% m. 
+smt (modzMml modzMm modzMmr).
+qed.
+
+    
 lemma exp_prop7 (a b : R) :  a *** b = b *** a.
 proof. smt. qed.
 
@@ -70,13 +73,17 @@ have ->: (valR ((of_int (valR a * valR b %% P))) * valR c %% P)
   have ->: valR ((of_int (valR a * valR b %% P))) = (valR a * valR b %% P).
    smt.
   have ->: ((valR a * valR b) %% P) * valR c %% P = ((valR a * valR b)  * valR c) %% P . 
-  admit.
+  smt (mod_lemm).
   have ->: valR ((of_int (valR b * valR c %% P))) = valR b * valR c %% P. smt.
-  have ->: valR a * (valR b * valR c %% P) %% P = valR a * (valR b * valR c) %% P. admit.
+  have ->: valR a * (valR b * valR c %% P) %% P = valR a * (valR b * valR c) %% P. smt (mod_lemm).
   smt().
   auto.
 qed. 
 
+
+lemma to_uintP: forall (x y : R), valR (x *** y) = valR x * valR y %% P.
+progress. rewrite /( *** ). smt.
+qed.
 
 lemma bitsR_prop a b : bs2int a = valR b => size a = Rsize => bitsR a = b.
 proof. rewrite /valR.
