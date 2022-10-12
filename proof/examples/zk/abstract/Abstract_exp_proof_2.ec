@@ -68,14 +68,14 @@ qed.
 
 
 lemma expm_correct : 
-  equiv[ M2.expm ~ M1.expm_spec : ={arg} /\  0 < size arg{1}.`2 ==> ={res}].
+  equiv[ M2.expm ~ M1.expm_spec : ={arg} /\  0 < size arg{1}.`2 /\ valR x{1} < P ==> ={res}].
 transitivity M1.expm_naive 
-  (={arg}  /\  0 < size arg{1}.`2 ==> ={res})
-  (={arg}  /\  0 < size arg{1}.`2 ==> ={res}).
+  (={arg}  /\  0 < size arg{1}.`2  ==> ={res})
+  (={arg}  /\  0 < size arg{1}.`2 /\ valR x{2} < P ==> ={res}).
 smt().
 auto. symmetry.
 conseq exp_eq_naive. auto. auto.
 exists* n{1}, x{1}. elim*. progress.
-conseq (exp_naive_correct f0 f). progress. smt().
+conseq (exp_naive_correct f0 f). progress. smt(). 
 qed.
 

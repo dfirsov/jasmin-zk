@@ -22,11 +22,7 @@ module M8 = {
 }.
 
 
-
-
-
-
-lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : R),
+lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : R), valR b < P =>
   ImplFp b a =>
   ImplFp (b ^ n) (inzp (asint a ^ n)).
 apply intind. progress. 
@@ -37,19 +33,19 @@ have -> : (Sub.val (inzp 1))%Sub = 1. smt.
 smt(valR_one).
 progress.
 have ->: (b ^ (i + 1)) = b *** (b ^ i).
-rewrite exp_prop3. auto. auto.
+rewrite exp_prop3. auto. auto.  auto.
 rewrite exp_prop2.
 rewrite exp_prop7. auto.
 have ->: inzp (asint a ^ (i + 1)) =  inzp (asint a * (asint a ^ i)).
 smt.
 have ->:  inzp (asint a * (asint a ^ i)) = (inzp (asint a)) * (inzp (asint a ^ i)).
 smt.
-rewrite - H1.
+rewrite - H2.
 have ->: asint (inzp (valR b) * inzp (valR b ^ i))
   = (asint (inzp (valR b)) * (asint  (inzp (valR b ^ i)))) %% P.
 smt.
 have ih :  ImplFp (b ^ i)  (inzp (valR b ^ i)).
-rewrite H1. apply H0. auto.
+rewrite H2. apply H0. auto. auto.
 rewrite - ih.
 have ->: asint (inzp (valR b)) = valR b. smt.
 have ->: valR (b *** (b ^ i)) =  (valR b) * (valR (b ^ i)) %%P.
@@ -60,11 +56,11 @@ qed.
 
 lemma exp_real_speacc :
  equiv[ Spec.expm ~ M8.expm_spec  : 
-    ImplFp arg{2}.`1 arg{1}.`1 /\ valR arg{2}.`2 = arg{1}.`2 ==> ImplFp res{2} res{1}].
+    ImplFp arg{2}.`1 arg{1}.`1 /\ valR arg{2}.`2 = arg{1}.`2 /\ valR x{2} < P ==> ImplFp res{2} res{1}].
 proc. 
 wp.  skip.  progress.
 apply kk.
-smt.
+smt. auto.
 auto.
 qed.
 
@@ -98,24 +94,27 @@ lemma exp_real_speac :
    /\  arg{1}.`1 = arg{2}.`2
    /\ bs2int arg{1}.`2 = valR arg{2}.`3
    /\ size arg{1}.`2 = Rsize
+   /\ valR x{1} < P
      ==> ={res}].
 transitivity M2.expm
-   (={arg} /\  0 < size arg{1}.`2 ==> ={res}) 
+   (={arg} /\  0 < size arg{1}.`2 /\   valR x{1} < P ==> ={res}) 
   (valR arg{2}.`1 = P 
    /\  arg{1}.`1 = arg{2}.`2
    /\ bs2int arg{1}.`2 = valR arg{2}.`3
    /\ size arg{1}.`2 = Rsize
+   /\ valR x{1} < P
      ==> ={res} ).
 progress.  exists arg{1}. progress. smt(Rsize_pos). auto.
 symmetry.
 conseq expm_correct.
 auto. auto.
 transitivity M3.expm
-  (={arg} /\  0 < size n{1} ==> ={res})
+  (={arg} /\  0 < size n{1}  ==> ={res})
   (valR arg{2}.`1 = P 
    /\  arg{1}.`1 = arg{2}.`2
    /\ bs2int arg{1}.`2 = valR arg{2}.`3
    /\ size arg{1}.`2 = Rsize
+   /\ valR x{1} < P
      ==> ={res} ).
 progress. 
 exists arg{1}. progress. smt(Rsize_pos). auto.
@@ -130,8 +129,8 @@ progress.
 exists (x{1} , ( n{2})). progress. 
 smt (bitsR_prop).
 smt(Rsize_pos). auto.
-conseq exp_3_4_1.  progress.
- 
+conseq exp_3_4_1.
+
 transitivity M5.expm
   (={arg} ==> ={res})
   (valR arg{2}.`1 = P 
@@ -155,30 +154,33 @@ lemma exp_pre_fin :
  equiv[ Spec.expm ~ M7(M).expm  : valR arg{2}.`1  = P 
    /\  ImplFp  arg{2}.`2 arg{1}.`1
    /\ arg{1}.`2 =  valR arg{2}.`3
+   /\ valR x{2} < P
      ==> ImplFp res{2} res{1} ].
 transitivity M8.expm_spec
-  (ImplFp arg{2}.`1 arg{1}.`1 /\ valR arg{2}.`2 = arg{1}.`2 ==> ImplFp res{2} res{1})
+  (ImplFp arg{2}.`1 arg{1}.`1 /\ valR arg{2}.`2 = arg{1}.`2 /\ valR x{2} < P ==> ImplFp res{2} res{1})
   (valR arg{2}.`1 = P 
    /\  arg{1}.`1 = arg{2}.`2
    /\  arg{1}.`2 =  arg{2}.`3
+   /\ valR x{1} < P
      ==> ={res}).
 progress. exists (x{2},n{2}). progress. smt(). auto.
 conseq exp_real_speacc.   
 transitivity M1.expm_spec  
-  (arg{1}.`1 = arg{2}.`1 /\ valR arg{1}.`2 = bs2int arg{2}.`2 ==> ={res})
+  (arg{1}.`1 = arg{2}.`1 /\ valR arg{1}.`2 = bs2int arg{2}.`2 /\ valR x{2} < P ==> ={res})
   (valR arg{2}.`1 = P 
    /\  arg{1}.`1 = arg{2}.`2
    /\ bs2int arg{1}.`2 = valR arg{2}.`3
    /\ size arg{1}.`2 = Rsize
+   /\ valR x{1} < P
      ==> ={res}).
 progress. 
 exists (x{1},  Rbits n{2}).
 progress.
 smt().
-smt(rsize_prop).
+smt(iii).
 smt().
 conseq exp_real_speac2. 
-conseq exp_real_speac.
+progress. conseq exp_real_speac.
 qed.
 
 end section.
