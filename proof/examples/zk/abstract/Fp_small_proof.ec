@@ -5,6 +5,7 @@ require import Fp_small.
 
 require import ZModP.
 
+
 import W64.
   
 op P: int.
@@ -193,27 +194,26 @@ import BS2Int.
 require Abstract_exp_proof_8.
 clone import Abstract_exp_proof_8 as ExpW64 with type R  <- W64.t,
                                                  op Rsize <- 64,
-                                                 op Rbits <- W64.w2bits,
-                                                 op bitsR <- W64.bits2w,
+                                                 op valR <= W64.to_uint,
+                                                 op of_int <= W64.of_int,
                                                  op P <- P
 proof*.
 realize Rsize_max. smt(). qed.
 realize Rsize_pos. smt(). qed.
 realize valr_pos. smt (@W64). qed.
-realize iii.  smt (@W64). qed.
+realize iii.  rewrite /Rbits. 
+progress. rewrite  size_int2bs. auto. qed.
 realize valr_ofint.  progress.
-progress. rewrite /valR. rewrite /of_int. 
-have ->: (w2bits ((bits2w (int2bs 64 x)))%W64) 
- = (int2bs 64 x). 
-rewrite bits2wK. 
-rewrite size_int2bs. auto. auto.
-rewrite int2bsK. auto. 
-progress. 
-have : P < W64.modulus. apply p_small1. simplify. 
+have ->: W64.to_uint (W64.of_int x) = x. 
+rewrite W64.to_uint_small.
+simplify.
+progress.
+have : P < W64.modulus. apply p_small1. simplify.
 smt(). auto.
+auto.
 qed.
 realize P_pos. apply p_small2. qed.
-realize ofint_valr. progress. smt. qed.
+realize ofint_valr. smt(@W64). qed.
 realize rbits_bitsr. smt. qed.
 realize bitsr_rbits. smt. qed.
 
@@ -223,6 +223,7 @@ realize bitsr_rbits. smt. qed.
 lemma qqq x : 0 < x < 64 => W64.one.[x] = false.
 progress. timeout 20. smt.
 qed.
+
 
 lemma exp_ithbit :
  equiv[ M.ith_bit ~ ASpecFp.ith_bit    : arg{2}.`1 = arg{1}.`1 /\  arg{2}.`2 = W64.to_uint arg{1}.`2 
@@ -330,8 +331,8 @@ progress. smt(). smt().
 proc. skip. progress. rewrite /ith_bitR. rewrite /ith_bitword64.
 rewrite /ith_bit. rewrite /as_w64. 
 rewrite /as_word.
-have -> : nth false (w2bits k{2}) ctr{2}  = k{2}.[ctr{2}].
-smt.
+rewrite /Rbits.
+smt(@BS2Int @W64).
 auto.
 symmetry.
 conseq exp_ithbit.
@@ -344,7 +345,7 @@ lemma fin_real_suff :
 proc. sim.
 seq  7  9 : (={x1,x2,x3,x4,d,ctr,n,m}). sim. wp.
 call (_:true). wp.  skip. progress. wp.  sp. call (_:true). wp.  skip. progress. skip.
-progress. rewrite /oneR. smt(@W64). smt(@W64). 
+progress. (* rewrite /oneR. smt(@W64). smt(@W64).  *)
 while (={x1,x2,x3,x4,d,ctr,n,m}). wp.
 call (_:true). wp. skip. progress.
 call (_:true). wp. skip. progress. wp.
@@ -378,17 +379,18 @@ have ->: inzp (asint a ^ (i + 1)) =  inzp (asint a * (asint a ^ i)).
 smt.
 have ->:  inzp (asint a * (asint a ^ i)) = (inzp (asint a)) * (inzp (asint a ^ i)).
 smt.
-rewrite - H2. smt.
-(* have ->: asint (inzp (valR b) * inzp (valR b ^ i)) *)
-(*   = (asint (inzp (valR b)) * (asint  (inzp (valR b ^ i)))) %% P. *)
-(* smt. *)
-(* have ih :  ImplFp (b ^ i)  (inzp (valR b ^ i)). *)
-(* rewrite H2. apply H0. auto. auto. *)
-(* rewrite - ih. *)
-(* have ->: asint (inzp (valR b)) = valR b. smt. *)
-(* have ->: valR (b *** (b ^ i)) =  (valR b) * (valR (b ^ i)) %%P. *)
-(* rewrite  to_uintP /=. done. *)
-(* auto. *)
+rewrite - H2. 
+have ->: asint (inzp (valR b) * inzp (valR b ^ i))
+  = (asint (inzp (valR b)) * (asint  (inzp (valR b ^ i)))) %% P.
+smt.
+have ih :  ImplFp (b ^ i)%ExpW64  (inzp (valR b ^ i)).
+smt.
+ (* apply H0. auto. auto. *)
+rewrite - ih.
+have ->: asint (inzp (valR b)) = valR b. smt.
+have ->: to_uint (b *** (b ^ i)%ExpW64) =  (valR b) * (valR (b ^ i))%ExpW64 %%P.
+rewrite  to_uintP /=. done.
+auto.
 qed.
 
 

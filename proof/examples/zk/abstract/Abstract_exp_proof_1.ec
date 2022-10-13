@@ -12,8 +12,11 @@ type bits = bool list.
 
 op P : int.
 op Rsize : int.
-op Rbits (r : R) : bits.
-op bitsR (r : bits) : R.
+op valR (x : R) : int.
+op of_int (x : int) : R.
+
+op Rbits (r : R) : bits = int2bs Rsize (valR r).
+op bitsR (r : bits) : R = of_int (bs2int r).
 
 module type BasicOps = {
   proc ith_bit (r : R, p : W64.t) : W64.t
@@ -31,8 +34,8 @@ op as_w64 (x : bool) : W64.t  = x ? W64.one : W64.zero.
 op ith_bitR (r : R) (x : int) : W64.t = as_w64 (ith_bit (Rbits r) x).
 op as_bool (x : W64.t) : bool  = (x = W64.one).
 op ith_bitlist (n : bits) (x : int)  : W64.t = as_w64 (ith_bit n x).
-op valR (x : R) : int = bs2int (Rbits x).
-op of_int (x : int) : R = bitsR (int2bs Rsize x).
+(* op valR (x : R) : int = bs2int (Rbits x). *)
+(* op of_int (x : int) : R = bitsR (int2bs Rsize x). *)
 op ImplR (p : R) (P : int) = (valR p = P).
 
 op oneR : R = of_int 1.
