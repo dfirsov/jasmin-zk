@@ -53,7 +53,7 @@ axiom Rsize_pos : 0 < Rsize.
 axiom P_prime: prime P.
 axiom valr_pos x : 0 <= valR x.
 axiom iii n : size (Rbits n) = Rsize.
-axiom valr_ofint x : x < P => valR (of_int x) = x.
+axiom valr_ofint x : 0 <= x < P => valR (of_int x) = x.
 axiom ofint_valr x : of_int (valR x) = x.
 axiom rbits_bitsr x : size x = Rsize => Rbits (bitsR x) = x.
 axiom bitsr_rbits x : bitsR (Rbits x) = x.
