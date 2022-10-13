@@ -276,6 +276,22 @@ qed.
 import W64.
 
 
+
+lemma exp_mulm2 :
+  equiv [ M.mulm ~ Spec.mul: arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 /\ ImplR p{1} P /\ valR a{1} < P /\ valR b{1} < P ==> ={res}  /\ valR res{1} < P ].
+symmetry.
+transitivity ASpecFp.mulm
+     (p{1} = P /\ ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplFp res{1} res{2})
+     (ImplWord p{2} P /\ ImplFp a{2} a{1} /\ ImplFp b{2} b{1} ==> ImplFp res{2} res{1}).
+progress.
+exists (inzp (valR a{1}), inzp (valR b{1}) ). progress.
+smt. smt.  smt. smt. smt. smt.
+proc.  wp. skip.  progress. 
+smt.
+progress.
+symmetry. apply mulm_spec.
+qed.
+
 require import List.
 lemma pre_fin_real : 
  equiv[ M1.expm_spec ~ M7(M).expm :
@@ -320,7 +336,7 @@ auto.
 symmetry.
 conseq exp_ithbit.
 progress.
-auto.
+conseq exp_mulm2. progress. 
 qed.
 
 lemma fin_real_suff : 
@@ -390,7 +406,7 @@ qed.
 lemma fin_real : 
  equiv[ ASpecFp.expm ~ M.expm :
             valR m{2} = P /\
-            ImplFp x{2} a{1} /\ to_uint b{1} = valR n{2}  ==>
+            ImplFp x{2} a{1} /\ n{2} = b{1}  ==>
     ImplFp res{2} res{1}].
 transitivity M1.expm_spec
   (ImplFp arg{2}.`1 arg{1}.`1 /\ bs2int arg{2}.`2  = to_uint arg{1}.`2 /\ valR x{2} < P ==> ImplFp res{2} res{1})
@@ -419,3 +435,7 @@ symmetry.
 conseq pre_fin_real.
 smt().
 qed.
+
+
+
+

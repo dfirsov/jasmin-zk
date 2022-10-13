@@ -11,6 +11,39 @@ import IterOp.
 
 module M6(M : BasicOps) = {
 
+  proc expm' (m : R, x:R, n:R) : R = {
+    
+    var x1, x2, x3, x4, bit : R;
+    var t1, t2, par, p, d : W64.t;
+    var ctr:int;
+
+    d <@ Spec.ith_bit(n,  (Rsize - 1));
+    (x1,x2,x3) <- (oneR,oneR,x);
+    x4 <@ M.mulm(m,x,x);
+
+    ctr <- Rsize - 1;
+    p <- d;
+    (x1,x3) <@ Spec.swapr(x1,x3,as_bool d);
+    (x2,x4) <@ Spec.swapr(x2,x4,as_bool d);
+
+    while (0 < ctr) {
+      ctr <- (ctr - 1);
+      p <- d;
+      t1 <@ Spec.ith_bit(n,  (ctr + 1));
+      t2 <@ Spec.ith_bit(n,  ctr);
+      d <-  d `|` t2;
+      par <- t1 `^` t2;
+      (x1,x2) <@ Spec.swapr(x1,x2,as_bool par);  
+      x1 <@ M.mulm(m,x1,x2); 
+      x2 <@ M.mulm(m,x2,x2);  
+      (x1,x3) <@ Spec.swapr(x1,x3,as_bool (d `^` p));
+      (x2,x4) <@ Spec.swapr(x2,x4,as_bool (d `^` p)); 
+    }
+    par <@ Spec.ith_bit(n, 0);
+    (x1,x2) <@ Spec.swapr (x2,x1,as_bool par);
+    return x1;
+  }  
+  
   proc expm (m : R, x:R, n:R) : R = {
     
     var x1, x2, x3, x4, bit : R;
@@ -58,50 +91,82 @@ declare axiom exp_ithbit :
  equiv[ M.ith_bit ~ Spec.ith_bit    : arg{2}.`1 = arg{1}.`1 /\  arg{2}.`2 = W64.to_uint arg{1}.`2 
     /\ 0 <= ctr{2} < Rsize ==> ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero) ].
 
-declare axiom exp_mulm : 
-  equiv [ M.mulm ~ Spec.mul: arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2  /\  ImplR p{1} P  ==> ={res} ].
+declare axiom exp_mulm :
+  equiv [ M.mulm ~ Spec.mul: arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 /\ ImplR p{1} P /\ valR a{1} < P /\ valR b{1} < P ==> ={res} /\ valR res{1} < P  ].
 
+
+declare axiom stateless_M (x y : glob M) : x = y.
     
-lemma exp_5_6 :
- equiv[ M5.expm ~ M6(M).expm  : arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\   ImplR m{2} P ==> ={res}].
+lemma exp_5_6' :
+ equiv[ M5.expm ~ M6(M).expm'  : arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\ valR x{1} < P /\   ImplR m{2} P ==> ={res}].
 symmetry.
 proc. 
+inline Spec.swapr.
+inline Spec.ith_bit.
 wp. 
-call exp_swap.
-call exp_ithbit.
+
 while ((d{2} = W64.one \/ d{2} = W64.zero) /\ ={ctr, n,  x1,x2,  x3, x4, d, p} /\ ImplR m{1} P /\  0 <= ctr{1} < Rsize
-  (* /\ valR x1{1} < P /\ valR x2{1} < P /\ valR x4{1} < P /\ valR x3{1} < P *)).
-call exp_swap.
-call exp_swap.
+  /\ valR x1{1} < P /\ valR x2{1} < P /\ valR x4{1} < P /\ valR x3{1} < P).
+wp.
  wp. 
 call exp_mulm.
 call exp_mulm. 
-call exp_swap.
 wp. 
-call exp_ithbit.
-call exp_ithbit.
 wp.
 skip. 
-progress. smt. smt. smt(). smt().  smt(@W64). 
-rewrite /as_word.
-rewrite /as_bool.  smt(@W64). smt(@W64).
+progress. smt. smt. smt(@W64). smt().  smt(@W64). smt(@W64). smt(@W64). smt(@W64). smt(@W64). 
 wp. 
-call exp_swap.
-call exp_swap.
-wp.
 call exp_mulm. 
 wp.
-call exp_ithbit. 
 skip.
-progress.
-rewrite /as_word.
-rewrite /as_bool.
-smt. smt(Rsize_pos). smt().
-rewrite /as_w64.
-rewrite /as_bool.
-smt().
-smt().
-smt().
+progress. smt. smt. smt.  smt. smt. smt. smt. 
+qed.
+
+
+lemma exp_5_6'' :
+ equiv[ M6(M).expm' ~ M6(M).expm  : ={arg, glob M} ==> ={res}].
+proc.
+wp.
+symmetry.
+call exp_swap.
+wp. 
+call exp_ithbit.
+while ((d{2} = W64.one \/ d{2} = W64.zero) /\ ={m, ctr, n,  x1,x2,  x3, x4, d, p, glob M} /\  0 <= ctr{1} < Rsize).
+call exp_swap.
+wp.
+call exp_swap. wp.
+call (_:true).
+call (_:true).
+call exp_swap. wp.
+call exp_ithbit.
+call exp_ithbit.
+wp. skip. progress. 
+smt. smt. smt. smt. smt (@W64).
+smt (stateless_M).
+smt (@W64). smt (@W64).
+smt (stateless_M).
+call exp_swap. wp.
+call exp_swap. wp.
+call (_:true).
+wp. 
+call exp_ithbit.
+skip. progress.
+smt.
+smt. smt. 
+smt (stateless_M).
+smt. smt (stateless_M). smt.
+smt ().
+qed.
+
+
+lemma exp_5_6 :
+ equiv[ M5.expm ~ M6(M).expm  : arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\ valR x{1} < P /\  ImplR m{2} P ==> ={res}].
+transitivity M6(M).expm'
+  (arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\ valR x{1} < P /\   ImplR m{2} P ==> ={res})
+  (={arg, glob M} ==> ={res}).
+progress. smt(). smt().
+conseq exp_5_6'.
+conseq exp_5_6''.
 qed.
 
 end section.
