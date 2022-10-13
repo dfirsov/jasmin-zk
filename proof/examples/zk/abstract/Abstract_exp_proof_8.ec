@@ -8,6 +8,7 @@ import BS2Int.
 require Abstract_exp_proof_7.
 clone include Abstract_exp_proof_7.
 
+
 import IterOp.
 
 
@@ -29,6 +30,7 @@ qed.
 
 section.
 declare module M <: BasicOps.
+
 
 declare axiom exp_swap :
  equiv[ M.swapr ~ Spec.swapr    : arg{2}.`1 = arg{1}.`1 /\ arg{2}.`2 = arg{1}.`2 /\   arg{1}.`3 = as_w64 arg{2}.`3

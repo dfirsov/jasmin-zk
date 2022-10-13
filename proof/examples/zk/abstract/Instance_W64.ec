@@ -28,12 +28,8 @@ realize valr_ofint.  progress.
 progress. rewrite /valR. rewrite /of_int. 
 have ->: (w2bits ((bits2w (int2bs 64 x)))%W64) 
  = (int2bs 64 x). 
-
-
 rewrite bits2wK. 
-
 rewrite size_int2bs. auto. auto.
-
 rewrite int2bsK. auto. 
 progress. 
 have : P < W64.modulus. apply P_small2.
