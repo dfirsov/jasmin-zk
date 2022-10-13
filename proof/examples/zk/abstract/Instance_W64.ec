@@ -148,7 +148,7 @@ qed.
 lemma pre_fin_real : 
  equiv[ Spec.expm ~ M7(M).expm :
             valR m{2} = P /\
-            ImplFp x{2} a{1} /\ b{1} = valR n{2} /\ valR x{2} < P ==>
+            ImplFp x{2} a{1} /\ b{1} = valR n{2}  ==>
             ImplFp res{2} res{1}].
 apply (exp_pre_fin M).
 symmetry.
@@ -202,11 +202,11 @@ qed.
 lemma fin_real : 
  equiv[ Spec.expm ~ M.expm :
             valR m{2} = P /\
-            ImplFp x{2} a{1} /\ b{1} = valR n{2} /\ valR x{2} < P ==>
+            ImplFp x{2} a{1} /\ b{1} = valR n{2}  ==>
             ImplFp res{2} res{1}].
 transitivity M7(M).expm
   (valR m{2} = P /\
-            ImplFp x{2} a{1} /\ b{1} = valR n{2} /\ valR x{2} < P ==>
+            ImplFp x{2} a{1} /\ b{1} = valR n{2}  ==>
             ImplFp res{2} res{1})
  (={arg} ==> ={res}).
 progress. smt(). smt().

@@ -50,7 +50,7 @@ qed.
 
 axiom Rsize_max : Rsize < W64.max_uint.
 axiom Rsize_pos : 0 < Rsize.
-axiom P_prime: prime P.
+axiom P_pos: 1 < P.
 axiom valr_pos x : 0 <= valR x.
 axiom iii n : size (Rbits n) = Rsize.
 axiom valr_ofint x : 0 <= x < P => valR (of_int x) = x.
@@ -66,6 +66,8 @@ qed.
     
 lemma exp_prop7 (a b : R) :  a *** b = b *** a.
 proof. smt. qed.
+
+
 
 lemma exp_prop6 (a b c : R) :  (a *** b) *** c = a *** (b *** c).
 proof. rewrite /( *** ). 
@@ -171,7 +173,7 @@ smt (@IterOp). qed.
 lemma mult_valr a b : valR (a *** b)  < P.
 rewrite /( *** ).
 have : (valR a * valR b %% P) < P. smt.
-progress. smt (valr_ofint).
+progress. smt. 
 qed.
 
 
@@ -246,39 +248,39 @@ qed.
 
 
 (* Embedding into ring theory *)
-require ZModP.
-clone import ZModP.ZModField as Zp with
-        op p <= P
-        rename "zmod" as "zp"
-        proof prime_p by exact P_prime.
+(* require ZModP. *)
+(* clone import ZModP.ZModField as Zp with *)
+(*         op p <= P *)
+(*         rename "zmod" as "zp" *)
+(*         proof prime_p by exact P_prime. *)
 
-op (^^) (x : zp)(n : int) : zp = inzp (asint x ^ n).
+(* op (^^) (x : zp)(n : int) : zp = inzp (asint x ^ n). *)
 
-abbrev ImplFp x y = valR x = asint y.
+(* abbrev ImplFp x y = valR x = asint y. *)
 
 module Spec = {
-  proc ith_bit(r : R, ctr : int) = { 
+  proc ith_bit(r : R, ctr : int) = {
     return (ith_bitR r ctr);
   }
-  proc mul(a : R, b : R) = { 
+  proc mul(a : R, b : R) = {
     return (a *** b);
   }
 
-  proc swapr(a : R, b : R, c : bool) = { 
+  proc swapr(a : R, b : R, c : bool) = {
     return c ? (b,a) : (a, b);
   }
 
- proc mulm(a b: zp): zp = {
-    var r;
-    r <- a * b;
-    return r;
- }
+ (* proc mulm(a b: zp): zp = { *)
+ (*    var r; *)
+ (*    r <- a * b; *)
+ (*    return r; *)
+ (* } *)
 
- proc expm(a : zp,  b: int): zp = {
-    var r;
-    r <- a ^^ b;
-    return r;
- }
+ (* proc expm(a : zp,  b: int): zp = { *)
+ (*    var r; *)
+ (*    r <- a ^^ b; *)
+ (*    return r; *)
+ (* } *)
 
 }.
 
