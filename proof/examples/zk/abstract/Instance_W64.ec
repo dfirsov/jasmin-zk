@@ -7,7 +7,7 @@ require import BitEncoding.
 import BS2Int.
 
 op P : int.
-axiom P_small1 : 0 <= P.
+axiom P_small1 : 1 < P.
 axiom P_small2 : P < W64.modulus.
 axiom P_prime : prime P.
 
@@ -27,30 +27,32 @@ realize iii.  smt (@W64). qed.
 realize valr_ofint.  progress.
 progress. rewrite /valR. rewrite /of_int. 
 have ->: (w2bits ((bits2w (int2bs 64 x)))%W64) 
- = (int2bs 64 x). smt. 
+ = (int2bs 64 x). 
+
+
+rewrite bits2wK. 
+
+rewrite size_int2bs. auto. auto.
+
 rewrite int2bsK. auto. 
 progress. 
 have : P < W64.modulus. apply P_small2.
 simplify. smt(). auto.
 qed.
-realize P_prime. apply P_prime. qed.
+realize P_pos. apply P_small1. qed.
 realize ofint_valr. progress. smt. qed.
 realize rbits_bitsr. smt. qed.
 realize bitsr_rbits. smt. qed.
 
-(* not ours *)
-realize Zp.Sub.insubN. admitted.
-realize Zp.Sub.insubT.  admitted.
-realize Zp.Sub.valP. admitted.
-realize Zp.Sub.valK. admitted.
-realize Zp.Sub.insubW. admitted.
+  
 
-import Zp.
 (* require import Fp_small_proof. *)
 op as_word (x : bool) : W64.t  = x ? W64.one : W64.zero.
 op ith_bitword64 (n : W64.t) (x : int)  : W64.t = as_word (n.[x]).
+
+
+import Zp.
 op (^) (x : zp)(n : W64.t) : zp = inzp (asint x ^ W64.to_uint n).
-print t.
 
 module ASpecFp = {
 
