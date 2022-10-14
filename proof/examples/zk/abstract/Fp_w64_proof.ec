@@ -1,7 +1,7 @@
 require import AllCore IntDiv.
 require import JModel.
 
-require import Fp_small.
+require import Fp_w64.
 
 require import ZModP.
 
@@ -75,7 +75,6 @@ module ASpecFp = {
 
 abbrev ImplWord (x : t) (y : int) = W64.to_uint x = y.
 abbrev ImplFp (a : t) (b : zp) = ImplWord a (asint b).
-
 
 
 
