@@ -41,6 +41,8 @@ op ImplR (p : R) (P : int) = (valR p = P).
 op oneR : R = of_int 1.
 
 op ( *** ) (a b : R) : R = of_int (valR a * valR b %% P).
+
+
 op (^) (x : R) (n : int) : R = if n < 0 then iterop (-n) ( *** ) x oneR else iterop n ( *** ) x oneR.
 
 
@@ -316,7 +318,6 @@ lemma hast6  : forall xs (x : int), ! (has_true xs) => x ^ (bs2int xs) = 1.
 progress. rewrite hast5. auto.
 smt.
 qed.
-
 
 
 module M1 = {

@@ -1,0 +1,20 @@
+/* i-th bit from 256bit word */
+inline fn ith_bit(stack u64[4] kk, reg u64 ctr) -> reg u64
+{
+  reg u64 p bit;
+  stack u8[32] k;
+  k = kk;
+
+  p = ctr;
+  p >>= 3;
+  bit = (64u) k[(int) p];
+
+  p = ctr;
+  p &= 7;
+  bit >>= p;
+
+  bit &= 1;
+
+  return bit;
+}
+

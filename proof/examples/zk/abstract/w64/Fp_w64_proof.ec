@@ -169,6 +169,8 @@ smt.
 done.
 qed.
 
+
+
 equiv mulm_spec:
  M.mulm ~ ASpecFp.mulm:
   ImplWord p{1} P /\ ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplFp res{1} res{2}.
@@ -299,6 +301,7 @@ lemma pre_fin_real :
             ={x} /\
             bs2int n{1} = valR n{2} /\ (size n{1}) = 64 /\ valR x{1} < P ==>
             ={res}].
+
 apply (exp_real_speac M).
 symmetry.
 transitivity ASpecFp.swapw 
@@ -401,6 +404,7 @@ proc.
 wp.  skip.  progress.
 rewrite  (kk (bs2int n{2}) _ a{1}). smt. auto. auto. smt.
 qed.
+
 
 
 

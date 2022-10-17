@@ -1,0 +1,19 @@
+inline fn swapr(stack u64[4] x, stack u64[4] y, reg u64 swap) -> (stack u64[4] , stack u64[4]) {
+
+  reg u64 tmp1, tmp2, mask;
+  inline int i;
+
+  mask = swap * 0xffffffffffffffff;
+
+  for i = 0 to 4 {
+    tmp1   = x[i];
+    tmp1  ^= y[i];
+    tmp1  &= mask;
+    x[i]  ^= tmp1;
+    tmp2   = y[i];
+    tmp2  ^= tmp1;
+    y[i] = tmp2;
+  }
+  return x, y;
+}
+
