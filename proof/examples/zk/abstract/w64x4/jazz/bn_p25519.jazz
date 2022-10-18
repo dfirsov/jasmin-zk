@@ -210,7 +210,15 @@ fn _mulm
 /*
   Multiplies two 4-limb numbers modulo p25519 (result in range [0..P[)
 */
-inline fn mulm(stack u64[nlimbs] a, reg u64[nlimbs] b) -> reg u64[nlimbs] {
+inline fn mulm2(stack u64[nlimbs] a, reg u64[nlimbs] b) -> reg u64[nlimbs] {
+  reg u64 g0 g1 g2 g3;
+  g0, g1, g2, g3 = r2x(b);
+  g0, g1, g2, g3 = _mulm(a, g0, g1, g2, g3);
+  b = x2r(g0, g1, g2, g3);
+  return b;
+}
+
+inline fn mulm(stack u64[nlimbs] p, stack u64[nlimbs] a, reg u64[nlimbs] b) -> reg u64[nlimbs] {
   reg u64 g0 g1 g2 g3;
   g0, g1, g2, g3 = r2x(b);
   g0, g1, g2, g3 = _mulm(a, g0, g1, g2, g3);
@@ -288,6 +296,49 @@ inline fn subm( reg u64[nlimbs] a b ) -> reg u64[nlimbs]
   return a;
 }
 
+
+inline fn expm(reg u64[nlimbs] m x n) -> (reg u64[nlimbs])
+{
+  reg u64 ctr bit d p par t1 t2 cbit lbit q;
+  reg u64[nlimbs] x1 x2 x3 x4;
+  ctr = nlimbs * 64 - 1;
+  x1[0] = 1; x1[1] = 0; x1[2] = 0; x1[3] = 0;
+  x2[0] = 1; x2[1] = 0; x2[2] = 0; x2[3] = 0;
+  d = ith_bit(n,ctr);
+
+  x3 = x;
+  x4 = mulm(m,x,x);
+  p = d;
+  (x1,x3) = swapr(x1,x3,d);
+  (x2,x4) = swapr(x2,x4,d);
+
+while(ctr > 0){
+   lbit = ctr;
+   ctr = ctr - 1;
+
+   t1 =  ith_bit(n,lbit);
+   t2 =  ith_bit(n,ctr);
+   p = d; 
+   q = d;
+   d = d | t2;
+   par = t1 ^ t2;
+   (x1,x2) = swapr(x1,x2,par);
+   x1 = mulm(m,x1,x2);
+   x2 = mulm(m,x2,x2);
+   q |= t2;
+   cbit = q ^ p;
+   (x1,x3) = swapr(x1,x3,cbit);
+   (x2,x4) = swapr(x2,x4,cbit); 
+
+} 
+
+  par = ith_bit(n,0);
+  (x1,x2) = swapr(x2,x1,par);
+  
+  return x1;
+}
+
+
 /*
 inline fn __submodp25519( reg u64 rp fp gp )
 {
@@ -331,7 +382,7 @@ export fn __mulm( reg u64 rp ap bp ) {
   a_s = a;
   b = bn_load(bp);
   rp2 = rp;
-  a = mulm(a_s, b);
+  a = mulm2(a_s, b);
   rp = rp2;
   bn_store(rp, a);
 }
@@ -364,7 +415,8 @@ inline fn toEC()
   /* normalized versions */
   r = addm(a, b);
   r = subm(a, b);
-  r = mulm(a, b);
+  r = mulm(a,a, b);
+  r = expm(a,a, b);
   x = ith_bit(a, x);
   a = swapr(a, a, x);
   x = bn_eq(a, b);

@@ -1,7 +1,7 @@
 require import AllCore IntDiv CoreMap List Distr.
 from Jasmin require import JModel.
 
-require import Array4 Array8 Array32.
+require import Array4 Array8.
 require import WArray32 WArray64.
 
 
@@ -242,21 +242,30 @@ module M = {
     return (_zero, of_0, cf, r);
   }
   
+  proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
+    
+    var bit:W64.t;
+    var p:W64.t;
+    
+    bit <- k;
+    p <- ctr;
+    p <- (p `&` (W64.of_int 63));
+    bit <- (bit `>>` (truncateu8 p));
+    bit <- (bit `&` (W64.of_int 1));
+    return (bit);
+  }
+  
   proc ith_bit (kk:W64.t Array4.t, ctr:W64.t) : W64.t = {
     
     var bit:W64.t;
-    var k:W8.t Array32.t;
-    var p:W64.t;
-    k <- witness;
-    k <-
-    (Array32.init (fun i => get8 (WArray32.init64 (fun i => kk.[i])) i));
-    p <- ctr;
-    p <- (p `>>` (W8.of_int 3));
-    bit <- (zeroextu64 k.[(W64.to_uint p)]);
-    p <- ctr;
-    p <- (p `&` (W64.of_int 7));
-    bit <- (bit `>>` (truncateu8 p));
-    bit <- (bit `&` (W64.of_int 1));
+    var c1:W64.t;
+    var c2:W64.t;
+    var r:W64.t;
+    
+    c1 <- (ctr `>>` (W8.of_int 6));
+    c2 <- ((W64.of_int 256) - (c1 * (W64.of_int 64)));
+    r <- kk.[(W64.to_uint c1)];
+    bit <@ ith_bit64 (r, c2);
     return (bit);
   }
   
@@ -423,7 +432,8 @@ module M = {
     return (g0, g1, g2, g3);
   }
   
-  proc mulm (a:W64.t Array4.t, b:W64.t Array4.t) : W64.t Array4.t = {
+  proc mulm (p:W64.t Array4.t, a:W64.t Array4.t, b:W64.t Array4.t) : 
+  W64.t Array4.t = {
     
     var g0:W64.t;
     var g1:W64.t;
@@ -504,6 +514,64 @@ module M = {
     return (a);
   }
   
+  proc expm (m:W64.t Array4.t, x:W64.t Array4.t, n:W64.t Array4.t) : 
+  W64.t Array4.t = {
+    
+    var x1:W64.t Array4.t;
+    var ctr:W64.t;
+    var x2:W64.t Array4.t;
+    var d:W64.t;
+    var x3:W64.t Array4.t;
+    var x4:W64.t Array4.t;
+    var p:W64.t;
+    var lbit:W64.t;
+    var t1:W64.t;
+    var t2:W64.t;
+    var q:W64.t;
+    var par:W64.t;
+    var cbit:W64.t;
+    x1 <- witness;
+    x2 <- witness;
+    x3 <- witness;
+    x4 <- witness;
+    ctr <- (W64.of_int ((4 * 64) - 1));
+    x1.[0] <- (W64.of_int 1);
+    x1.[1] <- (W64.of_int 0);
+    x1.[2] <- (W64.of_int 0);
+    x1.[3] <- (W64.of_int 0);
+    x2.[0] <- (W64.of_int 1);
+    x2.[1] <- (W64.of_int 0);
+    x2.[2] <- (W64.of_int 0);
+    x2.[3] <- (W64.of_int 0);
+    d <@ ith_bit (n, ctr);
+    x3 <- copy_64 x;
+    x4 <@ mulm (m, x, x);
+    p <- d;
+    (x1, x3) <@ swapr (x1, x3, d);
+    (x2, x4) <@ swapr (x2, x4, d);
+    
+    while (((W64.of_int 0) \ult ctr)) {
+      lbit <- ctr;
+      ctr <- (ctr - (W64.of_int 1));
+      t1 <@ ith_bit (n, lbit);
+      t2 <@ ith_bit (n, ctr);
+      p <- d;
+      q <- d;
+      d <- (d `|` t2);
+      par <- (t1 `^` t2);
+      (x1, x2) <@ swapr (x1, x2, par);
+      x1 <@ mulm (m, x1, x2);
+      x2 <@ mulm (m, x2, x2);
+      q <- (q `|` t2);
+      cbit <- (q `^` p);
+      (x1, x3) <@ swapr (x1, x3, cbit);
+      (x2, x4) <@ swapr (x2, x4, cbit);
+    }
+    par <@ ith_bit (n, (W64.of_int 0));
+    (x1, x2) <@ swapr (x2, x1, par);
+    return (x1);
+  }
+  
   proc toEC () : unit = {
     
     var a:W64.t Array4.t;
@@ -518,7 +586,8 @@ module M = {
     r <- witness;
     r <@ addm (a, b);
     r <@ subm (a, b);
-    r <@ mulm (a, b);
+    r <@ mulm (a, a, b);
+    r <@ expm (a, a, b);
     x <@ ith_bit (a, x);
     ( _0, a) <@ swapr (a, a, x);
     x <@ bn_eq (a, b);

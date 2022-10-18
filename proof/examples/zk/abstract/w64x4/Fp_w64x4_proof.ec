@@ -632,13 +632,192 @@ qed.
 
 
 
-require import Muarer. 
+
+
+require import WArray32.
+require import Array32.
+require import Ithbit.
+
+
+lemma qqq x : 0 < x < 64 => W64.one.[x] = false.
+progress. timeout 20. smt.
+qed.
+
+
+
+lemma exp_ithbit a b :
+ phoare[ MMM.ith_bit64   : arg = (a,b) /\
+     0 <= to_uint ctr < 64 ==> res = ith_bitword64 a (to_uint b) ] = 1%r.
+proc. wp.  skip. progress.
+rewrite /ith_bitword64.
+rewrite /as_word.
+rewrite /truncateu8.
+have -> : (to_uint (ctr{hr} `&` (of_int 63)%W64))
+  = (to_uint ctr{hr} %% 2 ^ 6).
+rewrite - to_uint_and_mod. auto.
+smt. simplify.
+have -> : (of_int (to_uint ctr{hr} %% 64))%W8 = (of_int (to_uint ctr{hr}))%W8.
+smt.
+rewrite /(`>>`).
+rewrite /(`>>>`).
+rewrite /W64.(`&`).
+rewrite /map2.
+case (k{hr}.[to_uint ctr{hr}]).
+progress.
+apply W64.ext_eq.
+progress.
+rewrite initiE. auto.
+simplify.
+rewrite initiE. auto.
+simplify.
+case (x = 0).
+progress. smt.
+progress.
+have -> : W64.one.[x] = false.
+smt (qqq).
+auto.
+progress.
+apply W64.ext_eq.
+progress.
+rewrite initiE. auto.
+simplify.
+rewrite initiE. auto.
+simplify.
+case (x = 0).
+progress. smt.
+progress.
+smt (qqq).
+qed.
+
+
+
+require import StdBigop.
+import Bigint.
+import BIA.
+
+lemma ith_bit_lemma :
+      equiv[ MMM.ith_bit ~ Spec.ith_bit : arg{1}.`1 = arg{2}.`1 /\  W64.to_uint arg{1}.`2 = arg{2}.`2 /\
+ 0 <= ctr{2} && ctr{2} < 256 ==>
+              ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)].
+proc. 
+
+seq 3 0 : (to_uint c1{1} = (to_uint ctr{1} %/ 64) /\ to_uint c2{1} = (to_uint ctr{1} %% 64) /\ to_uint ctr{1} = ctr{2}
+  /\ r{1} = kk{1}.[(to_uint ctr{1} %/ 64)]%Array4 /\ r{2} = kk{1} /\ 0 <= ctr{2} && ctr{2} < 256 ).
+wp.  skip. progress. 
+smt. 
+rewrite modzE. 
+have <-: to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64. smt.
+rewrite to_uintB.
+smt.
+smt.
+smt.
+exists* r{1}, c2{1}. elim*. progress.
+call {1} (exp_ithbit r_L c2_L). skip.
+progress. smt. smt. 
+
+rewrite /ith_bitword64.  rewrite H0. 
+rewrite /ith_bitR. rewrite /Rbits. rewrite /valR.
+rewrite /ith_bit.
+
+rewrite /as_word.
+rewrite /as_w64.
+
+
+have ->: (kk{1}.[to_uint ctr{1} %/ 64])%Array4.[to_uint ctr{1} %% 64] 
+  = nth false (int2bs 256 ((valR kk{1}))%W64x4) (to_uint ctr{1}) .
+
+rewrite - get_w2bits.
+rewrite - get_to_list.
+
+have -> : (W64.w2bits (nth witness ((to_list kk{1}))%Array4 (to_uint ctr{1} %/ 64))) 
+ = ((nth witness (map W64.w2bits (to_list kk{1}))%Array4 (to_uint ctr{1} %/ 64))).
+
+rewrite - (nth_map witness witness W64.w2bits). progress.   smt. smt.
+auto.
+
+
+have -> : (nth witness (map W64.w2bits ((to_list kk{1}))%Array4)
+     (to_uint ctr{1} %/ 64))
+ = (nth [] (map W64.w2bits ((to_list kk{1}))%Array4)
+     (to_uint ctr{1} %/ 64)). 
+rewrite (nth_change_dfl [] witness). progress.  smt. smt. auto.
+rewrite - (BitChunking.nth_flatten false 64 (map W64.w2bits ((to_list kk{1}))%Array4) (to_uint ctr{1})).
+
+rewrite  List.allP. progress. timeout 5. 
+print hasP.
+print has.
+search mem map.
+print mapP.
+have : exists z, z \in ((to_list kk{1}))%Array4 /\ x = W64.w2bits z.
+apply mapP. auto. elim. progress.
+have ->: (flatten (map W64.w2bits ((to_list kk{1}))%Array4))  = (int2bs 256 ((valR kk{1}))%W64x4).
+have -> : (valR kk{1})%W64x4 = bs2int (flatten (map W64.w2bits ((to_list kk{1}))%Array4)). 
+rewrite /bnk. 
+search big.
+have ->: range 0 4 = [0;1;2;3].  rewrite range_ltn. auto.
+rewrite range_ltn. auto. rewrite range_ltn. auto. 
+simplify. rewrite range_ltn. auto. 
+simplify. rewrite range_geq. auto. auto.
+
+
+rewrite big_consT.
+rewrite big_consT.
+rewrite big_consT.
+rewrite big_consT. 
+rewrite big_nil.
+rewrite /to_list.
+search mkseq.
+print mkseqSr.
+have ->: 4 = 0 + 1 + 1 + 1 + 1 . smt().
+rewrite   mkseqS. auto.
+rewrite   mkseqS. auto.
+rewrite   mkseqS. auto.
+rewrite   mkseqS. auto.
+search mkseq.
+rewrite mkseq0. simplify.
+search flatten.
+rewrite flatten_cons.
+rewrite flatten_cons.
+rewrite flatten_cons.
+rewrite flatten_cons. 
+rewrite flatten_nil. 
+search (++).
+rewrite cats0.
+search bs2int.
+rewrite bs2int_cat.
+rewrite bs2int_cat.
+rewrite bs2int_cat. simplify.
+smt.
+have ->: 256 = size (flatten (map W64.w2bits ((to_list kk{1}))%Array4)). 
+
+rewrite /to_list.
+have ->: 4 = 0 + 1 + 1 + 1 + 1 . smt().
+rewrite   mkseqS. auto.
+rewrite   mkseqS. auto.
+rewrite   mkseqS. auto.
+rewrite   mkseqS. auto.
+rewrite mkseq0. simplify.
+rewrite flatten_cons.
+rewrite flatten_cons.
+rewrite flatten_cons.
+rewrite flatten_cons. 
+rewrite flatten_nil. 
+rewrite size_cat.
+rewrite size_cat.
+rewrite size_cat.
+rewrite size_cat.
+simplify. auto.
+rewrite  bs2intK. auto. auto.
+auto. smt().
+qed.
+
+
 
 lemma ones64 : (2^ 64  - 1)  = 18446744073709551615. smt(). qed.
 
 print Array4.
 lemma swap_lemma :
-      equiv[ MMM.swapr ~ Spec.swapr :
+      equiv[ M.swapr ~ Spec.swapr :
               a{2} = x{1} /\ b{2} = y{1} /\ swap_0{1} = as_w64 c{2} ==> ={res}].
 proc.  simplify.
 seq 2 0 : (i{1} = 0 /\ a{2} = x{1} /\ b{2} = y{1} /\ swap_0{1} = as_w64 c{2} /\ 
@@ -700,30 +879,23 @@ smt. smt. smt.
 skip. progress. smt().   smt().   smt(). 
 case (c{2} = false). progress.  
 
-apply ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
-apply ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array4.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array4.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
 progress. have ->: c{2} = true. smt(). simplify.
 progress. 
-apply ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
-apply ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
-qed.
-
-
-lemma ith_bit_lemma :
-      equiv[ MMM.ith_bit ~ Spec.ith_bit :
-              r{2} = kk{1} /\
-              ctr{2} = p{1} /\ 0 <= ctr{2} && ctr{2} < 256 ==>
-              ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)].
-proc.  wp. skip.
-progress. rewrite /ith_bitR. rewrite /ith_bit. rewrite /Rbits.  rewrite /valR. rewrite /as_w64.
-rewrite /zeroextu64. smt.
-smt.
+apply Array4.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array4.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
 qed.
 
 
 
-lemma exp_mulm2 :
-  equiv [ M.mulm ~ Spec.mul: arg{1}.`1 = arg{2}.`1 /\ arg{1}.`2 = arg{2}.`2 /\ W64x4.valR a{1} < P /\ W64x4.valR b{1} < P ==> ={res}  /\ W64x4.valR res{1} < P ].
+
+lemma expm_mulm_lemma : 
+        equiv[ M.mulm ~ Spec.mul :
+              ={a} /\
+              ={b} /\
+              ImplR p{1} P /\ (valR a{1})%W64x4 < P /\ (valR b{1})%W64x4 < P ==>
+              ={res} /\ (valR res{1})%W64x4 < P].
 symmetry.
 transitivity ASpecFp.mulm
      (ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplFp res{1} res{2})
@@ -743,3 +915,17 @@ auto.
 symmetry. apply mulm_spec.
 qed.
 
+
+
+
+lemma expm_quasi : 
+        equiv[ M1.expm_spec ~ M7(M).expm :
+              ImplZZ m{2} P /\
+              ={x} /\
+              bs2int n{1} = (valR n{2})%W64x4 /\
+              size n{1} = 256 /\ (valR x{1})%W64x4 < P ==> ={res}].
+apply (exp_real_speac M).
+conseq swap_lemma. smt(). smt().
+conseq ith_bit_lemma. progress. rewrite H.  auto. smt().
+conseq expm_mulm_lemma. smt(). smt(). auto.
+qed.

@@ -263,6 +263,10 @@ qed.
 
 (* abbrev ImplFp x y = valR x = asint y. *)
 
+
+op as_word (x : bool) : W64.t  = x ? W64.one : W64.zero.
+op ith_bitword64 (n : W64.t) (x : int)  : W64.t = as_word (n.[x]).
+
 module Spec = {
   proc ith_bit(r : R, ctr : int) = {
     return (ith_bitR r ctr);
@@ -270,6 +274,12 @@ module Spec = {
   proc mul(a : R, b : R) = {
     return (a *** b);
   }
+
+
+  proc ith_bit64 (k:W64.t, ctr:int) : W64.t = {
+    return ith_bitword64 k ctr;
+  }
+
 
   proc swapr(a : R, b : R, c : bool) = {
     return c ? (b,a) : (a, b);
