@@ -636,7 +636,6 @@ qed.
 
 require import WArray32.
 require import Array32.
-require import Ithbit.
 
 
 lemma qqq x : 0 < x < 64 => W64.one.[x] = false.

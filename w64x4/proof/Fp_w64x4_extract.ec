@@ -1,7 +1,7 @@
 require import AllCore IntDiv CoreMap List Distr.
 require import JModel.
 
-require import Array4 Array8 Array32.
+require import Array4 Array8.
 require import WArray32 WArray64.
 
 
@@ -242,8 +242,6 @@ module M = {
     return (_zero, of_0, cf, r);
   }
   
-
-
   proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
     
     var bit:W64.t;
@@ -270,8 +268,6 @@ module M = {
     bit <@ ith_bit64 (r, c2);
     return (bit);
   }
-  
-
   
   proc swapr (x:W64.t Array4.t, y:W64.t Array4.t, swap_0:W64.t) : W64.t Array4.t *
                                                                   W64.t Array4.t = {
@@ -339,7 +335,7 @@ module M = {
     var twop63:W64.t;
     var cf:bool;
     t <- witness;
-    t <- x;
+    t <-  x;
     twop63 <- (W64.of_int 1);
     twop63 <- (twop63 `<<` (W8.of_int 63));
     (aux, aux_0) <- addc_64 t.[0] (W64.of_int 19) false;
@@ -548,7 +544,7 @@ module M = {
     x2.[2] <- (W64.of_int 0);
     x2.[3] <- (W64.of_int 0);
     d <@ ith_bit (n, ctr);
-    x3 <- x;
+    x3 <-  x;
     x4 <@ mulm (m, x, x);
     p <- d;
     (x1, x3) <@ swapr (x1, x3, d);
