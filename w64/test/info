@@ -1,0 +1,1 @@
+gcc test_fp_small.c Fp_small.s -o main

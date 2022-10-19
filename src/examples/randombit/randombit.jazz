@@ -1,9 +1,0 @@
-require "randombit.jinc"
-
-export fn randombit() -> reg u8
-{
-  reg u8 b;
-  b = __randombit();
-  return b;
-}
-

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+timeout=20
+
+check() {
+  echo checking $1;
+  if easycrypt -I .  -I /home/aneto/Desktop/jasmin/playground/experiment2/eclib -I /home/aneto/Desktop/jasmin/playground/experiment2/eclib_extra -timeout $timeout $1;
+  then echo passed: $1;
+       echo "";
+  else echo failed: $1;
+       echo "";
+       echo "skipping remaining scripts";
+  exit 1;
+  fi;
+}
+
+# list of files to check
+
+check ./abstract_montgomery_ladder/Abstract_exp_proof_1.ec 
+check ./abstract_montgomery_ladder/Abstract_exp_proof_2.ec 
+check ./abstract_montgomery_ladder/Abstract_exp_proof_3.ec 
+check ./abstract_montgomery_ladder/Abstract_exp_proof_4.ec 
+check ./abstract_montgomery_ladder/Abstract_exp_proof_5.ec 
+check ./abstract_montgomery_ladder/Abstract_exp_proof_6.ec 
+check ./abstract_montgomery_ladder/Abstract_exp_proof_7.ec 
+check ./abstract_montgomery_ladder/Abstract_exp_proof_8.ec 
+
+
+echo "DONE";

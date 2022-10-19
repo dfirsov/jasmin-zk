@@ -1,8 +1,0 @@
-multi-limb addition and mult exists in `high-assurance-crypto`
-
-   look at  (ignore 25519 stuff)
-     - Jasmin implementation: Maurer5_jazz.jazz
-     - EC extraction: Maurer5_jazz.ec
-     - EC proof of correctness: Bn_p25519_proof.ec
-
-multi-limb exponentiation does not exist 
