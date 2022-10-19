@@ -646,7 +646,7 @@ qed.
 
 
 lemma exp_ithbit a b :
- phoare[ MMM.ith_bit64   : arg = (a,b) /\
+ phoare[ M.ith_bit64   : arg = (a,b) /\
      0 <= to_uint ctr < 64 ==> res = ith_bitword64 a (to_uint b) ] = 1%r.
 proc. wp.  skip. progress.
 rewrite /ith_bitword64.
@@ -696,7 +696,7 @@ import Bigint.
 import BIA.
 
 lemma ith_bit_lemma :
-      equiv[ MMM.ith_bit ~ Spec.ith_bit : arg{1}.`1 = arg{2}.`1 /\  W64.to_uint arg{1}.`2 = arg{2}.`2 /\
+      equiv[ M.ith_bit ~ Spec.ith_bit : arg{1}.`1 = arg{2}.`1 /\  W64.to_uint arg{1}.`2 = arg{2}.`2 /\
  0 <= ctr{2} && ctr{2} < 256 ==>
               ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)].
 proc. 
@@ -928,4 +928,127 @@ apply (exp_real_speac M).
 conseq swap_lemma. smt(). smt().
 conseq ith_bit_lemma. progress. rewrite H.  auto. smt().
 conseq expm_mulm_lemma. smt(). smt(). auto.
+qed.
+
+
+
+
+lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : R.t), valR%W64x4 b < P =>
+  ImplFp b a =>
+  ImplFp (ExpW64.(^) b n) (inzp (asint a ^ n)).
+apply intind. progress.
+rewrite exp_prop1.
+have -> : (asint a ^ 0) = 1. smt.
+rewrite /asint.
+have -> : (Sub.val (inzp 1))%Sub = 1. smt.
+smt(valR_one).
+progress.
+have ->: (ExpW64.(^) b (i + 1)) = b *** (ExpW64.(^) b  i).
+rewrite exp_prop3. auto. auto.  auto.
+rewrite exp_prop2.
+rewrite exp_prop7. smt.
+have ->: inzp (asint a ^ (i + 1)) =  inzp (asint a * (asint a ^ i)).
+smt.
+have ->:  inzp (asint a * (asint a ^ i)) = (inzp (asint a)) * (inzp (asint a ^ i)).
+smt.
+rewrite - H2. 
+have ->: asint (inzp (valR%W64x4 b) * inzp (valR%W64x4 b ^ i))
+  = (asint (inzp (valR%W64x4 b)) * (asint  (inzp (valR%W64x4 b ^ i)))) %% P.
+smt.
+have ih :  ImplFp (b ^ i)%ExpW64  (inzp (valR%W64x4 b ^ i)).
+smt.
+ (* apply H0. auto. auto. *)
+rewrite - ih.
+have ->: asint (inzp (valR%W64x4 b)) = valR%W64x4 b. smt.
+rewrite  to_uintP /=. done.
+qed.
+
+
+lemma exp_real_speacc :
+ equiv[ ASpecFp.expm ~ M1.expm_spec  :
+    ImplFp arg{2}.`1 arg{1}.`1 /\ bs2int arg{2}.`2  = valR%W64x4 arg{1}.`2 /\ valR%W64x4 x{2} < P ==> ImplFp res{2} res{1}].
+proc.
+wp.  skip.  progress.
+rewrite  (kk (bs2int n{2}) _ a{1}). smt. auto. auto. smt.
+qed.
+
+
+
+
+lemma fin_real_suff : 
+ equiv[ M7(M).expm ~ M.expm : ={arg} ==> ={res} ].
+proc. sim.
+seq  7  19 : (={x1,x2,x3,x4,d,ctr,n,m}). sim. wp. 
+call (_:true). sim. wp.  call (_:true). sim. wp.  skip. progress. rewrite /oneR. 
+have x : valR%W64x4 (witness.[0 <- W64.one].[1 <- W64.zero].[2 <- W64.zero].[3 <- W64.zero])%Array4 = 1.
+progress. rewrite /bnk.
+have ->: range 0 4 = [0;1;2;3].  rewrite range_ltn. auto.
+rewrite range_ltn. auto. rewrite range_ltn. auto. 
+simplify. rewrite range_ltn. auto. 
+simplify. rewrite range_geq. auto. auto.
+rewrite big_consT.
+rewrite big_consT.
+rewrite big_consT.
+rewrite big_consT. 
+rewrite big_nil.
+simplify. smt.
+smt.
+have x : valR%W64x4 (witness.[0 <- W64.one].[1 <- W64.zero].[2 <- W64.zero].[3 <- W64.zero])%Array4 = 1.
+progress. rewrite /bnk.
+have ->: range 0 4 = [0;1;2;3].  rewrite range_ltn. auto.
+rewrite range_ltn. auto. rewrite range_ltn. auto. 
+simplify. rewrite range_ltn. auto. 
+simplify. rewrite range_geq. auto. auto.
+rewrite big_consT.
+rewrite big_consT.
+rewrite big_consT.
+rewrite big_consT. 
+rewrite big_nil.
+simplify. smt.
+smt.
+while (={x1,x2,x3,x4,d,ctr,n,m}). wp.
+call (_:true). sim. wp. 
+call (_:true). sim. wp. 
+call (_:true). sim. 
+call (_:true). sim. 
+call (_:true). sim. 
+wp.
+call (_:true). sim. 
+call (_:true). sim. 
+wp. skip. progress.
+smt(@W64).
+skip. progress.
+qed.
+
+lemma fin_real : 
+ equiv[ ASpecFp.expm ~ M.expm :
+            valR%W64x4 m{2} = P /\
+            ImplFp x{2} a{1} /\ n{2} = b{1}  ==>
+    ImplFp res{2} res{1}].
+transitivity M1.expm_spec
+  (ImplFp arg{2}.`1 arg{1}.`1 /\ bs2int arg{2}.`2  = valR%W64x4 arg{1}.`2 /\ valR%W64x4 x{2} < P ==> ImplFp res{2} res{1})
+  ( valR%W64x4 m{2} = P /\
+            ={x} /\
+            bs2int n{1} = valR%W64x4 n{2} /\ (size n{1}) = 256 /\ valR%W64x4 x{1} < P ==>
+            ={res}).
+progress. exists (x{2},Rbits b{1}).
+progress. smt.
+smt.
+smt.
+rewrite /Rbits. smt.
+smt.
+auto.
+conseq exp_real_speacc. 
+symmetry.
+transitivity M7(M).expm
+ (={arg} ==> ={res})
+ (  valR%W64x4 m{1} = P /\
+  x{2} = x{1} /\ bs2int n{2} = valR%W64x4 n{1} /\ size n{2} = 256 /\ valR%W64x4 x{2} < P ==> ={res}).
+progress. smt(). smt().
+symmetry.
+conseq fin_real_suff.
+auto. auto. 
+symmetry.
+conseq expm_quasi.
+progress. 
 qed.

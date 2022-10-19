@@ -242,23 +242,36 @@ module M = {
     return (_zero, of_0, cf, r);
   }
   
-  proc ith_bit (kk:W64.t Array4.t, ctr:W64.t) : W64.t = {
+
+
+  proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
     
     var bit:W64.t;
-    var k:W8.t Array32.t;
     var p:W64.t;
-    k <- witness;
-    k <-
-    (Array32.init (fun i => get8 (WArray32.init64 (fun i => kk.[i])) i));
+    
+    bit <- k;
     p <- ctr;
-    p <- (p `>>` (W8.of_int 3));
-    bit <- (zeroextu64 k.[(W64.to_uint p)]);
-    p <- ctr;
-    p <- (p `&` (W64.of_int 7));
+    p <- (p `&` (W64.of_int 63));
     bit <- (bit `>>` (truncateu8 p));
     bit <- (bit `&` (W64.of_int 1));
     return (bit);
   }
+  
+  proc ith_bit (kk:W64.t Array4.t, ctr:W64.t) : W64.t = {
+    
+    var bit:W64.t;
+    var c1:W64.t;
+    var c2:W64.t;
+    var r:W64.t;
+    
+    c1 <- (ctr `>>` (W8.of_int 6));
+    c2 <- (ctr - (c1 * (W64.of_int 64)));
+    r <- kk.[(W64.to_uint c1)];
+    bit <@ ith_bit64 (r, c2);
+    return (bit);
+  }
+  
+
   
   proc swapr (x:W64.t Array4.t, y:W64.t Array4.t, swap_0:W64.t) : W64.t Array4.t *
                                                                   W64.t Array4.t = {
