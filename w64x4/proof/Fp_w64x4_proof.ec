@@ -7,11 +7,63 @@ require import Fp_w64x4_extract.
 require import Fp_w64x4_spec.
 
 
-import Zp W64x4 R.
+
 import Array8 Array4.
 
 
+
+module MM = {
+  proc cminusP (x:W64.t Array4.t) : W64.t Array4.t = {
+    var aux: bool;
+    var aux_0: W64.t;
+    
+    var t:W64.t Array4.t;
+    var twop63:W64.t;
+    var cf:bool;
+    t <- witness;
+    t <-  x;
+    twop63 <- (W64.of_int 1);
+    twop63 <- (twop63 `<<` (W8.of_int 63));
+    (aux, aux_0) <- addc_64 t.[0]%Array4 (W64.of_int 19) false;
+    cf <- aux;
+    t.[0] <- aux_0%Array4;
+    (aux, aux_0) <- addc_64 t.[1] (W64.of_int 0) cf;
+    cf <- aux;
+    t.[1] <- aux_0;
+    (aux, aux_0) <- addc_64 t.[2] (W64.of_int 0) cf;
+    cf <- aux;
+    t.[2] <- aux_0;
+    (aux, aux_0) <- addc_64 t.[3] twop63 cf;
+    cf <- aux;
+    t.[3] <- aux_0;
+    x.[0] <- (cf ? t.[0] : x.[0]);
+    x.[1] <- (cf ? t.[1] : x.[1]);
+    x.[2] <- (cf ? t.[2] : x.[2]);
+    x.[3] <- (cf ? t.[3] : x.[3]);
+    return (x);
+  }
+
+
+  proc ith_bit (kk:W64.t Array4.t, ctr:W64.t) : W64.t = {
+    
+    var bit:W64.t;
+    var c1:W64.t;
+    var c2:W64.t;
+    var r:W64.t;
+    
+    c1 <- (ctr `>>` (W8.of_int 6));
+    c2 <- (ctr - (c1 * (W64.of_int 64)));
+    r <- kk.[(W64.to_uint c1)];
+    bit <@ M.ith_bit64 (r, c2);
+    return (bit);
+  }
+
+}.
+
+
 op hui ['a] : 'a t -> int -> 'a = Array4."_.[_]".
+
+import Zp W64x4 R.
 
 lemma r2x_h _x :
  hoare [ M.r2x : x=_x ==> res = ( hui _x 0, hui _x 1, hui _x 2, hui _x 3) ].
@@ -37,66 +89,66 @@ lemma r2x_ph _x:
  phoare [ M.r2x : x=_x ==> res = ( hui _x 0, hui _x 1, hui _x 2, hui _x 3) ] = 1%r.
 proof. by conseq r2x_ll (r2x_h _x). qed.
 
-equiv eq_spec:
- M.bn_eq ~ ASpecFp.eqn:
-  ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2}
-  ==> to_uint res{1} = b2i res{2}.
-proof.
-transitivity 
- R.Ops.eqR
- ( ={a,b} ==> to_uint res{1} = b2i res{2} )
- ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2}
-   ==> ={res} ).
-+ by move=> /> &1 &2 H1 H2; exists (a{1},b{1}).
-+ by move=> /> *.
-+ proc; simplify.
-  wp; while (={a,b,i,acc} /\ 0 <= i{2} <= nlimbs).
-   by wp; skip => /> /#.
-  wp; skip => />; progress.
-  by case: ((AND_64 acc_R acc_R).`5); smt().
-+ proc; simplify.
-  transitivity {1}
-   { zf <@ R.Ops.eqR(a,b); }
-   ( ={a,b} ==> ={zf} )
-   ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} ==> zf{1} = r{2} ).
-  + by move=> /> &2 *; exists a{2} b{2} => /#.
-  + by auto.
-  + by inline*; sim.
-  + ecall {1} (R.eqR_ph a{1} b{1}).
-    wp; skip => /> &m .
-    case: (a{m}=b{m}) => E; first smt().
-    rewrite eq_sym neqF.
-    apply (contra _ (a{m}=b{m})); last done.
-    by apply R.bn_inj.
-qed.
+(* equiv eq_spec: *)
+(*  M.bn_eq ~ ASpecFp.eqn: *)
+(*   ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} *)
+(*   ==> to_uint res{1} = b2i res{2}. *)
+(* proof. *)
+(* transitivity  *)
+(*  R.Ops.eqR *)
+(*  ( ={a,b} ==> to_uint res{1} = b2i res{2} ) *)
+(*  ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} *)
+(*    ==> ={res} ). *)
+(* + by move=> /> &1 &2 H1 H2; exists (a{1},b{1}). *)
+(* + by move=> /> *. *)
+(* + proc; simplify. *)
+(*   wp; while (={a,b,i,acc} /\ 0 <= i{2} <= nlimbs). *)
+(*    by wp; skip => /> /#. *)
+(*   wp; skip => />; progress. *)
+(*   by case: ((AND_64 acc_R acc_R).`5); smt(). *)
+(* + proc; simplify. *)
+(*   transitivity {1} *)
+(*    { zf <@ R.Ops.eqR(a,b); } *)
+(*    ( ={a,b} ==> ={zf} ) *)
+(*    ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} ==> zf{1} = r{2} ). *)
+(*   + by move=> /> &2 *; exists a{2} b{2} => /#. *)
+(*   + by auto. *)
+(*   + by inline*; sim. *)
+(*   + ecall {1} (R.eqR_ph a{1} b{1}). *)
+(*     wp; skip => /> &m . *)
+(*     case: (a{m}=b{m}) => E; first smt(). *)
+(*     rewrite eq_sym neqF. *)
+(*     apply (contra _ (a{m}=b{m})); last done. *)
+(*     by apply R.bn_inj. *)
+(* qed. *)
 
-equiv eq0_spec:
- M.bn_test0 ~ ASpecFp.eqn0:
-  ImplZZ a{1} a{2}
-  ==> to_uint res{1} = b2i res{2}.
-proof.
-transitivity 
- R.Ops.test0R
- ( ={a} ==> to_uint res{1} = b2i res{2} )
- ( ImplZZ a{1} a{2} ==> ={res} ).
-+ by move=> /> &1 *; exists a{1}.
-+ by move=> /> *.
-+ proc; simplify.
-  wp; while (={a,i,acc} /\ 0 <= i{2} <= nlimbs).
-   by wp; skip => /> /#.
-  wp; skip => />; progress.
-  by case: ((AND_64 acc_R acc_R).`5); smt().
-+ proc; simplify.
-  transitivity {1}
-   { zf <@ R.Ops.test0R(a); }
-   ( ={a} ==> ={zf} )
-   ( ImplZZ a{1} a{2} ==> zf{1} = r{2} ).
-  + by move=> /> &2 *; exists a{2} => /#.
-  + by auto.
-  + by inline*; sim.
-  + ecall {1} (R.test0R_ph a{1}).
-    by wp; skip => /> &m .
-qed.
+(* equiv eq0_spec: *)
+(*  M.bn_test0 ~ ASpecFp.eqn0: *)
+(*   ImplZZ a{1} a{2} *)
+(*   ==> to_uint res{1} = b2i res{2}. *)
+(* proof. *)
+(* transitivity  *)
+(*  R.Ops.test0R *)
+(*  ( ={a} ==> to_uint res{1} = b2i res{2} ) *)
+(*  ( ImplZZ a{1} a{2} ==> ={res} ). *)
+(* + by move=> /> &1 *; exists a{1}. *)
+(* + by move=> /> *. *)
+(* + proc; simplify. *)
+(*   wp; while (={a,i,acc} /\ 0 <= i{2} <= nlimbs). *)
+(*    by wp; skip => /> /#. *)
+(*   wp; skip => />; progress. *)
+(*   by case: ((AND_64 acc_R acc_R).`5); smt(). *)
+(* + proc; simplify. *)
+(*   transitivity {1} *)
+(*    { zf <@ R.Ops.test0R(a); } *)
+(*    ( ={a} ==> ={zf} ) *)
+(*    ( ImplZZ a{1} a{2} ==> zf{1} = r{2} ). *)
+(*   + by move=> /> &2 *; exists a{2} => /#. *)
+(*   + by auto. *)
+(*   + by inline*; sim. *)
+(*   + ecall {1} (R.test0R_ph a{1}). *)
+(*     by wp; skip => /> &m . *)
+(* qed. *)
 
 
 equiv addc_spec:
@@ -153,8 +205,13 @@ qed.
 
 equiv cminusP_spec:
  M.cminusP ~ ASpecFp.cminusP:
- ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}.
+ ImplZZ xx{1} a{2} ==> ImplZZ res{1} res{2}.
 proof.
+ transitivity MM.cminusP
+   (={arg} ==> ={res})
+   (ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}).
+progress. smt(). auto.
+proc. wp.  skip.  progress. 
 transitivity CSpecFp.cminusP
  ( ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} )
  ( ={a} /\ a{2} < modulusR ==> ={res} ).
@@ -226,101 +283,6 @@ transitivity CSpecFp.addm
 + symmetry; conseq addm_eq; smt().
 qed.
 
-equiv subc_spec:
- M.bn_subc ~ ASpecFp.subn:
-  ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2}
-  ==> res{1}.`1=res{2}.`1 /\ ImplZZ res{1}.`2 res{2}.`2.
-proof.
-transitivity 
- R.Ops.subcR
- ( (a,b,false){1}=(a,b,c){2} ==> ={res} )
- ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ !c{1}
-   ==> res{1}.`1 = res{2}.`1 /\ ImplZZ res{1}.`2 res{2}.`2 ).
-+ by move=> /> &1 &2 H1 H2; exists (a{1},b{1},false).
-+ by move=> /> *.
-+ proc; simplify.
-  unroll {2} 3; rcondt {2} 3; first by auto.
-  exlim a{1}, b{1} => aa bb.
-  while (={i,b} /\ 1 <= i{2} <= nlimbs /\
-         (cf, aa){1}=(c, a){2} /\
-         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array4 /\
-         (forall k, i{2} <= k < nlimbs => a{1}.[k] = aa.[k]))%Array4.
-   wp; skip => /> &1 &2 Hi1 _ Hh1 Hh2 Hi2.
-   split => *; first smt().
-   split => *; first smt().
-   split.
-    move=> k Hk1 Hk2.
-    pose X := (subc _ _ _)%W64.
-    pose Y := (subc _ _ _)%W64.
-    have ->: X=Y by smt().
-    case: (k = i{2}) => ?.
-     by rewrite !set_eqiE /#.
-    by rewrite !set_neqiE /#.
-   move=> k Hk1 Hk2.
-   by rewrite set_neqiE /#.
-  wp; skip => />.
-  split => *.
-   split => k *.
-    by rewrite (_:k=0) 1:/# !set_eqiE /#.
-   by rewrite set_neqiE /#.
-  by apply ext_eq; smt().
-+ proc; simplify.
-  transitivity {1}
-   { (c,r) <@ R.Ops.subcR(a,b,c); }
-   ( ={a,b,c} ==> ={c,r} )
-   ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ !c{1} ==> ={c} /\ ImplZZ r{1} r{2} ).
-  + by move=> /> &2 H; exists a{2} b{2} false.
-  + by auto.
-  + by inline*; sim.
-  + ecall {1} (R.subcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> ?.
-    by rewrite bn_borrowE 1:/# b2i0 /bn_modulus /=.
-qed.
-
-equiv caddP_spec:
- M.caddP ~ ASpecFp.caddP:
- cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}.
-proof.
-transitivity CSpecFp.caddP
- ( cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} )
- ( ={c,a} ==> ={res} ).
-+ by move=> /> &1 &2 ??; exists (c{2},a{2}) => /> /#.
-+ by auto.
-+ proc; simplify.
-  call addc_spec.
-  inline*; wp; skip => />; progress.
-  case: (c{2}) => E /=.
-   apply (eq_trans _ (valR pR)); last exact pRE.
-   by congr; rewrite -ext_eq_all /all_eq.
-  apply (eq_trans _ (valR zeroR)); last exact zeroRE.
-  by congr; rewrite -ext_eq_all /all_eq.
-+ symmetry; conseq caddP_eq; smt().
-qed.
-
-equiv subm_spec:
- M.subm ~ ASpecFp.subm:
-  ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplFp res{1} res{2}.
-proof.
-transitivity CSpecFp.subm
- (ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplZZ res{1} res{2})
- (={a,b} ==> res{1}= asint res{2}).
-+ by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => />.
-+ by auto.
-+ proc. 
-  inline M._subm.
-  ecall {1} (x2r_ph f0{1} f1{1} f2{1} f3{1}); simplify.
-  wp; ecall {1} (r2x_ph f{1}); simplify.
-  call caddP_spec.
-  call subc_spec.
-  ecall {1} (x2r_ph g00{1} g10{1} g20{1} g30{1}); simplify.
-  ecall {1} (x2r_ph f00{1} f10{1} f20{1} f30{1}); simplify.
-  wp; ecall {1} (r2x_ph b{1}); ecall {1} (r2x_ph a{1}); simplify.
-  skip => /> &1 &2 H1 H2.
-  have HH: forall (f: R),
-            (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4 = f.
-   by move=> f; rewrite -ext_eq_all /all_eq /=.
-  by rewrite (HH a{1}) (HH b{1}); move=> /> /#.
-+ symmetry; conseq subm_eq; smt().
-qed.
 
 module AImpl = {
   proc maskOnCarry(m: int, r: W64.t, _cf: bool): W64.t = {
@@ -694,12 +656,38 @@ require import StdBigop.
 import Bigint.
 import BIA.
 
-lemma ith_bit_lemma :
+
+lemma ith_bit_lemmaEq :
+      equiv[ MM.ith_bit ~ M.ith_bit : ={arg} ==> ={res}].
+proc.
+seq 2 4 : (={c1, c2,kk}). wp.
+skip. progress.
+have -> : 63 = 2^6 - 1. smt().
+rewrite and_mod. auto. simplify.
+have x:  to_uint (ctr{2} `>>` (of_int 6)%W8) = to_uint ctr{2} %/ 64. smt.
+rewrite to_uint_eq.
+auto.
+rewrite to_uintB. smt.
+rewrite to_uintM_small.  smt.
+rewrite  shr_div_le.
+auto. simplify. smt.
+sim.
+qed.
+
+
+lemma ith_bit_lemma' :
       equiv[ M.ith_bit ~ Spec.ith_bit : arg{1}.`1 = arg{2}.`1 /\  W64.to_uint arg{1}.`2 = arg{2}.`2 /\
  0 <= ctr{2} && ctr{2} < 256 ==>
               ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)].
-proc. 
 
+transitivity MM.ith_bit
+   (={arg} ==> ={res})
+   (arg{1}.`1 = arg{2}.`1 /\  W64.to_uint arg{1}.`2 = arg{2}.`2 /\
+ 0 <= ctr{2} && ctr{2} < 256 ==>
+              ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)).
+progress. smt(). smt().
+symmetry. conseq ith_bit_lemmaEq. auto. auto.
+proc.
 seq 3 0 : (to_uint c1{1} = (to_uint ctr{1} %/ 64) /\ to_uint c2{1} = (to_uint ctr{1} %% 64) /\ to_uint ctr{1} = ctr{2}
   /\ r{1} = kk{1}.[(to_uint ctr{1} %/ 64)]%Array4 /\ r{2} = kk{1} /\ 0 <= ctr{2} && ctr{2} < 256 ).
 wp.  skip. progress. 
@@ -713,35 +701,25 @@ smt.
 exists* r{1}, c2{1}. elim*. progress.
 call {1} (exp_ithbit r_L c2_L). skip.
 progress. smt. smt. 
-
 rewrite /ith_bitword64.  rewrite H0. 
 rewrite /ith_bitR. rewrite /Rbits. rewrite /valR.
 rewrite /ith_bit.
-
 rewrite /as_word.
 rewrite /as_w64.
-
-
 have ->: (kk{1}.[to_uint ctr{1} %/ 64])%Array4.[to_uint ctr{1} %% 64] 
   = nth false (int2bs 256 ((valR kk{1}))%W64x4) (to_uint ctr{1}) .
-
 rewrite - get_w2bits.
 rewrite - get_to_list.
-
 have -> : (W64.w2bits (nth witness ((to_list kk{1}))%Array4 (to_uint ctr{1} %/ 64))) 
  = ((nth witness (map W64.w2bits (to_list kk{1}))%Array4 (to_uint ctr{1} %/ 64))).
-
 rewrite - (nth_map witness witness W64.w2bits). progress.   smt. smt.
 auto.
-
-
 have -> : (nth witness (map W64.w2bits ((to_list kk{1}))%Array4)
      (to_uint ctr{1} %/ 64))
  = (nth [] (map W64.w2bits ((to_list kk{1}))%Array4)
      (to_uint ctr{1} %/ 64)). 
 rewrite (nth_change_dfl [] witness). progress.  smt. smt. auto.
 rewrite - (BitChunking.nth_flatten false 64 (map W64.w2bits ((to_list kk{1}))%Array4) (to_uint ctr{1})).
-
 rewrite  List.allP. progress. timeout 5. 
 print hasP.
 print has.
@@ -757,8 +735,6 @@ have ->: range 0 4 = [0;1;2;3].  rewrite range_ltn. auto.
 rewrite range_ltn. auto. rewrite range_ltn. auto. 
 simplify. rewrite range_ltn. auto. 
 simplify. rewrite range_geq. auto. auto.
-
-
 rewrite big_consT.
 rewrite big_consT.
 rewrite big_consT.
@@ -788,7 +764,6 @@ rewrite bs2int_cat.
 rewrite bs2int_cat. simplify.
 smt.
 have ->: 256 = size (flatten (map W64.w2bits ((to_list kk{1}))%Array4)). 
-
 rewrite /to_list.
 have ->: 4 = 0 + 1 + 1 + 1 + 1 . smt().
 rewrite   mkseqS. auto.
@@ -925,7 +900,7 @@ lemma expm_quasi :
               size n{1} = 256 /\ (valR x{1})%W64x4 < P ==> ={res}].
 apply (exp_real_speac M).
 conseq swap_lemma. smt(). smt().
-conseq ith_bit_lemma. progress. rewrite H.  auto. smt().
+conseq ith_bit_lemma'. progress. rewrite H.  auto. smt().
 conseq expm_mulm_lemma. smt(). smt(). auto.
 qed.
 

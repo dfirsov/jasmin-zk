@@ -9,10 +9,10 @@ param int nlimbs = 4;
  */
 inline fn bn_load
 ( reg u64 a
-) -> reg u64[nlimbs]
+) -> stack u64[nlimbs]
 {
   inline int i;
-  reg u64[nlimbs] x;
+  stack u64[nlimbs] x;
 
   for i = 0 to nlimbs {
     x[i] = [a + 8*i];
@@ -21,10 +21,26 @@ inline fn bn_load
   return x;
 }
 
+inline fn bn_load_s
+( reg u64 a
+) -> stack u64[nlimbs]
+{
+  inline int i;
+  stack u64[nlimbs] x;
+
+  for i = 0 to nlimbs {
+    x[i] = [a + 8*i];
+  }
+
+  return x;
+}
+
+
+
 /* Stores a bignum into memory */
 inline fn bn_store
 ( reg u64 a,
-  reg u64[nlimbs] b
+  stack u64[nlimbs] b
 )
 {
   inline int i;
@@ -38,10 +54,10 @@ inline fn bn_store
  */
 inline fn bn2_load
 ( reg u64 a
-) -> reg u64[2*nlimbs]
+) -> stack u64[2*nlimbs]
 {
   inline int i;
-  reg u64[2*nlimbs] x;
+  stack u64[2*nlimbs] x;
 
   for i = 0 to 2*nlimbs {
     x[i] = [a + 8*i];
@@ -53,7 +69,7 @@ inline fn bn2_load
 /* Stores a bignum into memory */
 inline fn bn2_store
 ( reg u64 a,
-  reg u64[2*nlimbs] b
+  stack u64[2*nlimbs] b
 )
 {
   inline int i;
@@ -65,11 +81,11 @@ inline fn bn2_store
 
 /* unpack a double bignum into two bignums */
 inline fn bn2_unpack
-( reg u64[2*nlimbs] a
-) -> reg u64[nlimbs], reg u64[nlimbs]
+( stack u64[2*nlimbs] a
+) -> stack u64[nlimbs], stack u64[nlimbs]
 {
   inline int i;
-  reg u64[nlimbs] hi lo;
+  stack u64[nlimbs] hi lo;
 
   for i = 0 to nlimbs {
     lo[i] = a[i];
@@ -81,11 +97,11 @@ inline fn bn2_unpack
 
 /* pack two bignums into a double bignum */
 inline fn bn_pack2
-( reg u64[nlimbs] lo hi
-) -> reg u64[2*nlimbs]
+( stack u64[nlimbs] lo hi
+) -> stack u64[2*nlimbs]
 {
   inline int i;
-  reg u64[2*nlimbs] r;
+  stack u64[2*nlimbs] r;
 
   for i = 0 to nlimbs {
     r[i] = lo[i];
@@ -102,7 +118,7 @@ inline fn bn_pack2
  * If a == b, return 1. Otherwise, return 0.
  */
 inline fn bn_eq
-( reg u64[nlimbs] a b
+( stack u64[nlimbs] a b
 ) -> reg u64 // 0 or 1
 {
   inline int i;
@@ -127,7 +143,7 @@ inline fn bn_eq
  * Checks if a bignum is zero.
  * If a == 0, return 1. Otherwise, return 0.
  */
-inline fn bn_test0(reg u64[nlimbs] a) -> reg u64 {
+inline fn bn_test0(stack u64[nlimbs] a) -> reg u64 {
   inline int i;
   reg u64 acc is_zero res;
   reg bool zf;
@@ -145,10 +161,10 @@ inline fn bn_test0(reg u64[nlimbs] a) -> reg u64 {
 }
 
 /* copy a bignum */
-inline fn bn_copy(reg u64[nlimbs] a) -> reg u64[nlimbs] {
+inline fn bn_copy(stack u64[nlimbs] a) -> stack u64[nlimbs] {
   inline int i;
   reg u64 t;
-  reg u64[nlimbs] r;
+  stack u64[nlimbs] r;
     
   for i = 0 to nlimbs {
     t = a[i];
@@ -159,7 +175,7 @@ inline fn bn_copy(reg u64[nlimbs] a) -> reg u64[nlimbs] {
 }
 
 /* conditional move bignum [b] into [a] "cond ? b : a" */
-inline fn bn_cmov(reg bool cond, reg u64[nlimbs] a b) -> reg u64[nlimbs] {
+inline fn bn_cmov(reg bool cond, stack u64[nlimbs] a b) -> stack u64[nlimbs] {
   inline int i;
     
   for i = 0 to nlimbs {
@@ -170,7 +186,7 @@ inline fn bn_cmov(reg bool cond, reg u64[nlimbs] a b) -> reg u64[nlimbs] {
 }
 
 /* zeroing a bignum */
-inline fn bn_set0(reg u64[nlimbs] a) -> reg u64[nlimbs] {
+inline fn bn_set0(stack u64[nlimbs] a) -> stack u64[nlimbs] {
   inline int i;
     
   for i = 0 to nlimbs {
@@ -183,9 +199,9 @@ inline fn bn_set0(reg u64[nlimbs] a) -> reg u64[nlimbs] {
 /* add a digit and propagate carry */
 /* REGS (params + workspace): (nlimbs+2) + 0 (inplace 1st arg.) */
 inline fn bn_add1
-( reg u64[nlimbs] a,
+( stack u64[nlimbs] a,
   reg u64 b
-) -> reg bool, reg u64[nlimbs]
+) -> reg bool, stack u64[nlimbs]
 {
   inline int i;
   reg bool cf;
@@ -197,164 +213,135 @@ inline fn bn_add1
   return cf, a;
 }
 
+
+
 /* performs multi-limb addition */
 /* REGS (params + workspace): 2*nlimbs + 0 (inplace 1st arg.) */
 inline fn bn_addc
-( reg u64[nlimbs] a b
-) -> reg bool, reg u64[nlimbs]
+( stack u64[nlimbs] a b
+) -> reg bool, stack u64[nlimbs]
 {
   inline int i;
   reg bool cf;
+  reg u64 x1 x2;
 
-  cf, a[0] += b[0];
-  for i=1 to nlimbs
-  { cf, a[i] += b[i] + cf; }
+
+  x1 = a[0];
+  x2 = b[0];
+  cf, x1 = x1 + x2;
+  a[0] =  x1;
+  for i=1 to nlimbs{ 
+    x1 = a[i];
+    x2 = b[i];
+    cf, x1 = x1 + x2 + cf; 
+    a[i] = x1;
+  }
 
   return cf, a;
 }
 
-/* performs multi-limb subtraction */
-/* REGS (params + workspace): 2*nlimbs + 0 (inplace 1st arg.) */
-inline fn bn_subc
-( reg u64[nlimbs] a b
-) -> reg bool, reg u64[nlimbs]
-{
-  inline int i;
-  reg bool cf;
-
-  cf, a[0] -= b[0];
-  for i=1 to nlimbs
-  { cf, a[i] -= b[i] - cf; }
-
-  return cf, a;
-}
 
 /* multiplies a scalar by a reg array (first iteration of mul) */
 /* REGS (params + workspace): (1+nlimbs) + (nlimbs+2) */
 inline fn mul1
 ( reg u64 a,
-  reg u64[nlimbs] b
-) -> reg u64, reg bool, reg bool, reg u64[2*nlimbs]
+  stack u64[nlimbs] b
+) -> reg u64, reg bool, reg bool, stack u64[2*nlimbs]
 {
   inline int i;
   reg bool of, cf;
-  reg u64 _zero, lo, a0;
-  reg u64[2*nlimbs] r;
+  reg u64 _zero, lo, a0, x1, x2;
+  stack u64[2*nlimbs] r;
+  
 
   of, cf, _, _, _, _zero = #set0();
 
-  r[1], r[0] = #MULX ( a, b[0] );
+  x1 = a;
+  x2 = b[0];
+  x1, x2 = #MULX ( x1, x2 );
+  r[1] = x1;
+  r[0] = x2;
 
   for i = 1 to nlimbs {
-    r[i+1], lo = #MULX ( a, b[i] );
-    cf, r[i] = #ADCX ( r[i], lo, cf );
+    x1 = a;
+    x2 = b[i];
+    x1, x2 = #MULX ( x1, x2 );
+    r[i+1] = x1;
+    lo = x2;
+
+    x1 = r[i];
+    x2 = lo;
+    cf, x1 = #ADCX ( x1,x2, cf );
+    r[i] = x1;
   }
 
-  cf, r[nlimbs] = #ADCX ( r[nlimbs], _zero, cf );
-  // cf = 0
+  x1 = r[nlimbs];
+  cf, x1 = #ADCX ( x1, _zero, cf );
+  r[nlimbs] = x1;
+
 
   return _zero, of, cf, r;
 }
 
-/* multiplies a (shifted) scalar by a reg array (remaining iterations of mul) */
-/* REGS (params + workspace):  */
 inline fn mul1acc
 ( inline int k,
   reg u64 a,
-  reg u64[nlimbs] b,
-  reg u64[2*nlimbs] r,
+  stack u64[nlimbs] b,
+  stack u64[2*nlimbs] r,
   reg u64 _zero, // should be set to 0
   reg bool of cf // should be set to 0
-) -> reg u64, reg bool, reg bool, reg u64[2*nlimbs]
+) -> reg u64, reg bool, reg bool, stack u64[2*nlimbs]
 {
   inline int i;
-  reg u64 ak hi lo;
+  reg u64 ak hi lo  x1 x2;
 
   for i = 0 to nlimbs-1 {
-    hi, lo = #MULX ( a, b[i] ); 
-    of, r[k+i] = #ADOX ( r[k+i], lo, of );
-    cf, r[k+i+1] = #ADCX ( r[k+i+1], hi, cf );
+    x1 = a; x2 = b[i];
+    x1, x2 = #MULX ( x1, x2 ); 
+    hi = x1;
+    lo = x2;
+    
+    x1 = r[k+i];
+   
+    of, x1 = #ADOX ( x1, lo, of );
+    r[k+i] = x1;
+
+    x1 = r[k+i+1];
+    cf, x1 = #ADCX ( x1, hi, cf );
+    r[k+i+1] = x1;
   }
 
-  r[nlimbs+k], lo = #MULX ( a, b[nlimbs-1] ); // a is now dead!
-  of, r[nlimbs+k-1] = #ADOX ( r[nlimbs+k-1], lo, of );
+  x1 = a;  x2 = b[nlimbs-1];
+  x1 , x2 = #MULX ( x1, x2 ); // a is now dead!
+  r[nlimbs+k] = x1;  lo = x2;
 
-  cf, r[nlimbs+k] = #ADCX ( r[nlimbs+k], _zero, cf);
-  of, r[nlimbs+k] = #ADOX ( r[nlimbs+k], _zero, of);
-  // cf = 0, of = 0
+  x1 = r[nlimbs+k-1];
+  of, x1 = #ADOX ( x1, lo, of );
+  r[nlimbs+k-1] = x1;
+
+   x1 = r[nlimbs+k];
+   cf, x1 = #ADCX ( x1, _zero, cf);
+   r[nlimbs+k] = x1;
+
+   x1 =  r[nlimbs+k];
+   of, x1 = #ADOX ( x1, _zero, of);
+   r[nlimbs+k] = x1;
 
   return _zero, of, cf, r;
 }
 
-inline fn mul1first_2
-( reg ptr u64[nlimbs] a,
-  reg u64[nlimbs] b
-) -> reg u64, reg bool, reg bool, reg u64[2*nlimbs]
-{
-  inline int i;
-  reg bool of, cf;
-  reg u64 _zero, lo, a0;
-  reg u64[2*nlimbs] r;
 
-  of, cf, _, _, _, _zero = #set0();
-
-  a0 = a.[0];
-
-  r[1], r[0] = #MULX ( a0, b[0] );
-
-  for i = 1 to nlimbs {
-    r[i+1], lo = #MULX ( a0, b[i] );
-    cf, r[i] = #ADCX ( r[i], lo, cf );
-  }
-
-  cf, r[nlimbs] = #ADCX ( r[nlimbs], _zero, cf );
-  // cf = 0
-
-  return _zero, of, cf, r;
-}
-
-/* multiplies a (shifted) scalar by a reg array (remaining iterations of mul) */
-/* REGS (params + workspace):  */
-inline fn mul1acc_2
-( inline int k,
-  reg ptr u64[nlimbs] a,
-  reg u64[nlimbs] b,
-  reg u64[2*nlimbs] r,
-  reg u64 _zero, // should be set to 0
-  reg bool of cf // should be set to 0
-) -> reg u64, reg bool, reg bool, reg u64[2*nlimbs]
-{
-  inline int i;
-  reg u64 ak hi lo;
-
-  ak = a.[k];
-
-  for i = 0 to nlimbs-1 {
-    hi, lo = #MULX ( ak, b[i] ); 
-    of, r[k+i] = #ADOX ( r[k+i], lo, of );
-    cf, r[k+i+1] = #ADCX ( r[k+i+1], hi, cf );
-  }
-
-  r[nlimbs+k], lo = #MULX ( ak, b[nlimbs-1] ); // ak is now dead!
-  of, r[nlimbs+k-1] = #ADOX ( r[nlimbs+k-1], lo, of );
-
-  cf, r[nlimbs+k] = #ADCX ( r[nlimbs+k], _zero, cf);
-  of, r[nlimbs+k] = #ADOX ( r[nlimbs+k], _zero, of);
-  // cf = 0, of = 0
-
-  return _zero, of, cf, r;
-}
 
 /* full multiplication (first arg. as a reg_ptr) */
 inline fn bn_muln
 ( reg ptr u64[nlimbs] a, //reg u64 fptr,
-  reg u64[nlimbs] b
-) -> reg u64, reg bool, reg bool, reg u64[2*nlimbs]
+  stack u64[nlimbs] b
+) -> reg u64, reg bool, reg bool, stack u64[2*nlimbs]
 {
   inline int i;
   reg bool of cf;
   reg u64 _zero ai;
-  reg u64[2*nlimbs] r;
+  stack u64[2*nlimbs] r;
 
   ai = a[0];
   _zero, of, cf, r = mul1(ai, b);
@@ -366,34 +353,22 @@ inline fn bn_muln
   return _zero, of, cf, r;
 }
 
-
-
 export fn __addc( reg u64 rp ap bp ) { 
   reg u64 rp2;
-  reg u64[nlimbs] a b;
+  stack u64[nlimbs] a b;
   a = bn_load(ap);
   b = bn_load(bp);
   // relax ABI contraints
   rp2 = rp;
-  a = bn_addc(a, b);
+  _, a = bn_addc(a, b);
   bn_store(rp2, a);
 }
 
-export fn __subc( reg u64 rp ap bp ) { 
-  reg u64 rp2;
-  reg u64[nlimbs] a b;
-  a = bn_load(ap);
-  b = bn_load(bp);
-  // relax ABI contraints
-  rp2 = rp;
-  a = bn_subc(a, b);
-  bn_store(rp2, a);
-}
 
 export fn __muln( reg u64 rp ap bp ) { 
   stack u64 rp2;
-  reg u64[nlimbs] a b;
-  reg u64[2*nlimbs] r;
+  stack u64[nlimbs] a b;
+  stack u64[2*nlimbs] r;
   stack u64[nlimbs] a_s;
   stack u64 rp_s;
 
@@ -406,23 +381,3 @@ export fn __muln( reg u64 rp ap bp ) {
   rp = rp2;
   bn2_store(rp, r);
 }
-
-/*
-export fn __eq( reg u64 ap bp ) -> reg u64 { 
-  reg u64 r;
-  reg u64[nlimbs] a b;
-  a = bn_load(ap);
-  b = bn_load(bp);
-  r = bn_eq( a, b );
-  return r;
-}
-
-export fn __test0( reg u64 ap ) -> reg u64 { 
-  reg u64 r;
-  reg u64[nlimbs] a;
-  a = bn_load(ap);
-  r = bn_test0( a );
-  return r;
-}
-
-*/

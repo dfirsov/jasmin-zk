@@ -24,63 +24,6 @@ module M = {
     return (hi, lo);
   }
   
-  proc bn_eq (a:W64.t Array4.t, b:W64.t Array4.t) : W64.t = {
-    var aux: int;
-    
-    var res_0:W64.t;
-    var are_equal:W64.t;
-    var acc:W64.t;
-    var i:int;
-    var t:W64.t;
-    var zf:bool;
-    var  _0:bool;
-    var  _1:bool;
-    var  _2:bool;
-    var  _3:bool;
-    var  _4:W64.t;
-    
-    res_0 <- (W64.of_int 0);
-    are_equal <- (W64.of_int 1);
-    acc <- (W64.of_int 0);
-    i <- 0;
-    while (i < 4) {
-      t <- a.[i];
-      t <- (t `^` b.[i]);
-      acc <- (acc `|` t);
-      i <- i + 1;
-    }
-    ( _0,  _1,  _2,  _3, zf,  _4) <- AND_64 acc acc;
-    res_0 <- (zf ? are_equal : res_0);
-    return (res_0);
-  }
-  
-  proc bn_test0 (a:W64.t Array4.t) : W64.t = {
-    var aux: int;
-    
-    var res_0:W64.t;
-    var is_zero:W64.t;
-    var acc:W64.t;
-    var i:int;
-    var zf:bool;
-    var  _0:bool;
-    var  _1:bool;
-    var  _2:bool;
-    var  _3:bool;
-    var  _4:W64.t;
-    
-    res_0 <- (W64.of_int 0);
-    is_zero <- (W64.of_int 1);
-    acc <- a.[0];
-    i <- 1;
-    while (i < 4) {
-      acc <- (acc `|` a.[i]);
-      i <- i + 1;
-    }
-    ( _0,  _1,  _2,  _3, zf,  _4) <- AND_64 acc acc;
-    res_0 <- (zf ? is_zero : res_0);
-    return (res_0);
-  }
-  
   proc bn_add1 (a:W64.t Array4.t, b:W64.t) : bool * W64.t Array4.t = {
     var aux: bool;
     var aux_1: int;
@@ -103,42 +46,23 @@ module M = {
   }
   
   proc bn_addc (a:W64.t Array4.t, b:W64.t Array4.t) : bool * W64.t Array4.t = {
-    var aux: bool;
-    var aux_1: int;
-    var aux_0: W64.t;
+    var aux: int;
     
     var cf:bool;
+    var x1:W64.t;
+    var x2:W64.t;
     var i:int;
     
-    (aux, aux_0) <- addc_64 a.[0] b.[0] false;
-    cf <- aux;
-    a.[0] <- aux_0;
+    x1 <- a.[0];
+    x2 <- b.[0];
+    (cf, x1) <- addc_64 x1 x2 false;
+    a.[0] <- x1;
     i <- 1;
     while (i < 4) {
-      (aux, aux_0) <- addc_64 a.[i] b.[i] cf;
-      cf <- aux;
-      a.[i] <- aux_0;
-      i <- i + 1;
-    }
-    return (cf, a);
-  }
-  
-  proc bn_subc (a:W64.t Array4.t, b:W64.t Array4.t) : bool * W64.t Array4.t = {
-    var aux: bool;
-    var aux_1: int;
-    var aux_0: W64.t;
-    
-    var cf:bool;
-    var i:int;
-    
-    (aux, aux_0) <- subc_64 a.[0] b.[0] false;
-    cf <- aux;
-    a.[0] <- aux_0;
-    i <- 1;
-    while (i < 4) {
-      (aux, aux_0) <- subc_64 a.[i] b.[i] cf;
-      cf <- aux;
-      a.[i] <- aux_0;
+      x1 <- a.[i];
+      x2 <- b.[i];
+      (cf, x1) <- addc_64 x1 x2 cf;
+      a.[i] <- x1;
       i <- i + 1;
     }
     return (cf, a);
@@ -146,15 +70,14 @@ module M = {
   
   proc mul1 (a:W64.t, b:W64.t Array4.t) : W64.t * bool * bool *
                                           W64.t Array8.t = {
-    var aux_2: bool;
-    var aux_1: int;
-    var aux_0: W64.t;
-    var aux: W64.t;
+    var aux: int;
     
     var _zero:W64.t;
     var of_0:bool;
     var cf:bool;
     var r:W64.t Array8.t;
+    var x1:W64.t;
+    var x2:W64.t;
     var i:int;
     var lo:W64.t;
     var  _0:bool;
@@ -162,61 +85,71 @@ module M = {
     var  _2:bool;
     r <- witness;
     (of_0, cf,  _0,  _1,  _2, _zero) <- set0_64 ;
-    (aux_0, aux) <- MULX_64 a b.[0];
-    r.[1] <- aux_0;
-    r.[0] <- aux;
+    x1 <- a;
+    x2 <- b.[0];
+    (x1, x2) <- MULX_64 x1 x2;
+    r.[1] <- x1;
+    r.[0] <- x2;
     i <- 1;
     while (i < 4) {
-      (aux_0, aux) <- MULX_64 a b.[i];
-      r.[(i + 1)] <- aux_0;
-      lo <- aux;
-      (aux_2, aux_0) <- ADCX_64 r.[i] lo cf;
-      cf <- aux_2;
-      r.[i] <- aux_0;
+      x1 <- a;
+      x2 <- b.[i];
+      (x1, x2) <- MULX_64 x1 x2;
+      r.[(i + 1)] <- x1;
+      lo <- x2;
+      x1 <- r.[i];
+      x2 <- lo;
+      (cf, x1) <- ADCX_64 x1 x2 cf;
+      r.[i] <- x1;
       i <- i + 1;
     }
-    (aux_2, aux_0) <- ADCX_64 r.[4] _zero cf;
-    cf <- aux_2;
-    r.[4] <- aux_0;
+    x1 <- r.[4];
+    (cf, x1) <- ADCX_64 x1 _zero cf;
+    r.[4] <- x1;
     return (_zero, of_0, cf, r);
   }
   
   proc mul1acc (k:int, a:W64.t, b:W64.t Array4.t, r:W64.t Array8.t,
                 _zero:W64.t, of_0:bool, cf:bool) : W64.t * bool * bool *
                                                    W64.t Array8.t = {
-    var aux_0: bool;
     var aux: int;
-    var aux_2: W64.t;
-    var aux_1: W64.t;
     
+    var x1:W64.t;
     var i:int;
+    var x2:W64.t;
     var hi:W64.t;
     var lo:W64.t;
     
     aux <- (4 - 1);
     i <- 0;
     while (i < aux) {
-      (hi, lo) <- MULX_64 a b.[i];
-      (aux_0, aux_2) <- ADOX_64 r.[(k + i)] lo of_0;
-      of_0 <- aux_0;
-      r.[(k + i)] <- aux_2;
-      (aux_0, aux_2) <- ADCX_64 r.[((k + i) + 1)] hi cf;
-      cf <- aux_0;
-      r.[((k + i) + 1)] <- aux_2;
+      x1 <- a;
+      x2 <- b.[i];
+      (x1, x2) <- MULX_64 x1 x2;
+      hi <- x1;
+      lo <- x2;
+      x1 <- r.[(k + i)];
+      (of_0, x1) <- ADOX_64 x1 lo of_0;
+      r.[(k + i)] <- x1;
+      x1 <- r.[((k + i) + 1)];
+      (cf, x1) <- ADCX_64 x1 hi cf;
+      r.[((k + i) + 1)] <- x1;
       i <- i + 1;
     }
-    (aux_2, aux_1) <- MULX_64 a b.[(4 - 1)];
-    r.[(4 + k)] <- aux_2;
-    lo <- aux_1;
-    (aux_0, aux_2) <- ADOX_64 r.[((4 + k) - 1)] lo of_0;
-    of_0 <- aux_0;
-    r.[((4 + k) - 1)] <- aux_2;
-    (aux_0, aux_2) <- ADCX_64 r.[(4 + k)] _zero cf;
-    cf <- aux_0;
-    r.[(4 + k)] <- aux_2;
-    (aux_0, aux_2) <- ADOX_64 r.[(4 + k)] _zero of_0;
-    of_0 <- aux_0;
-    r.[(4 + k)] <- aux_2;
+    x1 <- a;
+    x2 <- b.[(4 - 1)];
+    (x1, x2) <- MULX_64 x1 x2;
+    r.[(4 + k)] <- x1;
+    lo <- x2;
+    x1 <- r.[((4 + k) - 1)];
+    (of_0, x1) <- ADOX_64 x1 lo of_0;
+    r.[((4 + k) - 1)] <- x1;
+    x1 <- r.[(4 + k)];
+    (cf, x1) <- ADCX_64 x1 _zero cf;
+    r.[(4 + k)] <- x1;
+    x1 <- r.[(4 + k)];
+    (of_0, x1) <- ADOX_64 x1 _zero of_0;
+    r.[(4 + k)] <- x1;
     return (_zero, of_0, cf, r);
   }
   
@@ -258,12 +191,16 @@ module M = {
   proc ith_bit (kk:W64.t Array4.t, ctr:W64.t) : W64.t = {
     
     var bit:W64.t;
+    var ctr2:W64.t;
+    var ctr3:W64.t;
     var c1:W64.t;
     var c2:W64.t;
     var r:W64.t;
     
-    c1 <- (ctr `>>` (W8.of_int 6));
-    c2 <- (ctr - (c1 * (W64.of_int 64)));
+    ctr2 <- ctr;
+    ctr3 <- ctr;
+    c1 <- (ctr2 `>>` (W8.of_int 6));
+    c2 <- (ctr3 `&` (W64.of_int 63));
     r <- kk.[(W64.to_uint c1)];
     bit <@ ith_bit64 (r, c2);
     return (bit);
@@ -327,14 +264,20 @@ module M = {
     return (r0, r1, r2, r3);
   }
   
-  proc cminusP (x:W64.t Array4.t) : W64.t Array4.t = {
+  proc cminusP (xx:W64.t Array4.t) : W64.t Array4.t = {
     var aux: bool;
     var aux_0: W64.t;
     
+    var x:W64.t Array4.t;
     var t:W64.t Array4.t;
     var twop63:W64.t;
     var cf:bool;
     t <- witness;
+    x <- witness;
+    x.[0] <- xx.[0];
+    x.[1] <- xx.[1];
+    x.[2] <- xx.[2];
+    x.[3] <- xx.[3];
     t <-  x;
     twop63 <- (W64.of_int 1);
     twop63 <- (twop63 `<<` (W8.of_int 63));
@@ -354,26 +297,11 @@ module M = {
     x.[1] <- (cf ? t.[1] : x.[1]);
     x.[2] <- (cf ? t.[2] : x.[2]);
     x.[3] <- (cf ? t.[3] : x.[3]);
-    return (x);
-  }
-  
-  proc caddP (cf:bool, x:W64.t Array4.t) : W64.t Array4.t = {
-    
-    var p:W64.t Array4.t;
-    var _zero:W64.t;
-    var  _0:bool;
-    p <- witness;
-    p.[0] <- (W64.of_int 18446744073709551597);
-    p.[1] <- (W64.of_int 18446744073709551615);
-    p.[2] <- (W64.of_int 18446744073709551615);
-    p.[3] <- (W64.of_int 9223372036854775807);
-    _zero <- (W64.of_int 0);
-    p.[0] <- ((! cf) ? _zero : p.[0]);
-    p.[1] <- ((! cf) ? _zero : p.[1]);
-    p.[2] <- ((! cf) ? _zero : p.[2]);
-    p.[3] <- ((! cf) ? _zero : p.[3]);
-    ( _0, x) <@ bn_addc (x, p);
-    return (x);
+    xx.[0] <- x.[0];
+    xx.[1] <- x.[1];
+    xx.[2] <- x.[2];
+    xx.[3] <- x.[3];
+    return (xx);
   }
   
   proc redp25519 (_of:bool, _cf:bool, a:W64.t Array8.t) : W64.t Array4.t = {
@@ -480,40 +408,6 @@ module M = {
     return (a);
   }
   
-  proc _subm (f0:W64.t, f1:W64.t, f2:W64.t, f3:W64.t, g0:W64.t, g1:W64.t,
-              g2:W64.t, g3:W64.t) : W64.t * W64.t * W64.t * W64.t = {
-    
-    var f:W64.t Array4.t;
-    var g:W64.t Array4.t;
-    var cf:bool;
-    f <- witness;
-    g <- witness;
-    f <@ x2r (f0, f1, f2, f3);
-    g <@ x2r (g0, g1, g2, g3);
-    (cf, f) <@ bn_subc (f, g);
-    f <@ caddP (cf, f);
-    (f0, f1, f2, f3) <@ r2x (f);
-    return (f0, f1, f2, f3);
-  }
-  
-  proc subm (a:W64.t Array4.t, b:W64.t Array4.t) : W64.t Array4.t = {
-    
-    var f0:W64.t;
-    var f1:W64.t;
-    var f2:W64.t;
-    var f3:W64.t;
-    var g0:W64.t;
-    var g1:W64.t;
-    var g2:W64.t;
-    var g3:W64.t;
-    
-    (f0, f1, f2, f3) <@ r2x (a);
-    (g0, g1, g2, g3) <@ r2x (b);
-    (f0, f1, f2, f3) <@ _subm (f0, f1, f2, f3, g0, g1, g2, g3);
-    a <@ x2r (f0, f1, f2, f3);
-    return (a);
-  }
-  
   proc expm (m:W64.t Array4.t, x:W64.t Array4.t, n:W64.t Array4.t) : 
   W64.t Array4.t = {
     
@@ -544,7 +438,7 @@ module M = {
     x2.[2] <- (W64.of_int 0);
     x2.[3] <- (W64.of_int 0);
     d <@ ith_bit (n, ctr);
-    x3 <-  x;
+    x3 <- x;
     x4 <@ mulm (m, x, x);
     p <- d;
     (x1, x3) <@ swapr (x1, x3, d);
@@ -578,22 +472,16 @@ module M = {
     var b:W64.t Array4.t;
     var r:W64.t Array4.t;
     var x:W64.t;
-    var _cf:bool;
     var  _0:W64.t Array4.t;
      _0 <- witness;
     a <- witness;
     b <- witness;
     r <- witness;
     r <@ addm (a, b);
-    r <@ subm (a, b);
     r <@ mulm (a, a, b);
     r <@ expm (a, a, b);
     x <@ ith_bit (a, x);
     ( _0, a) <@ swapr (a, a, x);
-    x <@ bn_eq (a, b);
-    x <@ bn_test0 (a);
-    _cf <- false;
-    x <@ maskOnCarry (7, x, _cf);
     return ();
   }
 }.
