@@ -65,90 +65,29 @@ op hui ['a] : 'a t -> int -> 'a = Array4."_.[_]".
 
 import Zp W64x4 R.
 
-lemma r2x_h _x :
- hoare [ M.r2x : x=_x ==> res = ( hui _x 0, hui _x 1, hui _x 2, hui _x 3) ].
-proof. by proc; simplify; wp; skip => />. qed.
+(* lemma r2x_h _x : *)
+(*  hoare [ M.r2x : x=_x ==> res = ( hui _x 0, hui _x 1, hui _x 2, hui _x 3) ]. *)
+(* proof. by proc; simplify; wp; skip => />. qed. *)
 
-lemma x2r_h _x0 _x1 _x2 _x3:
- hoare [ M.x2r : x0=_x0 /\ x1=_x1 /\ x2=_x2 /\ x3=_x3 ==> res = Array4.of_list W64.zero [_x0; _x1; _x2; _x3] ].
-proof.
-proc; simplify; wp; skip => />.
-by rewrite -ext_eq_all /all_eq.
-qed.
-
-lemma x2r_ll: islossless M.x2r by proc; islossless.
-
-lemma x2r_ph _x0 _x1 _x2 _x3:
- phoare [ M.x2r : x0=_x0 /\ x1=_x1 /\ x2=_x2 /\ x3=_x3 ==> res = Array4.of_list W64.zero [_x0; _x1; _x2; _x3] ] = 1%r.
-proof. by conseq x2r_ll (x2r_h _x0 _x1 _x2 _x3). qed.
-
-
-lemma r2x_ll: islossless M.r2x by proc; islossless.
-
-lemma r2x_ph _x:
- phoare [ M.r2x : x=_x ==> res = ( hui _x 0, hui _x 1, hui _x 2, hui _x 3) ] = 1%r.
-proof. by conseq r2x_ll (r2x_h _x). qed.
-
-(* equiv eq_spec: *)
-(*  M.bn_eq ~ ASpecFp.eqn: *)
-(*   ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} *)
-(*   ==> to_uint res{1} = b2i res{2}. *)
+(* lemma x2r_h _x0 _x1 _x2 _x3: *)
+(*  hoare [ M.x2r : x0=_x0 /\ x1=_x1 /\ x2=_x2 /\ x3=_x3 ==> res = Array4.of_list W64.zero [_x0; _x1; _x2; _x3] ]. *)
 (* proof. *)
-(* transitivity  *)
-(*  R.Ops.eqR *)
-(*  ( ={a,b} ==> to_uint res{1} = b2i res{2} ) *)
-(*  ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} *)
-(*    ==> ={res} ). *)
-(* + by move=> /> &1 &2 H1 H2; exists (a{1},b{1}). *)
-(* + by move=> /> *. *)
-(* + proc; simplify. *)
-(*   wp; while (={a,b,i,acc} /\ 0 <= i{2} <= nlimbs). *)
-(*    by wp; skip => /> /#. *)
-(*   wp; skip => />; progress. *)
-(*   by case: ((AND_64 acc_R acc_R).`5); smt(). *)
-(* + proc; simplify. *)
-(*   transitivity {1} *)
-(*    { zf <@ R.Ops.eqR(a,b); } *)
-(*    ( ={a,b} ==> ={zf} ) *)
-(*    ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} ==> zf{1} = r{2} ). *)
-(*   + by move=> /> &2 *; exists a{2} b{2} => /#. *)
-(*   + by auto. *)
-(*   + by inline*; sim. *)
-(*   + ecall {1} (R.eqR_ph a{1} b{1}). *)
-(*     wp; skip => /> &m . *)
-(*     case: (a{m}=b{m}) => E; first smt(). *)
-(*     rewrite eq_sym neqF. *)
-(*     apply (contra _ (a{m}=b{m})); last done. *)
-(*     by apply R.bn_inj. *)
+(* proc; simplify; wp; skip => />. *)
+(* by rewrite -ext_eq_all /all_eq. *)
 (* qed. *)
 
-(* equiv eq0_spec: *)
-(*  M.bn_test0 ~ ASpecFp.eqn0: *)
-(*   ImplZZ a{1} a{2} *)
-(*   ==> to_uint res{1} = b2i res{2}. *)
-(* proof. *)
-(* transitivity  *)
-(*  R.Ops.test0R *)
-(*  ( ={a} ==> to_uint res{1} = b2i res{2} ) *)
-(*  ( ImplZZ a{1} a{2} ==> ={res} ). *)
-(* + by move=> /> &1 *; exists a{1}. *)
-(* + by move=> /> *. *)
-(* + proc; simplify. *)
-(*   wp; while (={a,i,acc} /\ 0 <= i{2} <= nlimbs). *)
-(*    by wp; skip => /> /#. *)
-(*   wp; skip => />; progress. *)
-(*   by case: ((AND_64 acc_R acc_R).`5); smt(). *)
-(* + proc; simplify. *)
-(*   transitivity {1} *)
-(*    { zf <@ R.Ops.test0R(a); } *)
-(*    ( ={a} ==> ={zf} ) *)
-(*    ( ImplZZ a{1} a{2} ==> zf{1} = r{2} ). *)
-(*   + by move=> /> &2 *; exists a{2} => /#. *)
-(*   + by auto. *)
-(*   + by inline*; sim. *)
-(*   + ecall {1} (R.test0R_ph a{1}). *)
-(*     by wp; skip => /> &m . *)
-(* qed. *)
+(* lemma x2r_ll: islossless M.x2r by proc; islossless. *)
+
+(* lemma x2r_ph _x0 _x1 _x2 _x3: *)
+(*  phoare [ M.x2r : x0=_x0 /\ x1=_x1 /\ x2=_x2 /\ x3=_x3 ==> res = Array4.of_list W64.zero [_x0; _x1; _x2; _x3] ] = 1%r. *)
+(* proof. by conseq x2r_ll (x2r_h _x0 _x1 _x2 _x3). qed. *)
+
+
+(* lemma r2x_ll: islossless M.r2x by proc; islossless. *)
+
+(* lemma r2x_ph _x: *)
+(*  phoare [ M.r2x : x=_x ==> res = ( hui _x 0, hui _x 1, hui _x 2, hui _x 3) ] = 1%r. *)
+(* proof. by conseq r2x_ll (r2x_h _x). qed. *)
 
 
 equiv addc_spec:
@@ -518,27 +457,28 @@ qed.
 
 equiv mulm_spec:
  M.mulm ~ ASpecFp.mulm:
-  ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplFp res{1} res{2}.
+  ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplFp res{1} res{2}.
 proof.
 transitivity CSpecFp.mulm
- (ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplZZ res{1} res{2})
+ (ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplZZ res{1} res{2})
  (={a,b} ==> res{1}= asint res{2}).
 + by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => />.
 + by auto.
-+ proc. inline M._mulm M.freeze CSpecFp.freeze.
-  wp; ecall {1} (x2r_ph g0{1} g1{1} g2{1} g3{1}); simplify.
-  wp; ecall {1} (r2x_ph g{1}); simplify.
++ proc. inline M.freeze CSpecFp.freeze.
+  
+  wp; (* ecall {1} (x2r_ph g0{1} g1{1} g2{1} g3{1}); *) simplify.
+  wp; (* ecall {1} (r2x_ph g{1}); *) simplify.
   wp; call cminusP_spec; call cminusP_spec.
   wp; call reduce_spec.
   call muln_spec.
-  ecall {1} (x2r_ph g00{1} g10{1} g20{1} g30{1}); simplify.
-  wp; ecall {1} (r2x_ph b{1}); simplify.
+  (* ecall {1} (x2r_ph g00{1} g10{1} g20{1} g30{1}); *) simplify.
+  wp; (* ecall {1} (r2x_ph b{1});  *) simplify.
   skip => /> &1 &2 H1 H2.
   have HH: forall (f: R.t),
             (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4 = f.
    by move=> f; rewrite -ext_eq_all /all_eq /=.
-  rewrite (HH b{1}); split; first smt().
-  by move=> _ r Hr1 Hr2 Hr3 rr => /> /#.
+  (* rewrite (HH b{1}); split; first smt(). *)
+  (* by move=> _ r Hr1 Hr2 Hr3 rr => /> /#. *)
 + symmetry; conseq mulm_eq; smt().
 qed.
 

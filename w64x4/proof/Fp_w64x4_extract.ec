@@ -239,31 +239,6 @@ module M = {
     return (r);
   }
   
-  proc x2r (x0:W64.t, x1:W64.t, x2:W64.t, x3:W64.t) : W64.t Array4.t = {
-    
-    var r:W64.t Array4.t;
-    r <- witness;
-    r.[0] <- x0;
-    r.[1] <- x1;
-    r.[2] <- x2;
-    r.[3] <- x3;
-    return (r);
-  }
-  
-  proc r2x (x:W64.t Array4.t) : W64.t * W64.t * W64.t * W64.t = {
-    
-    var r0:W64.t;
-    var r1:W64.t;
-    var r2:W64.t;
-    var r3:W64.t;
-    
-    r0 <- x.[0];
-    r1 <- x.[1];
-    r2 <- x.[2];
-    r3 <- x.[3];
-    return (r0, r1, r2, r3);
-  }
-  
   proc cminusP (xx:W64.t Array4.t) : W64.t Array4.t = {
     var aux: bool;
     var aux_0: W64.t;
@@ -342,36 +317,18 @@ module M = {
     return (x);
   }
   
-  proc _mulm (f:W64.t Array4.t, g0:W64.t, g1:W64.t, g2:W64.t, g3:W64.t) : 
-  W64.t * W64.t * W64.t * W64.t = {
+  proc mulm (p:W64.t Array4.t, f:W64.t Array4.t, g:W64.t Array4.t) : 
+  W64.t Array4.t = {
     
-    var g:W64.t Array4.t;
     var _zero:W64.t;
     var of_0:bool;
     var cf:bool;
     var h:W64.t Array8.t;
-    g <- witness;
     h <- witness;
-    g <@ x2r (g0, g1, g2, g3);
     (_zero, of_0, cf, h) <@ bn_muln (f, g);
     g <@ redp25519 (of_0, cf, h);
     g <@ freeze (g);
-    (g0, g1, g2, g3) <@ r2x (g);
-    return (g0, g1, g2, g3);
-  }
-  
-  proc mulm (p:W64.t Array4.t, a:W64.t Array4.t, b:W64.t Array4.t) : 
-  W64.t Array4.t = {
-    
-    var g0:W64.t;
-    var g1:W64.t;
-    var g2:W64.t;
-    var g3:W64.t;
-    
-    (g0, g1, g2, g3) <@ r2x (b);
-    (g0, g1, g2, g3) <@ _mulm (a, g0, g1, g2, g3);
-    b <@ x2r (g0, g1, g2, g3);
-    return (b);
+    return (g);
   }
   
   proc addm (a:W64.t Array4.t, b:W64.t Array4.t) : W64.t Array4.t = {
