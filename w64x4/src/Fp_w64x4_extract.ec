@@ -374,38 +374,14 @@ module M = {
     return (b);
   }
   
-  proc _addm (f0:W64.t, f1:W64.t, f2:W64.t, f3:W64.t, g0:W64.t, g1:W64.t,
-              g2:W64.t, g3:W64.t) : W64.t * W64.t * W64.t * W64.t = {
-    
-    var f:W64.t Array4.t;
-    var g:W64.t Array4.t;
-    var  _0:bool;
-    f <- witness;
-    g <- witness;
-    f <@ x2r (f0, f1, f2, f3);
-    g <@ x2r (g0, g1, g2, g3);
-    ( _0, f) <@ bn_addc (f, g);
-    f <@ cminusP (f);
-    (f0, f1, f2, f3) <@ r2x (f);
-    return (f0, f1, f2, f3);
-  }
-  
   proc addm (a:W64.t Array4.t, b:W64.t Array4.t) : W64.t Array4.t = {
     
-    var f0:W64.t;
-    var f1:W64.t;
-    var f2:W64.t;
-    var f3:W64.t;
-    var g0:W64.t;
-    var g1:W64.t;
-    var g2:W64.t;
-    var g3:W64.t;
-    
-    (f0, f1, f2, f3) <@ r2x (a);
-    (g0, g1, g2, g3) <@ r2x (b);
-    (f0, f1, f2, f3) <@ _addm (f0, f1, f2, f3, g0, g1, g2, g3);
-    a <@ x2r (f0, f1, f2, f3);
-    return (a);
+    var f:W64.t Array4.t;
+    var  _0:bool;
+    f <- witness;
+    ( _0, f) <@ bn_addc (a, b);
+    f <@ cminusP (f);
+    return (f);
   }
   
   proc expm (m:W64.t Array4.t, x:W64.t Array4.t, n:W64.t Array4.t) : 

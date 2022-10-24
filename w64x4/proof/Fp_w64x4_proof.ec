@@ -265,21 +265,21 @@ transitivity CSpecFp.addm
 + by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => /=.
 + by auto.
 + proc; simplify.
-  inline M._addm.
-  ecall {1} (x2r_ph f0{1} f1{1} f2{1} f3{1}); simplify.
-  wp; ecall {1} (r2x_ph f{1}); simplify.
+
+  (* ecall {1} (x2r_ph f0{1} f1{1} f2{1} f3{1}); simplify. *)
+  (* wp; ecall {1} (r2x_ph f{1}); simplify. *)
   call cminusP_spec.
   call addc_spec.
-  ecall {1} (x2r_ph g00{1} g10{1} g20{1} g30{1}); simplify.
-  ecall {1} (x2r_ph f00{1} f10{1} f20{1} f30{1}); simplify.
-  wp; ecall {1} (r2x_ph b{1}); ecall {1} (r2x_ph a{1}); simplify.
+  (* ecall {1} (x2r_ph g00{1} g10{1} g20{1} g30{1}); simplify. *)
+  (* ecall {1} (x2r_ph f00{1} f10{1} f20{1} f30{1}); simplify. *)
+  wp. simplify. (* ecall {1} (r2x_ph b{1}); ecall {1} (r2x_ph a{1}); simplify. *)
   skip => /> &1 &2 H1 H2.
   have HH: forall (f: R),
             (Array4.of_list W64.zero [hui f 0; hui f 1; hui f 2; hui f 3])
             = f.
    by move=> f; rewrite -ext_eq_all /all_eq /=.
-  rewrite (HH a{1}) (HH b{1}); move=> />; progress.
-  rewrite (HH result_L0). smt().
+  (* rewrite (HH a{1}) (HH b{1}); move=> />; progress. *)
+  (* rewrite (HH result_L0). smt(). *)
 + symmetry; conseq addm_eq; smt().
 qed.
 
