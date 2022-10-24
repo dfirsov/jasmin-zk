@@ -60,7 +60,7 @@ int main() {
   for (i=0; i<sizeof(tadd)/32; i++) {
     r = __subm(tsub[i][0], tsub[i][1], tsub[i][2]);
     assert (r == tsub[i][3]);
-    b = b && (r == tsub[i][3]);
+    b  =  b && (r == tsub[i][3]);
   }
   if (b) printf("OK\n"); else printf("FAIL!\n");
 
@@ -69,7 +69,7 @@ int main() {
   for (i=0; i<sizeof(tadd)/32; i++) {
     r = __mulm(tmul[i][0], tmul[i][1], tmul[i][2]);
     assert (r == tmul[i][3]);
-    b = b && (r == tmul[i][3]);
+    b  =  b && (r == tmul[i][3]);
   }
   if (b) printf("OK\n"); else printf("FAIL!\n");
 
@@ -78,7 +78,7 @@ int main() {
   for (i=0; i<sizeof(texp)/32; i++) {
     r = __expm(texp[i][0], texp[i][1], texp[i][2]);
     assert (r == texp[i][3]);
-    b = b && (r == texp[i][3]);
+    b  =  b && (r == texp[i][3]);
   }
   if (b) printf("OK\n"); else printf("FAIL!\n");
 
