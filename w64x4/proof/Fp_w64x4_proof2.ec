@@ -65,30 +65,6 @@ op hui ['a] : 'a t -> int -> 'a = Array4."_.[_]".
 
 import Zp W64x4 R.
 
-(* lemma r2x_h _x : *)
-(*  hoare [ M.r2x : x=_x ==> res = ( hui _x 0, hui _x 1, hui _x 2, hui _x 3) ]. *)
-(* proof. by proc; simplify; wp; skip => />. qed. *)
-
-(* lemma x2r_h _x0 _x1 _x2 _x3: *)
-(*  hoare [ M.x2r : x0=_x0 /\ x1=_x1 /\ x2=_x2 /\ x3=_x3 ==> res = Array4.of_list W64.zero [_x0; _x1; _x2; _x3] ]. *)
-(* proof. *)
-(* proc; simplify; wp; skip => />. *)
-(* by rewrite -ext_eq_all /all_eq. *)
-(* qed. *)
-
-(* lemma x2r_ll: islossless M.x2r by proc; islossless. *)
-
-(* lemma x2r_ph _x0 _x1 _x2 _x3: *)
-(*  phoare [ M.x2r : x0=_x0 /\ x1=_x1 /\ x2=_x2 /\ x3=_x3 ==> res = Array4.of_list W64.zero [_x0; _x1; _x2; _x3] ] = 1%r. *)
-(* proof. by conseq x2r_ll (x2r_h _x0 _x1 _x2 _x3). qed. *)
-
-
-(* lemma r2x_ll: islossless M.r2x by proc; islossless. *)
-
-(* lemma r2x_ph _x: *)
-(*  phoare [ M.r2x : x=_x ==> res = ( hui _x 0, hui _x 1, hui _x 2, hui _x 3) ] = 1%r. *)
-(* proof. by conseq r2x_ll (r2x_h _x). qed. *)
-
 
 equiv addc_spec:
  M.bn_addc ~ ASpecFp.addn:
@@ -503,33 +479,33 @@ clone import Abstract_exp_proof_8 as ExpW64 with type R  <- R.t,
                                                  op Rsize <- 256,
                                                  op valR <= W64x4.valR,
                                                  op of_int <= bn_ofint,
-                                                 op P <- P.
-(* proof*. *)
-(* realize Rsize_max. smt(). qed. *)
-(* realize Rsize_pos. smt(). qed. *)
-(* realize valr_pos. smt (@W64x4). qed. *)
-(* realize iii.  rewrite /Rbits.  *)
-(* progress. rewrite  size_int2bs. auto. qed. *)
-(* realize valr_ofint.  progress. *)
-(* search bn_ofint. *)
-(* rewrite bn_ofintK. smt. *)
-(* qed. *)
-(* realize P_pos. smt. qed. *)
-(* realize ofint_valr. smt(@W64x4). qed. *)
-(* realize rbits_bitsr.  *)
-(* progress. rewrite /Rbits. rewrite /bitsR.  *)
-(*   have ->: (valR (bn_ofint (bs2int x)))%W64x4 = bs2int x. *)
-(* rewrite bn_ofintK. smt. smt. qed. *)
-(* realize bitsr_rbits.  *)
-(* rewrite /Rbits. rewrite /bitsR. *)
-(* progress. *)
-(* rewrite int2bsK. auto. simplify. progress. smt(bnk_cmp). *)
-(* have : 0 <= valR  x < W64x4.M ^ nlimbs. *)
-(* rewrite /valR.  *)
-(* apply (bnk_cmp nlimbs). *)
-(* progress. smt. *)
-(* smt(@W64x4). *)
-(* qed. *)
+                                                 op P <- P
+proof*.
+realize Rsize_max. smt(). qed.
+realize Rsize_pos. smt(). qed.
+realize valr_pos. smt (@W64x4). qed.
+realize iii.  rewrite /Rbits. 
+progress. rewrite  size_int2bs. auto. qed.
+realize valr_ofint.  progress.
+search bn_ofint.
+rewrite bn_ofintK. smt.
+qed.
+realize P_pos. smt. qed.
+realize ofint_valr. smt(@W64x4). qed.
+realize rbits_bitsr. 
+progress. rewrite /Rbits. rewrite /bitsR. 
+  have ->: (valR (bn_ofint (bs2int x)))%W64x4 = bs2int x.
+rewrite bn_ofintK. smt. smt. qed.
+realize bitsr_rbits. 
+rewrite /Rbits. rewrite /bitsR.
+progress.
+rewrite int2bsK. auto. simplify. progress. smt(bnk_cmp).
+have : 0 <= valR  x < W64x4.M ^ nlimbs.
+rewrite /valR. 
+apply (bnk_cmp nlimbs).
+progress. smt.
+smt(@W64x4).
+qed.
 
 
 
