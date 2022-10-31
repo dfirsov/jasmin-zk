@@ -354,12 +354,13 @@ module ASpecFp = {
 (*                  CONCRETE SPECIFICATIONS                       *)
 (******************************************************************)
 module CSpecFp = {
- proc cminusP(a: int): int = {
-  var c, x, r;
-  (c, x) <@ ASpecFp.addn(a, 2^255 + 19);
-  r <@ ASpecFp.ctseln(c, a, x);
-  return r;
- }
+ (* proc cminusP(a: int): int = { *)
+ (*  var c, x, r; *)
+ (*  (c, x) <@ ASpecFp.addn(a, 2^255 + 19); *)
+ (*  r <@ ASpecFp.ctseln(c, a, x); *)
+ (*  return r; *)
+ (* } *)
+
  proc addm(a b: zp): int = {
   var c, x, r;
   (c, x) <@ ASpecFp.addn(asint a, asint b);
@@ -385,7 +386,7 @@ module CSpecFp = {
   return x;
 }
 
- proc cminusP2(a: int): int = {
+ proc cminusP(a: int): int = {
   var c, x, r;
   (c, x) <@ ASpecFp.subn(a, P);
   r <@ ASpecFp.ctseln(c, x, a);
@@ -408,8 +409,8 @@ module CSpecFp = {
 }.
 
 
-equiv cminusP2_eq:
- ASpecFp.cminusP ~ CSpecFp.cminusP2: ={a} /\ a{2}<modulusR ==> ={res}.
+equiv cminusP_eq:
+ ASpecFp.cminusP ~ CSpecFp.cminusP: ={a} /\ a{2}<modulusR ==> ={res}.
 proof.
 proc; inline*; wp; skip => &1 &2.
 have ->: modulusR = 2^256 by rewrite R.bn_modulusE /= !mulrA expr0. 
@@ -418,19 +419,19 @@ qed.
 
 
 
-equiv cminusP_eq:
- ASpecFp.cminusP ~ CSpecFp.cminusP: ={a} /\ a{2}<modulusR ==> ={res}.
-proof.
-proc; inline*; wp; skip => &1 &2.
-have ->: modulusR = 2^256 by rewrite R.bn_modulusE /= !mulrA expr0. 
-move=> [-> Ha] X.
-rewrite lerNgt if_neg.
-rewrite /X addrA ltP_overflow.
-case: (a{2} < P) => H; first done.
-rewrite redE 2://.
-split; last done. 
-smt().
-qed.
+(* equiv cminusP_eq: *)
+(*  ASpecFp.cminusP ~ CSpecFp.cminusP: ={a} /\ a{2}<modulusR ==> ={res}. *)
+(* proof. *)
+(* proc; inline*; wp; skip => &1 &2. *)
+(* have ->: modulusR = 2^256 by rewrite R.bn_modulusE /= !mulrA expr0.  *)
+(* move=> [-> Ha] X. *)
+(* rewrite lerNgt if_neg. *)
+(* rewrite /X addrA ltP_overflow. *)
+(* case: (a{2} < P) => H; first done. *)
+(* rewrite redE 2://. *)
+(* split; last done.  *)
+(* smt(). *)
+(* qed. *)
 
 equiv freeze_eq:
  ASpecFp.freeze ~ CSpecFp.freeze: ={a} /\ 0<=a{2}<modulusR ==> asint res{1}=res{2}.

@@ -106,87 +106,18 @@ module M = {
     return (cf, a);
   }
   
-  proc caddP (cf:bool, x:W64.t Array4.t) : W64.t Array4.t = {
-    
-    var p:W64.t Array4.t;
-    var _zero:W64.t;
-    var  _0:bool;
-    p <- witness;
-    p.[0] <- (W64.of_int 18446744073709551597);
-    p.[1] <- (W64.of_int 18446744073709551615);
-    p.[2] <- (W64.of_int 18446744073709551615);
-    p.[3] <- (W64.of_int 9223372036854775807);
-    _zero <- (W64.of_int 0);
-    p.[0] <- ((! cf) ? _zero : p.[0]);
-    p.[1] <- ((! cf) ? _zero : p.[1]);
-    p.[2] <- ((! cf) ? _zero : p.[2]);
-    p.[3] <- ((! cf) ? _zero : p.[3]);
-    ( _0, x) <@ bn_addc (x, p);
-    return (x);
-  }
-  
-  proc subm (f:W64.t Array4.t, g:W64.t Array4.t) : W64.t Array4.t = {
-    
-    var cf:bool;
-    
-    (cf, f) <@ bn_subc (f, g);
-    f <@ caddP (cf, f);
-    return (f);
-  }
-  
-  proc cminusP (xx:W64.t Array4.t) : W64.t Array4.t = {
-    var aux: bool;
-    var aux_0: W64.t;
-    
-    var x:W64.t Array4.t;
-    var t:W64.t Array4.t;
-    var twop63:W64.t;
-    var cf:bool;
-    t <- witness;
-    x <- witness;
-    x.[0] <- xx.[0];
-    x.[1] <- xx.[1];
-    x.[2] <- xx.[2];
-    x.[3] <- xx.[3];
-    t <-  x;
-    twop63 <- (W64.of_int 1);
-    twop63 <- (twop63 `<<` (W8.of_int 63));
-    (aux, aux_0) <- addc_64 t.[0] (W64.of_int 19) false;
-    cf <- aux;
-    t.[0] <- aux_0;
-    (aux, aux_0) <- addc_64 t.[1] (W64.of_int 0) cf;
-    cf <- aux;
-    t.[1] <- aux_0;
-    (aux, aux_0) <- addc_64 t.[2] (W64.of_int 0) cf;
-    cf <- aux;
-    t.[2] <- aux_0;
-    (aux, aux_0) <- addc_64 t.[3] twop63 cf;
-    cf <- aux;
-    t.[3] <- aux_0;
-    x.[0] <- (cf ? t.[0] : x.[0]);
-    x.[1] <- (cf ? t.[1] : x.[1]);
-    x.[2] <- (cf ? t.[2] : x.[2]);
-    x.[3] <- (cf ? t.[3] : x.[3]);
-    xx.[0] <- x.[0];
-    xx.[1] <- x.[1];
-    xx.[2] <- x.[2];
-    xx.[3] <- x.[3];
-    return (xx);
-  }
-  
-  proc cminusP2 (x:W64.t Array4.t) : W64.t Array4.t = {
+  proc cminusP (x:W64.t Array4.t) : W64.t Array4.t = {
     
     var t:W64.t Array4.t;
     var p:W64.t Array4.t;
     var cf:bool;
-    var  _0:bool;
     p <- witness;
     t <- witness;
     p.[0] <- (W64.of_int 18446744073709551597);
     p.[1] <- (W64.of_int 18446744073709551615);
     p.[2] <- (W64.of_int 18446744073709551615);
     p.[3] <- (W64.of_int 9223372036854775807);
-    ( cf, t) <@ bn_subc (x, p);
+    (cf, t) <@ bn_subc (x, p);
     t.[0] <- (cf ? x.[0] : t.[0]);
     t.[1] <- (cf ? x.[1] : t.[1]);
     t.[2] <- (cf ? x.[2] : t.[2]);
@@ -280,8 +211,6 @@ module M = {
     b <- witness;
     r <- witness;
     r <@ mulm_ladder (a, a, b);
-    r <@ subm (a, b);
-    r <@ cminusP2 (a);
     return ();
   }
 }.

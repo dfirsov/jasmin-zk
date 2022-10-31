@@ -6,49 +6,20 @@ param int nlimbs = 4;
 
 
 
-inline fn maskOnCarry
-( inline int mask,
-  reg u64 r,
-  reg bool _cf
-) -> reg u64
-{
-  _cf, r -= r - _cf;
-  r &= mask;
-  return r;
-}
+// inline fn maskOnCarry
+// ( inline int mask,
+//   reg u64 r,
+//   reg bool _cf
+// ) -> reg u64
+// {
+//   _cf, r -= r - _cf;
+//   r &= mask;
+//   return r;
+// }
 
 
-/*   CODE SPECIFIC FOR p25519 */
 
-/* x-P if P<=x else x */
-inline fn cminusP
-( stack u64[nlimbs] xx
-) -> stack u64[nlimbs]
-{
-  reg u64[nlimbs] t;
-  reg u64[nlimbs] x;
-  x[0] = xx[0];  x[1] = xx[1];  x[2] = xx[2];  x[3] = xx[3];
-  reg u64 twop63;
-  reg bool cf;  
-  t = x;
-  twop63 = 1;
-  twop63 <<= 63;
-  cf, t[0] += 19;
-  cf, t[1] += 0      + cf;
-  cf, t[2] += 0      + cf;
-  cf, t[3] += twop63 + cf;
-  x[0] = t[0] if cf;
-  x[1] = t[1] if cf;
-  x[2] = t[2] if cf;
-  x[3] = t[3] if cf;
-  xx[0] = x[0];  xx[1] = x[1];  xx[2] = x[2];  xx[3] = x[3];
-  return xx;
-}
-
-
-inline fn cminusP2
-( stack u64[nlimbs] x
-) -> stack u64[nlimbs]
+inline fn cminusP ( stack u64[nlimbs] x ) -> stack u64[nlimbs]
 {
   reg u64[nlimbs] t;
   reg u64[nlimbs] p;  
@@ -69,56 +40,56 @@ inline fn cminusP2
 
 
 
-/*  @pre: _zero=0, of=cf=FALSE */
-/* Reduction modulo p25519 REGS (params + workspace):  */
-inline fn redp25519
-( reg bool _of _cf, // should be 0
-  stack u64[2*nlimbs] a
-) -> stack u64[nlimbs]
-{
-  inline int i;
-  reg u64 tmp _zero;
-  stack u64[nlimbs] ah al;
+// /*  @pre: _zero=0, of=cf=FALSE */
+// /* Reduction modulo p25519 REGS (params + workspace):  */
+// inline fn redp25519
+// ( reg bool _of _cf, // should be 0
+//   stack u64[2*nlimbs] a
+// ) -> stack u64[nlimbs]
+// {
+//   inline int i;
+//   reg u64 tmp _zero;
+//   stack u64[nlimbs] ah al;
 
-  tmp = 38;
-  _zero = 0;
-  ah, _ = bn2_unpack(a);
-  _zero, _of, _cf, a = mul1acc(0,tmp, ah, a, _zero, _of, _cf);
+//   tmp = 38;
+//   _zero = 0;
+//   ah, _ = bn2_unpack(a);
+//   _zero, _of, _cf, a = mul1acc(0,tmp, ah, a, _zero, _of, _cf);
 
-  //
-  _,_,_,_,_,tmp = #IMULri ( a[nlimbs], 38 );
-  _, al = bn2_unpack(a);
-  _cf, al = bn_add1(al, tmp);
+//   //
+//   _,_,_,_,_,tmp = #IMULri ( a[nlimbs], 38 );
+//   _, al = bn2_unpack(a);
+//   _cf, al = bn_add1(al, tmp);
 
-  tmp = maskOnCarry(38, tmp, _cf);
-  al[0] += tmp;
-  return al;
-}
-
-
-/*  Normalizes a 4-limb number modulus P (result in range [0..P[) */
-inline fn freeze( stack u64[nlimbs] x ) -> stack u64[nlimbs]
-{
-  x = cminusP(x);
-  x = cminusP(x);
-  return x;
-}
+//   tmp = maskOnCarry(38, tmp, _cf);
+//   al[0] += tmp;
+//   return al;
+// }
 
 
-/* MULTIPLICATION of two 4-limb numbers */
-inline fn mulm ( stack u64[nlimbs] p f g) -> stack u64[nlimbs]
-{
-  stack u64[2*nlimbs] h;
-  reg bool of cf;
-  reg u64 _zero;
+// /*  Normalizes a 4-limb number modulus P (result in range [0..P[) */
+// inline fn freeze( stack u64[nlimbs] x ) -> stack u64[nlimbs]
+// {
+//   x = cminusP(x);
+//   x = cminusP(x);
+//   return x;
+// }
 
-  _zero, of, cf, h = bn_muln ( f, g );
 
-  g = redp25519 ( of, cf, h );
-  g = freeze( g );
+// /* MULTIPLICATION of two 4-limb numbers */
+// inline fn mulm ( stack u64[nlimbs] p f g) -> stack u64[nlimbs]
+// {
+//   stack u64[2*nlimbs] h;
+//   reg bool of cf;
+//   reg u64 _zero;
 
-  return g;
-}
+//   _zero, of, cf, h = bn_muln ( f, g );
+
+//   g = redp25519 ( of, cf, h );
+//   g = freeze( g );
+
+//   return g;
+// }
 
 
 /*  Modular addition modulo p25519 (assumes/ensures operands/resul in range [0..p25519[) */
@@ -133,13 +104,13 @@ inline fn addm(stack u64[nlimbs] a b) -> stack u64[nlimbs]
 
 
 /*  Modular addition modulo p25519 (assumes/ensures operands/resul in range [0..p25519[) */
-inline fn addm4(stack u64[nlimbs] a b) -> stack u64[nlimbs]
-{
-  stack u64[nlimbs] f g;
-  _, f = bn_addc ( a, b);
-  f = cminusP2 ( f );
-  return f;
-}
+// inline fn addm4(stack u64[nlimbs] a b) -> stack u64[nlimbs]
+// {
+//   stack u64[nlimbs] f g;
+//   _, f = bn_addc ( a, b);
+//   f = cminusP2 ( f );
+//   return f;
+// }
 
 
 
@@ -151,45 +122,45 @@ inline fn addm3(stack u64[nlimbs] m a b) -> stack u64[nlimbs]
 }
 
 
-inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs])
-{
-  reg u64 ctr bit d p par t1 t2 cbit lbit q;
-  stack u64[nlimbs] x1 x2 x3 x4;
-  ctr = nlimbs * 64 - 1;
-  x1[0] = 1; x1[1] = 0; x1[2] = 0; x1[3] = 0;
-  x2[0] = 1; x2[1] = 0; x2[2] = 0; x2[3] = 0;
-  d = ith_bit(n,ctr);
+// inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs])
+// {
+//   reg u64 ctr bit d p par t1 t2 cbit lbit q;
+//   stack u64[nlimbs] x1 x2 x3 x4;
+//   ctr = nlimbs * 64 - 1;
+//   x1[0] = 1; x1[1] = 0; x1[2] = 0; x1[3] = 0;
+//   x2[0] = 1; x2[1] = 0; x2[2] = 0; x2[3] = 0;
+//   d = ith_bit(n,ctr);
 
-  x3 = x;
-  x4 = mulm(m,x,x);
-  p = d;
-  (x1,x3) = swapr(x1,x3,d);
-  (x2,x4) = swapr(x2,x4,d);
+//   x3 = x;
+//   x4 = mulm(m,x,x);
+//   p = d;
+//   (x1,x3) = swapr(x1,x3,d);
+//   (x2,x4) = swapr(x2,x4,d);
 
-while(ctr > 0){
-   lbit = ctr;
-   ctr = ctr - 1;
+// while(ctr > 0){
+//    lbit = ctr;
+//    ctr = ctr - 1;
 
-   t1 =  ith_bit(n,lbit);
-   t2 =  ith_bit(n,ctr);
-   p = d; 
-   q = d;
-   d = d | t2;
-   par = t1 ^ t2;
-   (x1,x2) = swapr(x1,x2,par);
-   x1 = mulm(m,x1,x2);
-   x2 = mulm(m,x2,x2);
-   q |= t2;
-   cbit = q ^ p;
-   (x1,x3) = swapr(x1,x3,cbit);
-   (x2,x4) = swapr(x2,x4,cbit); 
+//    t1 =  ith_bit(n,lbit);
+//    t2 =  ith_bit(n,ctr);
+//    p = d; 
+//    q = d;
+//    d = d | t2;
+//    par = t1 ^ t2;
+//    (x1,x2) = swapr(x1,x2,par);
+//    x1 = mulm(m,x1,x2);
+//    x2 = mulm(m,x2,x2);
+//    q |= t2;
+//    cbit = q ^ p;
+//    (x1,x3) = swapr(x1,x3,cbit);
+//    (x2,x4) = swapr(x2,x4,cbit); 
 
-} 
-  par = ith_bit(n,0);
-  (x1,x2) = swapr(x2,x1,par);
+// } 
+//   par = ith_bit(n,0);
+//   (x1,x2) = swapr(x2,x1,par);
   
-  return x1;
-}
+//   return x1;
+// }
 
 
 export fn __addm(reg u64 rp ap bp) { 
@@ -205,32 +176,32 @@ export fn __addm(reg u64 rp ap bp) {
 }
 
 
-export fn __mulm( reg u64 rp ap bp ) { 
-  stack u64 rp2;
-  stack u64[nlimbs] a b;
-  stack u64[nlimbs] a_s;
-  a = bn_load(ap);
-  a_s = a;
-  b = bn_load(bp);
-  rp2 = rp;
-  a = mulm(a_s, a_s, b);
-  rp = rp2;
-  bn_store(rp, a);
-}
+// export fn __mulm( reg u64 rp ap bp ) { 
+//   stack u64 rp2;
+//   stack u64[nlimbs] a b;
+//   stack u64[nlimbs] a_s;
+//   a = bn_load(ap);
+//   a_s = a;
+//   b = bn_load(bp);
+//   rp2 = rp;
+//   a = mulm(a_s, a_s, b);
+//   rp = rp2;
+//   bn_store(rp, a);
+// }
 
 
-export fn __expm( reg u64 rp ap bp ) { 
-  stack u64 rp2;
-  stack u64[nlimbs] a b;
-  stack u64[nlimbs] a_s;
-  a = bn_load(ap);
-  a_s = a;
-  b = bn_load(bp);
-  rp2 = rp;
-  a = expm(a_s, a_s, b);
-  rp = rp2;
-  bn_store(rp, a);
-}
+// export fn __expm( reg u64 rp ap bp ) { 
+//   stack u64 rp2;
+//   stack u64[nlimbs] a b;
+//   stack u64[nlimbs] a_s;
+//   a = bn_load(ap);
+//   a_s = a;
+//   b = bn_load(bp);
+//   rp2 = rp;
+//   a = expm(a_s, a_s, b);
+//   rp = rp2;
+//   bn_store(rp, a);
+// }
 
 
 inline fn toEC()
@@ -241,8 +212,8 @@ inline fn toEC()
   
   /* normalized versions */
   r = addm(a, b);
-  r = mulm(a,a, b);
-  r = expm(a,a, b);
+//  r = mulm(a,a, b);
+//  r = expm(a,a, b);
   x = ith_bit(a, x);
   a = swapr(a, a, x);
 }

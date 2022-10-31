@@ -1,6 +1,5 @@
 require "ithbit.jazz"
 require "swap.jazz"
-require "subm.jazz"
 require "Fp_w64x4.jazz"
 
 
@@ -54,8 +53,6 @@ inline fn toEC2()
   reg bool _cf;
   
   /* normalized versions */
-  r = mulm_ladder(a,a, b);
-  r = subm(a, b);
-  r = cminusP2(a);
+  r = mulm_ladder(a,a,b);
 
 }

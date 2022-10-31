@@ -5,47 +5,13 @@ require import JBigNum.
 
 require import Fp_w64x4_extract_mulm.
 require import Fp_w64x4_spec.
-
-
-
-
-import Array8 Array4.
 require import Ith_Bit64.
 
+import Array8 Array4.
+import Zp W64x4 R.
+
 module MM = {
-  proc cminusP (x:W64.t Array4.t) : W64.t Array4.t = {
-    var aux: bool;
-    var aux_0: W64.t;
-    
-    var t:W64.t Array4.t;
-    var twop63:W64.t;
-    var cf:bool;
-    t <- witness;
-    t <-  x;
-    twop63 <- (W64.of_int 1);
-    twop63 <- (twop63 `<<` (W8.of_int 63));
-    (aux, aux_0) <- addc_64 t.[0]%Array4 (W64.of_int 19) false;
-    cf <- aux;
-    t.[0] <- aux_0%Array4;
-    (aux, aux_0) <- addc_64 t.[1] (W64.of_int 0) cf;
-    cf <- aux;
-    t.[1] <- aux_0;
-    (aux, aux_0) <- addc_64 t.[2] (W64.of_int 0) cf;
-    cf <- aux;
-    t.[2] <- aux_0;
-    (aux, aux_0) <- addc_64 t.[3] twop63 cf;
-    cf <- aux;
-    t.[3] <- aux_0;
-    x.[0] <- (cf ? t.[0] : x.[0]);
-    x.[1] <- (cf ? t.[1] : x.[1]);
-    x.[2] <- (cf ? t.[2] : x.[2]);
-    x.[3] <- (cf ? t.[3] : x.[3]);
-    return (x);
-  }
-
-
   proc ith_bit (kk:W64.t Array4.t, ctr:W64.t) : W64.t = {
-    
     var bit:W64.t;
     var c1:W64.t;
     var c2:W64.t;
@@ -53,15 +19,13 @@ module MM = {
     
     c1 <- (ctr `>>` (W8.of_int 6));
     c2 <- (ctr - (c1 * (W64.of_int 64)));
-    r <- kk.[(W64.to_uint c1)];
+    r <- kk.[(W64.to_uint c1)]%Array4;
     bit <@ IB.ith_bit64 (r, c2);
     return (bit);
   }
 
 }.
 
-
-import Zp W64x4 R.
 
 
 equiv addc_spec:
@@ -82,7 +46,7 @@ transitivity
   while (={i,b} /\ 1 <= i{2} <= nlimbs /\
          (cf,aa){1}=(c,a){2} /\
          (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array4 /\
-         (forall k, i{2} <= k < nlimbs => a{1}.[k] = aa.[k])%Array4).
+         (forall k, i{2} <= k < 4 => a{1}.[k] = aa.[k])%Array4).
    wp; skip => /> &1 &2 Hi1 Hi2 H1 H2 Hi.
    split => *; first smt().
    split => *; first smt().
@@ -113,80 +77,6 @@ transitivity
   + ecall {1} (R.addcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> ?.
     by rewrite bn_carryE 1:/# b2i0 /bn_modulus /=.
 qed.
-
-equiv cminusP_spec:
- M.cminusP ~ ASpecFp.cminusP:
- ImplZZ xx{1} a{2} ==> ImplZZ res{1} res{2}.
-proof.
- transitivity MM.cminusP
-   (={arg} ==> ={res})
-   (ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}).
-progress. smt(). auto.
-proc. wp.  skip.  progress. 
-transitivity CSpecFp.cminusP
- ( ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} )
- ( ={a} /\ a{2} < modulusR ==> ={res} ).
-+ move=> /> &2; exists (valR x{2}) => />. 
-  smt.
-+ by auto.
-+ proc.
-  seq 16 1: (#pre /\ cf{1}=c{2} /\ ImplZZ t{1} x{2}).
-   transitivity {1}
-    { (cf, t) <@ R.Ops.addcR(x, (Array4.of_list W64.zero 
-                     [W64.of_int 19; W64.zero; W64.zero; W64.of_int (2^63)]), false); }
-    ( ={x} ==> ={x, cf, t} )
-    ( ImplZZ x{1} a{2} ==> ImplZZ x{1} a{2} /\ cf{1} = c{2} /\ ImplZZ t{1} x{2} ).
-   + by move=> /> &1; exists x{1}.
-   + by auto.
-   + inline*; unroll for {2} 6; wp; skip => />; progress.
-      do 2! congr.
-      rewrite to_uint_eq to_uint_shl modz_small 1:/# !of_uintK 1..2:/#.
-      by rewrite !modz_small /#.
-     rewrite -ext_eq_all /all_eq /=.
-     do 2! congr.
-     rewrite to_uint_eq to_uint_shl modz_small 1:/# !of_uintK 1..2:/#.
-     by rewrite !modz_small /#.
-   + ecall {1} (R.addcR_ph x{1} (Array4.of_list W64.zero 
-                     [W64.of_int 19; W64.zero; W64.zero; W64.of_int (2^63)]) false).
-     inline*; wp; skip => /> &1 [c r] /=.
-     pose X:= Array4.of_list _ _.
-     rewrite bn_carryE 1:/# -exprM /bigint_modulus b2i0 /=.
-     have ->/=: valR X = 2^255+19.
-      by rewrite bn2seq /bn_seq /X of_listK.
-     by move=> -> ->; rewrite bn_modulusE -exprM /=.
-  inline*; wp; skip => &1 &2 [H1 [-> H2]] />.
-  case: (c{2}) => H.
-   pose X:= valR _.
-   have ->//: X = valR t{1}.
-   by rewrite /X; congr; rewrite -ext_eq_all /all_eq /=.
-  pose X:= valR _.
-  have ->//: X = valR x{1}.
-  by rewrite /X; congr; rewrite -ext_eq_all /all_eq /=.
-+ symmetry; conseq cminusP_eq; smt().
-qed.
-
-equiv addm_spec:
- M.addm ~ ASpecFp.addm:
-  ImplFp a{1} a{2} /\ ImplFp b{1} b{2}
-  ==> ImplFp res{1} res{2}.
-proof.
-transitivity CSpecFp.addm
- (ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplZZ res{1} res{2})
- (={a,b} ==> res{1}= asint res{2}).
-+ by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => /=.
-+ by auto.
-+ proc; simplify.
-  call cminusP_spec.
-  call addc_spec.
-  wp. simplify.
-  skip => /> &1 &2 H1 H2.
-  have HH: forall (f: R),
-            (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4
-            = f.
-   by move=> f; rewrite -ext_eq_all /all_eq /=.
-+ symmetry; conseq addm_eq; smt().
-qed.
-
 
 
 equiv subc_spec:
@@ -240,9 +130,8 @@ transitivity
 qed.
 
 
-
-equiv cminusP2_eq:
- M.cminusP2 ~ CSpecFp.cminusP2: valR x{1} = a{2} /\ a{2}<modulusR ==> valR res{1} = res{2}.
+equiv M_cminusP_eq:
+ M.cminusP ~ CSpecFp.cminusP: valR x{1} = a{2} /\ a{2}<modulusR ==> valR res{1} = res{2}.
 proof.
 proc.  inline ASpecFp.ctseln. wp.  
 call subc_spec. wp. skip. progress. 
@@ -259,52 +148,90 @@ auto.
 qed.
 
 
-
-equiv caddP_spec:
- M.caddP ~ ASpecFp.caddP:
- cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}.
+equiv cminusP_spec:
+ M.cminusP ~ ASpecFp.cminusP:
+ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}.
 proof.
-transitivity CSpecFp.caddP
- ( cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} )
- ( ={c,a} ==> ={res} ).
-+ by move=> /> &1 &2 ??; exists (c{2},a{2}) => /> /#.
+transitivity CSpecFp.cminusP
+ ( ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} )
+ ( ={a} /\ a{2} < modulusR ==> ={res} ).
++ move=> /> &2; exists (valR x{2}) => />. 
+  smt.
++ by auto. conseq M_cminusP_eq. progress. smt.
++ symmetry; conseq cminusP_eq; smt().
+qed.
+
+
+equiv addm_spec:
+ M.addm ~ ASpecFp.addm:
+  ImplFp a{1} a{2} /\ ImplFp b{1} b{2}
+  ==> ImplFp res{1} res{2}.
+proof.
+transitivity CSpecFp.addm
+ (ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplZZ res{1} res{2})
+ (={a,b} ==> res{1}= asint res{2}).
++ by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => /=.
 + by auto.
 + proc; simplify.
+  call cminusP_spec.
   call addc_spec.
-  inline*; wp; skip => />; progress.
-  case: (c{2}) => E /=. 
-   apply (eq_trans _ (valR pR)); last exact pRE.
-   by congr; rewrite -ext_eq_all /all_eq.
-  apply (eq_trans _ (valR zeroR)); last exact zeroRE.
-  by congr; rewrite -ext_eq_all /all_eq.
-+ symmetry; conseq caddP_eq; smt().
-qed.
-
-
-equiv subm_spec:
- M.subm ~ ASpecFp.subm:
-  ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplFp res{1} res{2}.
-proof.
-transitivity CSpecFp.subm
- (ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplZZ res{1} res{2})
- (={a,b} ==> res{1}= asint res{2}).
-+ by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => />.
-+ by auto.
-+ proc. 
-  inline M.subm.
-  simplify.
   wp. simplify.
-  call caddP_spec.
-  call subc_spec.
-   simplify.
-   simplify.
-  simplify.
   skip => /> &1 &2 H1 H2.
   have HH: forall (f: R),
-            (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4 = f.
+            (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4
+            = f.
    by move=> f; rewrite -ext_eq_all /all_eq /=.
-+ symmetry; conseq subm_eq; smt().
++ symmetry; conseq addm_eq; smt().
 qed.
+
+
+
+
+(* equiv caddP_spec: *)
+(*  M.caddP ~ ASpecFp.caddP: *)
+(*  cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}. *)
+(* proof. *)
+(* transitivity CSpecFp.caddP *)
+(*  ( cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} ) *)
+(*  ( ={c,a} ==> ={res} ). *)
+(* + by move=> /> &1 &2 ??; exists (c{2},a{2}) => /> /#. *)
+(* + by auto. *)
+(* + proc; simplify. *)
+(*   call addc_spec. *)
+(*   inline*; wp; skip => />; progress. *)
+(*   case: (c{2}) => E /=.  *)
+(*    apply (eq_trans _ (valR pR)); last exact pRE. *)
+(*    by congr; rewrite -ext_eq_all /all_eq. *)
+(*   apply (eq_trans _ (valR zeroR)); last exact zeroRE. *)
+(*   by congr; rewrite -ext_eq_all /all_eq. *)
+(* + symmetry; conseq caddP_eq; smt(). *)
+(* qed. *)
+
+
+(* equiv subm_spec: *)
+(*  M.subm ~ ASpecFp.subm: *)
+(*   ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplFp res{1} res{2}. *)
+(* proof. *)
+(* transitivity CSpecFp.subm *)
+(*  (ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplZZ res{1} res{2}) *)
+(*  (={a,b} ==> res{1}= asint res{2}). *)
+(* + by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => />. *)
+(* + by auto. *)
+(* + proc.  *)
+(*   inline M.subm. *)
+(*   simplify. *)
+(*   wp. simplify. *)
+(*   call caddP_spec. *)
+(*   call subc_spec. *)
+(*    simplify. *)
+(*    simplify. *)
+(*   simplify. *)
+(*   skip => /> &1 &2 H1 H2. *)
+(*   have HH: forall (f: R), *)
+(*             (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4 = f. *)
+(*    by move=> f; rewrite -ext_eq_all /all_eq /=. *)
+(* + symmetry; conseq subm_eq; smt(). *)
+(* qed. *)
 
 
 (* LADDER MULTIPLICATION  *)
@@ -364,9 +291,11 @@ realize exp_prop5. progress. smt. qed.
 realize mult_valr. progress. smt. qed.
 realize idR_leP. smt. qed.
 
+  
 lemma to_uintP: forall (x y : R), valR (x *** y) = (valR x + valR y) %% P.
 progress. rewrite /( *** ). smt.
 qed.
+
 
 module AddM = {
   proc ith_bit = M.ith_bit
@@ -392,6 +321,7 @@ rewrite  shr_div_le.
 auto. simplify. smt.
 sim.
 qed.
+
 
 
 
@@ -496,8 +426,6 @@ simplify. auto.
 rewrite  bs2intK. auto. auto.
 auto. smt().
 qed.
-
-
 
 
 
