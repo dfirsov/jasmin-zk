@@ -61,8 +61,6 @@ module MM = {
 }.
 
 
-op hui ['a] : 'a t -> int -> 'a = Array4."_.[_]".
-
 import Zp W64x4 R.
 
 
@@ -83,8 +81,8 @@ transitivity
   exlim a{1}, b{1} => aa bb.
   while (={i,b} /\ 1 <= i{2} <= nlimbs /\
          (cf,aa){1}=(c,a){2} /\
-         (forall k, 0 <= k < i{2} => hui a{1} k = hui r{2} k) /\
-         (forall k, i{2} <= k < nlimbs => hui a{1} k = hui aa k)).
+         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array4 /\
+         (forall k, i{2} <= k < nlimbs => a{1}.[k] = aa.[k])%Array4).
    wp; skip => /> &1 &2 Hi1 Hi2 H1 H2 Hi.
    split => *; first smt().
    split => *; first smt().
@@ -94,17 +92,15 @@ transitivity
     pose Y := (addc _ _ _)%W64.
     have ->: X=Y by smt().
     case: (k = i{2}) => ?.
-     rewrite /hui.
      by rewrite !set_eqiE /#.
-     rewrite /hui.
     by rewrite !set_neqiE /#.
-   move=> k Hk1 Hk2. rewrite /hui.
+   move=> k Hk1 Hk2.
    by rewrite set_neqiE /#.
   wp; skip => /> &2.
   move=> Hc; split => *.
    split => k *. 
-    by rewrite (_:k=0) 1:/# /hui !set_eqiE /#.
-   by rewrite /hui set_neqiE /#.
+    by rewrite (_:k=0) 1:/# !set_eqiE /#.
+   by rewrite set_neqiE /#.
   by apply ext_eq; smt().
 + proc; simplify.
   transitivity {1}
@@ -185,12 +181,130 @@ transitivity CSpecFp.addm
   wp. simplify.
   skip => /> &1 &2 H1 H2.
   have HH: forall (f: R),
-            (Array4.of_list W64.zero [hui f 0; hui f 1; hui f 2; hui f 3])
+            (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4
             = f.
    by move=> f; rewrite -ext_eq_all /all_eq /=.
 + symmetry; conseq addm_eq; smt().
 qed.
 
+
+
+equiv subc_spec:
+ M.bn_subc ~ ASpecFp.subn:
+  ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2}
+  ==> res{1}.`1=res{2}.`1 /\ ImplZZ res{1}.`2 res{2}.`2.
+proof.
+transitivity 
+ R.Ops.subcR
+ ( (a,b,false){1}=(a,b,c){2} ==> ={res} )
+ ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ !c{1}
+   ==> res{1}.`1 = res{2}.`1 /\ ImplZZ res{1}.`2 res{2}.`2 ).
++ by move=> /> &1 &2 H1 H2; exists (a{1},b{1},false).
++ by move=> /> *.
++ proc; simplify.
+  unroll {2} 3; rcondt {2} 3; first by auto.
+  exlim a{1}, b{1} => aa bb.
+  while (={i,b} /\ 1 <= i{2} <= nlimbs /\
+         (cf, aa){1}=(c, a){2} /\
+         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array4 /\
+         (forall k, i{2} <= k < nlimbs => a{1}.[k] = aa.[k])%Array4).
+   wp; skip => /> &1 &2 Hi1 _ Hh1 Hh2 Hi2.
+   split => *; first smt().
+   split => *; first smt().
+   split.
+    move=> k Hk1 Hk2.
+    pose X := (subc _ _ _)%W64.
+    pose Y := (subc _ _ _)%W64.
+    have ->: X=Y by smt().
+    case: (k = i{2}) => ?.
+     by rewrite !set_eqiE /#.
+    by rewrite !set_neqiE /#.
+   move=> k Hk1 Hk2.
+   by rewrite set_neqiE /#.
+  wp; skip => />.
+  split => *.
+   split => k *.
+    by rewrite (_:k=0) 1:/# !set_eqiE /#.
+   by rewrite set_neqiE /#.
+  by apply ext_eq; smt().
++ proc; simplify.
+  transitivity {1}
+   { (c,r) <@ R.Ops.subcR(a,b,c); }
+   ( ={a,b,c} ==> ={c,r} )
+   ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ !c{1} ==> ={c} /\ ImplZZ r{1} r{2} ).
+  + by move=> /> &2 H; exists a{2} b{2} false.
+  + by auto.
+  + by inline*; sim.
+  + ecall {1} (R.subcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> ?.
+    by rewrite bn_borrowE 1:/# b2i0 /bn_modulus /=.
+qed.
+
+
+
+equiv cminusP2_eq:
+ M.cminusP2 ~ CSpecFp.cminusP2: valR x{1} = a{2} /\ a{2}<modulusR ==> valR res{1} = res{2}.
+proof.
+proc.  inline ASpecFp.ctseln. wp.  
+call subc_spec. wp. skip. progress. 
+  apply (eq_trans _ (valR pR)); last exact pRE.
+  by congr ;rewrite -ext_eq_all /all_eq.
+case (result_L.`1 ). progress. 
+have : result_R.`1 = true. rewrite - H1. rewrite H3. auto. progress. rewrite H4. simplify.
+  by congr ;rewrite -ext_eq_all /all_eq.
+progress.
+have : result_R.`1 = false. rewrite - H1. rewrite H3. auto. progress. rewrite H4. simplify.
+have -> : (result_L.`2.[0 <- result_L.`2.[0]].[1 <- result_L.`2.[1]].[2 <-
+     result_L.`2.[2]].[3 <- result_L.`2.[3]])%Array4 = result_L.`2. smt.
+auto.
+qed.
+
+
+
+equiv caddP_spec:
+ M.caddP ~ ASpecFp.caddP:
+ cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}.
+proof.
+transitivity CSpecFp.caddP
+ ( cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} )
+ ( ={c,a} ==> ={res} ).
++ by move=> /> &1 &2 ??; exists (c{2},a{2}) => /> /#.
++ by auto.
++ proc; simplify.
+  call addc_spec.
+  inline*; wp; skip => />; progress.
+  case: (c{2}) => E /=. 
+   apply (eq_trans _ (valR pR)); last exact pRE.
+   by congr; rewrite -ext_eq_all /all_eq.
+  apply (eq_trans _ (valR zeroR)); last exact zeroRE.
+  by congr; rewrite -ext_eq_all /all_eq.
++ symmetry; conseq caddP_eq; smt().
+qed.
+
+
+equiv subm_spec:
+ M.subm ~ ASpecFp.subm:
+  ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplFp res{1} res{2}.
+proof.
+transitivity CSpecFp.subm
+ (ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplZZ res{1} res{2})
+ (={a,b} ==> res{1}= asint res{2}).
++ by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => />.
++ by auto.
++ proc. 
+  inline M.subm.
+  simplify.
+  wp. simplify.
+  call caddP_spec.
+  call subc_spec.
+   simplify.
+   simplify.
+  simplify.
+  skip => /> &1 &2 H1 H2.
+  have HH: forall (f: R),
+            (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4 = f.
+   by move=> f; rewrite -ext_eq_all /all_eq /=.
++ symmetry; conseq subm_eq; smt().
+qed.
 
 
 (* LADDER MULTIPLICATION  *)
@@ -386,7 +500,7 @@ qed.
 
 
 
-print iterop_real_speac.
+
 
 lemma klo : 
   equiv[ AddM.opr ~ Spec.mul :
@@ -409,9 +523,72 @@ rewrite to_uintP.
        rewrite H H0.
      rewrite addE.
 auto.
-symmetry. transitivity M.addm (arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 ==> ={res})   (ImplFp arg{1}.`1  arg{2}.`1 /\ ImplFp arg{1}.`2  arg{2}.`2 ==> ImplFp res{1} res{2} ).  progress.  exists (a{1},b{1}). progress. progress. admit.   admit.
-conseq addm_spec.
+symmetry. transitivity M.addm (arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 ==> ={res})   (ImplFp arg{1}.`1  arg{2}.`1 /\ ImplFp arg{1}.`2  arg{2}.`2 ==> ImplFp res{1} res{2} /\ valR res{1} < P ).  progress.  exists (a{1},b{1}). progress. progress. 
+proc*.  sim.
+inline AddM.opr. wp.  call (_:true). sim. wp.  skip. progress.
+conseq addm_spec. progress. smt.
 qed.
+
+
+lemma ones64 : (2^64  - 1)  = 18446744073709551615. smt(). qed.
+
+lemma swap_lemma :
+      equiv[ AddM.swapr ~ Spec.swapr :
+              a{2} = x{1} /\ b{2} = y{1} /\ swap_0{1} = as_w64 c{2} ==> ={res}].
+proc.  simplify.
+seq 2 0 : (i{1} = 0 /\ a{2} = x{1} /\ b{2} = y{1} /\ swap_0{1} = as_w64 c{2} /\ 
+   ((as_bool swap_0{1} => mask{1} = (of_int 18446744073709551615)%W64 )
+              /\ (as_bool swap_0{1} = false => mask{1} = (of_int 0)%W64))).
+wp. skip. progress. smt(@W64). smt.
+while {1} (0 <= i{1} /\ ((as_bool swap_0{1} => mask{1} = (of_int 18446744073709551615)%W64 )
+              /\ (as_bool swap_0{1} = false => mask{1} = (of_int 0)%W64)) 
+   /\ (forall j, 0 <= j < i{1} => (x{1}.[j])%Array4 = (if as_bool swap_0{1} then (b{2}.[j]) else (a{2}.[j]))%Array4 )  
+   /\ (forall j, 0 <= j < i{1} => (y{1}.[j])%Array4 = (if as_bool swap_0{1} then (a{2}.[j]) else (b{2}.[j]))%Array4 )  
+   /\ (forall j, i{1} <= j => (x{1}.[j])%Array4 =  (a{2}.[j]))%Array4
+   /\ (forall j, i{1} <= j => (y{1}.[j])%Array4 =  (b{2}.[j]))%Array4
+ ) (nlimbs - i{1} + 1).
+progress. wp.  skip.  progress.   smt().
+case (j <  i{hr}). progress.  timeout 15. smt.
+progress.
+have : j = i{hr}. smt.
+progress.
+have ->: (x{hr}.[i{hr} <-
+    x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%Array4
+ = (x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%Array4. smt.
+case (as_bool swap_0{hr}). progress.
+rewrite H4. auto.  rewrite H0. auto. rewrite H5. auto. rewrite - ones64. 
+have -> : ((a{m}.[i{hr}])%Array4 `^` (b{m}.[i{hr}])%Array4 `&`
+ (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%Array4 `^` ((b{m}.[i{hr}])%Array4 `&`
+ (of_int W64.max_uint)%W64). smt. 
+have ->: ((b{m}.[i{hr}])%Array4 `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%Array4). smt.
+smt(@W64).
+progress. rewrite H4. auto.  rewrite H1. smt(). auto. 
+case (j <  i{hr}). progress.  timeout 15. smt.
+progress.
+have : j = i{hr}. smt.
+progress.
+have ->: (y{hr}.[i{hr} <-
+   y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%Array4
+ = (y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%Array4. smt.
+case (as_bool swap_0{hr}). progress.
+rewrite H4. auto.  rewrite H0. auto. rewrite H5. auto. rewrite - ones64. 
+have -> : ((a{m}.[i{hr}])%Array4 `^` (b{m}.[i{hr}])%Array4 `&`
+ (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%Array4 `^` ((b{m}.[i{hr}])%Array4 `&`
+ (of_int W64.max_uint)%W64). smt. 
+have ->: ((b{m}.[i{hr}])%Array4 `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%Array4). smt.
+smt(@W64).
+progress. rewrite H4. auto.  rewrite H1. smt(). smt(@W64).
+smt. smt. smt.
+skip. progress. smt().   smt().   smt(). 
+case (c{2} = false). progress.  
+apply Array4.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array4.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+progress. have ->: c{2} = true. smt(). simplify.
+progress. 
+apply Array4.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array4.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+qed.
+
 
 
 lemma mulm_real_spec : 
@@ -420,13 +597,10 @@ lemma mulm_real_spec :
             ={x} /\
             bs2int n{1} = valR n{2} /\ size n{1} = 256 /\ valR x{1} < P ==>
             ={res}].
-apply (iterop_real_speac AddM _ _ _). admit. 
+apply (iterop_real_speac AddM _ _ _). conseq swap_lemma. smt(). smt().
 conseq ith_bit_lemma'. smt().
-proc. 
-admit.  auto.
+conseq klo. smt(). auto. auto.
 qed.
-
-
 
 
 
@@ -518,11 +692,6 @@ proc.
 wp.  skip.  progress.
 rewrite  (kk (bs2int n{2}) _ a{1}). smt. auto. auto. smt.
 qed.
-
-
-
-
-
 
 
 

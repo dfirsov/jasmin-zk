@@ -13,14 +13,14 @@ import IterOp.
 
 module M7(M : BasicOps) = {
 
-  proc expm (m : R, x:R, n:R) : R = {
+  proc iterop (m : R, x:R, n:R) : R = {
    
     var x1, x2, x3, x4, bit : R;
     var t1, t2, par, p, d, ctr : W64.t;
 
     d <@ M.ith_bit(n,  W64.of_int (Rsize - 1));
-    (x1,x2,x3) <- (oneR,oneR,x);
-    x4 <@ M.mulm(m,x,x);
+    (x1,x2,x3) <- (idR,idR,x);
+    x4 <@ M.opr(m,x,x);
 
     ctr <- W64.of_int (Rsize - 1);
     p <- d;
@@ -35,8 +35,8 @@ module M7(M : BasicOps) = {
       d <-  d `|` t2;
       par <- t1 `^` t2;
       (x1,x2) <@ M.swapr(x1,x2,par);  
-      x1 <@ M.mulm(m,x1,x2); 
-      x2 <@ M.mulm(m,x2,x2);  
+      x1 <@ M.opr(m,x1,x2); 
+      x2 <@ M.opr(m,x2,x2);  
       (x1,x3) <@ M.swapr(x1,x3,(d `^` p));
       (x2,x4) <@ M.swapr(x2,x4,(d `^` p)); 
     }
@@ -52,8 +52,8 @@ section.
 
 declare module M <: BasicOps.
 
-lemma exp_6_7 :
- equiv[ M6(M).expm ~ M7(M).expm : ={arg, glob M} ==> ={res}].
+lemma iterop_6_7 :
+ equiv[ M6(M).iterop ~ M7(M).iterop : ={arg, glob M} ==> ={res}].
 proc. sim.
 while (={n, m, x1,x2,  x3, x4, d, p, glob M} 
   /\ W64.of_int ctr{1} = ctr{2} /\ ctr{1} < Rsize).

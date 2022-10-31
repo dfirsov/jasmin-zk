@@ -1,5 +1,6 @@
 require "ithbit.jazz"
 require "swap.jazz"
+require "subm.jazz"
 require "Fp_w64x4.jazz"
 
 
@@ -44,3 +45,17 @@ while(ctr > 0){
 }
 
 
+
+
+inline fn toEC2()
+{
+  stack u64[nlimbs] a b r;
+  reg u64 x;
+  reg bool _cf;
+  
+  /* normalized versions */
+  r = mulm_ladder(a,a, b);
+  r = subm(a, b);
+  r = cminusP2(a);
+
+}

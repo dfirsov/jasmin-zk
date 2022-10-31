@@ -366,6 +366,12 @@ module CSpecFp = {
   r <@ ASpecFp.cminusP(x);
   return r;
  }
+ (* proc addm2(a b: zp): int = { *)
+ (*  var c, x, r; *)
+ (*  (c, x) <@ ASpecFp.addn(asint a, asint b); *)
+ (*  r <@ ASpecFp.subm(inzp x, inzp P); *)
+ (*  return r; *)
+ (* } *)
  proc caddP(c: bool, a: int): int = {
   var x, r;
   x <@ ASpecFp.ctseln(c, 0, P);
@@ -377,7 +383,15 @@ module CSpecFp = {
   (c, r) <@ ASpecFp.subn(asint a, asint b);
   x <@ ASpecFp.caddP(c, r);
   return x;
+}
+
+ proc cminusP2(a: int): int = {
+  var c, x, r;
+  (c, x) <@ ASpecFp.subn(a, P);
+  r <@ ASpecFp.ctseln(c, x, a);
+  return r;
  }
+
  proc freeze(a: int): int = {
    var r;
    r <@ ASpecFp.cminusP(a);
@@ -392,6 +406,17 @@ module CSpecFp = {
   return x;
  }
 }.
+
+
+equiv cminusP2_eq:
+ ASpecFp.cminusP ~ CSpecFp.cminusP2: ={a} /\ a{2}<modulusR ==> ={res}.
+proof.
+proc; inline*; wp; skip => &1 &2.
+have ->: modulusR = 2^256 by rewrite R.bn_modulusE /= !mulrA expr0. 
+progress. smt.
+qed.
+
+
 
 equiv cminusP_eq:
  ASpecFp.cminusP ~ CSpecFp.cminusP: ={a} /\ a{2}<modulusR ==> ={res}.

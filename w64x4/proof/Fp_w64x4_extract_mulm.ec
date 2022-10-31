@@ -62,6 +62,27 @@ module M = {
     return (x, y);
   }
   
+  proc bn_subc (a:W64.t Array4.t, b:W64.t Array4.t) : bool * W64.t Array4.t = {
+    var aux: bool;
+    var aux_1: int;
+    var aux_0: W64.t;
+    
+    var cf:bool;
+    var i:int;
+    
+    (aux, aux_0) <- subc_64 a.[0] b.[0] false;
+    cf <- aux;
+    a.[0] <- aux_0;
+    i <- 1;
+    while (i < 4) {
+      (aux, aux_0) <- subc_64 a.[i] b.[i] cf;
+      cf <- aux;
+      a.[i] <- aux_0;
+      i <- i + 1;
+    }
+    return (cf, a);
+  }
+  
   proc bn_addc (a:W64.t Array4.t, b:W64.t Array4.t) : bool * W64.t Array4.t = {
     var aux: int;
     
@@ -83,6 +104,34 @@ module M = {
       i <- i + 1;
     }
     return (cf, a);
+  }
+  
+  proc caddP (cf:bool, x:W64.t Array4.t) : W64.t Array4.t = {
+    
+    var p:W64.t Array4.t;
+    var _zero:W64.t;
+    var  _0:bool;
+    p <- witness;
+    p.[0] <- (W64.of_int 18446744073709551597);
+    p.[1] <- (W64.of_int 18446744073709551615);
+    p.[2] <- (W64.of_int 18446744073709551615);
+    p.[3] <- (W64.of_int 9223372036854775807);
+    _zero <- (W64.of_int 0);
+    p.[0] <- ((! cf) ? _zero : p.[0]);
+    p.[1] <- ((! cf) ? _zero : p.[1]);
+    p.[2] <- ((! cf) ? _zero : p.[2]);
+    p.[3] <- ((! cf) ? _zero : p.[3]);
+    ( _0, x) <@ bn_addc (x, p);
+    return (x);
+  }
+  
+  proc subm (f:W64.t Array4.t, g:W64.t Array4.t) : W64.t Array4.t = {
+    
+    var cf:bool;
+    
+    (cf, f) <@ bn_subc (f, g);
+    f <@ caddP (cf, f);
+    return (f);
   }
   
   proc cminusP (xx:W64.t Array4.t) : W64.t Array4.t = {
@@ -123,6 +172,26 @@ module M = {
     xx.[2] <- x.[2];
     xx.[3] <- x.[3];
     return (xx);
+  }
+  
+  proc cminusP2 (x:W64.t Array4.t) : W64.t Array4.t = {
+    
+    var t:W64.t Array4.t;
+    var p:W64.t Array4.t;
+    var cf:bool;
+    var  _0:bool;
+    p <- witness;
+    t <- witness;
+    p.[0] <- (W64.of_int 18446744073709551597);
+    p.[1] <- (W64.of_int 18446744073709551615);
+    p.[2] <- (W64.of_int 18446744073709551615);
+    p.[3] <- (W64.of_int 9223372036854775807);
+    ( cf, t) <@ bn_subc (x, p);
+    t.[0] <- (cf ? x.[0] : t.[0]);
+    t.[1] <- (cf ? x.[1] : t.[1]);
+    t.[2] <- (cf ? x.[2] : t.[2]);
+    t.[3] <- (cf ? x.[3] : t.[3]);
+    return (t);
   }
   
   proc addm (a:W64.t Array4.t, b:W64.t Array4.t) : W64.t Array4.t = {
@@ -200,6 +269,20 @@ module M = {
     par <@ ith_bit (n, (W64.of_int 0));
     (x1, x2) <@ swapr (x2, x1, par);
     return (x1);
+  }
+  
+  proc toEC2 () : unit = {
+    
+    var a:W64.t Array4.t;
+    var b:W64.t Array4.t;
+    var r:W64.t Array4.t;
+    a <- witness;
+    b <- witness;
+    r <- witness;
+    r <@ mulm_ladder (a, a, b);
+    r <@ subm (a, b);
+    r <@ cminusP2 (a);
+    return ();
   }
 }.
 

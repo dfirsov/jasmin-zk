@@ -14,13 +14,13 @@ import IterOp.
 
 module M2 = {
 
-    proc expm (x:R, n:bits) : R = {
+    proc iterop (x:R, n:bits) : R = {
     
     var x1, x2, x3, x4 : R;
     var ctr:int;
     var bit, d, p, par :bool;    
     d <- ith_bit n (size n - 1);
-    (x1,x2,x3, x4) <- (oneR,oneR,x,x *** x);
+    (x1,x2,x3, x4) <- (idR,idR,x,x *** x);
 
     ctr <- size n - 1;
     p <- d;
@@ -46,8 +46,8 @@ module M2 = {
 }.
 
 
-lemma exp_eq_naive :
- equiv[ M1.expm_naive ~ M2.expm : ={arg} /\  0 < size n{1} ==> ={res}].
+lemma iterop_naive_2 :
+ equiv[ M1.iterop_naive ~ M2.iterop : ={arg} /\  0 < size n{1} ==> ={res}].
 proc.
 wp.
 while (={ctr, n, d, p, x3, x4} /\ 0 < ctr{2} + 1 <= size n{2}
@@ -68,15 +68,15 @@ qed.
 
 
 
-lemma expm_correct : 
-  equiv[ M2.expm ~ M1.expm_spec : ={arg} /\  0 < size arg{1}.`2 /\ valR x{1} < P ==> ={res}].
-transitivity M1.expm_naive 
+lemma iterop_2_spec : 
+  equiv[ M2.iterop ~ M1.iterop_spec : ={arg} /\  0 < size arg{1}.`2 /\ valR x{1} < P ==> ={res}].
+transitivity M1.iterop_naive 
   (={arg}  /\  0 < size arg{1}.`2  ==> ={res})
   (={arg}  /\  0 < size arg{1}.`2 /\ valR x{2} < P ==> ={res}).
 smt().
 auto. symmetry.
-conseq exp_eq_naive. auto. auto.
+conseq iterop_naive_2. auto. auto.
 exists* n{1}, x{1}. elim*. progress.
-conseq (exp_naive_correct f0 f). progress. smt(). 
+conseq (iterop_spec_naive f0 f). progress. smt(). 
 qed.
 

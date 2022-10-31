@@ -13,14 +13,14 @@ import IterOp.
 
 module M4 = {
 
-    proc expm (x:R, n:R) : R = {
+  proc iterop (x:R, n:R) : R = {
     
     var x1, x2, x3, x4, bit : R;
     var par, p, d : W64.t;
     var ctr:int;
 
     d <- ith_bitR n (Rsize - 1);
-    (x1,x2,x3, x4) <- (oneR,oneR,x,x *** x);
+    (x1,x2,x3, x4) <- (idR,idR,x,x *** x);
 
     ctr <- Rsize - 1;
     p <- d;
@@ -47,8 +47,8 @@ module M4 = {
 
 
 
-lemma exp_3_4_1 :
- equiv[ M3.expm ~ M4.expm : arg{1}.`1 = arg{2}.`1 /\ (bitsR arg.`2{1}) = (arg.`2{2})  /\ size n{1} = Rsize /\  0 < size n{1} ==> ={res}].
+lemma iterop_3_4_1 :
+ equiv[ M3.iterop ~ M4.iterop : arg{1}.`1 = arg{2}.`1 /\ (bitsR arg.`2{1}) = (arg.`2{2})  /\ size n{1} = Rsize /\  0 < size n{1} ==> ={res}].
 proc.
 wp.
 while (={ctr,  x1,x2,  x3, x4, d, p}  
@@ -77,8 +77,8 @@ qed.
 
 
 
-lemma exp_3_4_2 :
- equiv[ M3.expm ~ M4.expm : arg{1}.`1 = arg{2}.`1 /\ (arg.`2{1}) = (Rbits arg.`2{2})    /\  0 < size n{1} ==> ={res}].
+lemma iterop_3_4_2 :
+ equiv[ M3.iterop ~ M4.iterop : arg{1}.`1 = arg{2}.`1 /\ (arg.`2{1}) = (Rbits arg.`2{2})    /\  0 < size n{1} ==> ={res}].
 proc.
 wp.
 while (={ctr,  x1,x2,  x3, x4, d, p}  

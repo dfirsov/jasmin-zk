@@ -5,6 +5,24 @@
 
 param int nlimbs = 4;
 
+
+/* performs multi-limb subtraction */
+/* REGS (params + workspace): 2*nlimbs + 0 (inplace 1st arg.) */
+inline fn bn_subc
+( reg u64[nlimbs] a b
+) -> reg bool, reg u64[nlimbs]
+{
+  inline int i;
+  reg bool cf;
+
+  cf, a[0] -= b[0];
+  for i=1 to nlimbs
+  { cf, a[i] -= b[i] - cf; }
+
+  return cf, a;
+}
+
+
 /* Loads an array from memory
  */
 inline fn bn_load

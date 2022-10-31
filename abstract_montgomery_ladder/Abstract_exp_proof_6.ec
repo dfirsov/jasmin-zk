@@ -11,15 +11,15 @@ import IterOp.
 
 module M6(M : BasicOps) = {
 
-  proc expm' (m : R, x:R, n:R) : R = {
+  proc iterop' (m : R, x:R, n:R) : R = {
     
     var x1, x2, x3, x4, bit : R;
     var t1, t2, par, p, d : W64.t;
     var ctr:int;
 
     d <@ Spec.ith_bit(n,  (Rsize - 1));
-    (x1,x2,x3) <- (oneR,oneR,x);
-    x4 <@ M.mulm(m,x,x);
+    (x1,x2,x3) <- (idR,idR,x);
+    x4 <@ M.opr(m,x,x);
 
     ctr <- Rsize - 1;
     p <- d;
@@ -34,8 +34,8 @@ module M6(M : BasicOps) = {
       d <-  d `|` t2;
       par <- t1 `^` t2;
       (x1,x2) <@ Spec.swapr(x1,x2,as_bool par);  
-      x1 <@ M.mulm(m,x1,x2); 
-      x2 <@ M.mulm(m,x2,x2);  
+      x1 <@ M.opr(m,x1,x2); 
+      x2 <@ M.opr(m,x2,x2);  
       (x1,x3) <@ Spec.swapr(x1,x3,as_bool (d `^` p));
       (x2,x4) <@ Spec.swapr(x2,x4,as_bool (d `^` p)); 
     }
@@ -44,15 +44,15 @@ module M6(M : BasicOps) = {
     return x1;
   }  
   
-  proc expm (m : R, x:R, n:R) : R = {
+  proc iterop (m : R, x:R, n:R) : R = {
     
     var x1, x2, x3, x4, bit : R;
     var t1, t2, par, p, d : W64.t;
     var ctr:int;
 
     d <@ M.ith_bit(n,  W64.of_int (Rsize - 1));
-    (x1,x2,x3) <- (oneR,oneR,x);
-    x4 <@ M.mulm(m,x,x);
+    (x1,x2,x3) <- (idR,idR,x);
+    x4 <@ M.opr(m,x,x);
 
     ctr <- Rsize - 1;
     p <- d;
@@ -67,8 +67,8 @@ module M6(M : BasicOps) = {
       d <-  d `|` t2;
       par <- t1 `^` t2;
       (x1,x2) <@ M.swapr(x1,x2,par);  
-      x1 <@ M.mulm(m,x1,x2); 
-      x2 <@ M.mulm(m,x2,x2);  
+      x1 <@ M.opr(m,x1,x2); 
+      x2 <@ M.opr(m,x2,x2);  
       (x1,x3) <@ M.swapr(x1,x3,(d `^` p));
       (x2,x4) <@ M.swapr(x2,x4,(d `^` p)); 
     }
@@ -92,13 +92,13 @@ declare axiom exp_ithbit :
     /\ 0 <= ctr{2} < Rsize ==> ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero) ].
 
 declare axiom exp_mulm :
-  equiv [ M.mulm ~ Spec.mul: arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 /\ ImplR p{1} P /\ valR a{1} < P /\ valR b{1} < P ==> ={res} /\ valR res{1} < P  ].
+  equiv [ M.opr ~ Spec.mul: arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 /\ ImplR p{1} P /\ valR a{1} < P /\ valR b{1} < P ==> ={res} /\ valR res{1} < P  ].
 
 
 declare axiom stateless_M (x y : glob M) : x = y.
     
-lemma exp_5_6' :
- equiv[ M5.expm ~ M6(M).expm'  : arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\ valR x{1} < P /\   ImplR m{2} P ==> ={res}].
+lemma iterop_5_6' :
+ equiv[ M5.iterop ~ M6(M).iterop'  : arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\ valR x{1} < P /\   ImplR m{2} P ==> ={res}].
 symmetry.
 proc. 
 inline Spec.swapr.
@@ -123,8 +123,8 @@ progress. smt. smt. smt.  smt. smt. smt. smt.
 qed.
 
 
-lemma exp_5_6'' :
- equiv[ M6(M).expm' ~ M6(M).expm  : ={arg, glob M} ==> ={res}].
+lemma iterop_5_6'' :
+ equiv[ M6(M).iterop' ~ M6(M).iterop  : ={arg, glob M} ==> ={res}].
 proc.
 wp.
 symmetry.
@@ -159,14 +159,14 @@ smt ().
 qed.
 
 
-lemma exp_5_6 :
- equiv[ M5.expm ~ M6(M).expm  : arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\ valR x{1} < P /\  ImplR m{2} P ==> ={res}].
-transitivity M6(M).expm'
+lemma iterop_5_6 :
+ equiv[ M5.iterop ~ M6(M).iterop  : arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\ valR x{1} < P /\  ImplR m{2} P ==> ={res}].
+transitivity M6(M).iterop'
   (arg{2}.`2 = arg{1}.`1 /\ arg{2}.`3 = arg{1}.`2 /\ valR x{1} < P /\   ImplR m{2} P ==> ={res})
   (={arg, glob M} ==> ={res}).
 progress. smt(). smt().
-conseq exp_5_6'.
-conseq exp_5_6''.
+conseq iterop_5_6'.
+conseq iterop_5_6''.
 qed.
 
 end section.

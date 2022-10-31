@@ -12,14 +12,14 @@ import IterOp.
 
 module M5 = {
 
-  proc expm (x:R, n:R) : R = {
+  proc iterop (x:R, n:R) : R = {
     
     var x1, x2, x3, x4, bit : R;
     var t1,t2,par, p, d : W64.t;
     var ctr: int;
 
     d <@ Spec.ith_bit(n,  (Rsize - 1));
-    (x1,x2,x3) <- (oneR,oneR,x);
+    (x1,x2,x3) <- (idR,idR,x);
     x4 <@ Spec.mul(x,x);
 
     ctr <- Rsize - 1;
@@ -47,8 +47,8 @@ module M5 = {
 }.
 
 
-lemma exp_4_5 :
- equiv[ M4.expm ~ M5.expm  : ={arg} ==> ={res}].
+lemma iterop_4_5 :
+ equiv[ M4.iterop ~ M5.iterop  : ={arg} ==> ={res}].
 proc.
 inline Spec.mul.
 inline Spec.swapr.

@@ -46,6 +46,29 @@ inline fn cminusP
 }
 
 
+inline fn cminusP2
+( stack u64[nlimbs] x
+) -> stack u64[nlimbs]
+{
+  reg u64[nlimbs] t;
+  reg u64[nlimbs] p;  
+  reg u64 _zero;
+  reg bool cf;
+  p[0] = 18446744073709551597;
+  p[1] = 18446744073709551615;
+  p[2] = 18446744073709551615;
+  p[3] = 9223372036854775807;  
+  cf, t = bn_subc(x, p);
+  t[0] = x[0] if cf;
+  t[1] = x[1] if cf;
+  t[2] = x[2] if cf;
+  t[3] = x[3] if cf;
+  return t;
+}
+
+
+
+
 /*  @pre: _zero=0, of=cf=FALSE */
 /* Reduction modulo p25519 REGS (params + workspace):  */
 inline fn redp25519
@@ -104,6 +127,26 @@ inline fn addm(stack u64[nlimbs] a b) -> stack u64[nlimbs]
   stack u64[nlimbs] f g;
   _, f = bn_addc ( a, b);
   f = cminusP ( f );
+  return f;
+}
+
+
+
+/*  Modular addition modulo p25519 (assumes/ensures operands/resul in range [0..p25519[) */
+inline fn addm4(stack u64[nlimbs] a b) -> stack u64[nlimbs]
+{
+  stack u64[nlimbs] f g;
+  _, f = bn_addc ( a, b);
+  f = cminusP2 ( f );
+  return f;
+}
+
+
+
+inline fn addm3(stack u64[nlimbs] m a b) -> stack u64[nlimbs]
+{
+  stack u64[nlimbs] f;
+  f = addm(a,b);
   return f;
 }
 

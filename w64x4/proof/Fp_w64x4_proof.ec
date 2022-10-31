@@ -727,7 +727,7 @@ qed.
 
 
 
-lemma ones64 : (2^ 64  - 1)  = 18446744073709551615. smt(). qed.
+lemma ones64 : (2^64  - 1)  = 18446744073709551615. smt(). qed.
 
 print Array4.
 lemma swap_lemma :
