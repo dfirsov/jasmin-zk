@@ -106,17 +106,11 @@ module M = {
     return (cf, a);
   }
   
-  proc cminusP (x:W64.t Array4.t) : W64.t Array4.t = {
+  proc cminusP (p:W64.t Array4.t, x:W64.t Array4.t) : W64.t Array4.t = {
     
     var t:W64.t Array4.t;
-    var p:W64.t Array4.t;
     var cf:bool;
-    p <- witness;
     t <- witness;
-    p.[0] <- (W64.of_int 18446744073709551597);
-    p.[1] <- (W64.of_int 18446744073709551615);
-    p.[2] <- (W64.of_int 18446744073709551615);
-    p.[3] <- (W64.of_int 9223372036854775807);
     (cf, t) <@ bn_subc (x, p);
     t.[0] <- (cf ? x.[0] : t.[0]);
     t.[1] <- (cf ? x.[1] : t.[1]);
@@ -125,22 +119,14 @@ module M = {
     return (t);
   }
   
-  proc addm (a:W64.t Array4.t, b:W64.t Array4.t) : W64.t Array4.t = {
+  proc addm (p:W64.t Array4.t, a:W64.t Array4.t, b:W64.t Array4.t) : 
+  W64.t Array4.t = {
     
     var f:W64.t Array4.t;
     var  _0:bool;
     f <- witness;
     ( _0, f) <@ bn_addc (a, b);
-    f <@ cminusP (f);
-    return (f);
-  }
-  
-  proc addm3 (m:W64.t Array4.t, a:W64.t Array4.t, b:W64.t Array4.t) : 
-  W64.t Array4.t = {
-    
-    var f:W64.t Array4.t;
-    f <- witness;
-    f <@ addm (a, b);
+    f <@ cminusP (p, f);
     return (f);
   }
   
@@ -175,7 +161,7 @@ module M = {
     x2.[3] <- (W64.of_int 0);
     d <@ ith_bit (n, ctr);
     x3 <- x;
-    x4 <@ addm3 (m, x, x);
+    x4 <@ addm (m, x, x);
     p <- d;
     (x1, x3) <@ swapr (x1, x3, d);
     (x2, x4) <@ swapr (x2, x4, d);
@@ -190,8 +176,8 @@ module M = {
       d <- (d `|` t2);
       par <- (t1 `^` t2);
       (x1, x2) <@ swapr (x1, x2, par);
-      x1 <@ addm3 (m, x1, x2);
-      x2 <@ addm3 (m, x2, x2);
+      x1 <@ addm (m, x1, x2);
+      x2 <@ addm (m, x2, x2);
       q <- (q `|` t2);
       cbit <- (q `^` p);
       (x1, x3) <@ swapr (x1, x3, cbit);

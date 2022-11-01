@@ -1,5 +1,5 @@
 require import AllCore IntDiv CoreMap List Distr.
-from Jasmin require import JModel.
+require import JModel.
 
 require import Array4 Array8.
 require import WArray32 WArray64.
@@ -32,12 +32,12 @@ module M = {
     var cf:bool;
     var i:int;
     
-    (aux, aux_0) <- adc_64 a.[0] b false;
+    (aux, aux_0) <- addc_64 a.[0] b false;
     cf <- aux;
     a.[0] <- aux_0;
     i <- 1;
     while (i < 4) {
-      (aux, aux_0) <- adc_64 a.[i] (W64.of_int 0) cf;
+      (aux, aux_0) <- addc_64 a.[i] (W64.of_int 0) cf;
       cf <- aux;
       a.[i] <- aux_0;
       i <- i + 1;
@@ -55,13 +55,13 @@ module M = {
     
     x1 <- a.[0];
     x2 <- b.[0];
-    (cf, x1) <- adc_64 x1 x2 false;
+    (cf, x1) <- addc_64 x1 x2 false;
     a.[0] <- x1;
     i <- 1;
     while (i < 4) {
       x1 <- a.[i];
       x2 <- b.[i];
-      (cf, x1) <- adc_64 x1 x2 cf;
+      (cf, x1) <- addc_64 x1 x2 cf;
       a.[i] <- x1;
       i <- i + 1;
     }
@@ -256,16 +256,16 @@ module M = {
     t <- copy_64 x;
     twop63 <- (W64.of_int 1);
     twop63 <- (twop63 `<<` (W8.of_int 63));
-    (aux, aux_0) <- adc_64 t.[0] (W64.of_int 19) false;
+    (aux, aux_0) <- addc_64 t.[0] (W64.of_int 19) false;
     cf <- aux;
     t.[0] <- aux_0;
-    (aux, aux_0) <- adc_64 t.[1] (W64.of_int 0) cf;
+    (aux, aux_0) <- addc_64 t.[1] (W64.of_int 0) cf;
     cf <- aux;
     t.[1] <- aux_0;
-    (aux, aux_0) <- adc_64 t.[2] (W64.of_int 0) cf;
+    (aux, aux_0) <- addc_64 t.[2] (W64.of_int 0) cf;
     cf <- aux;
     t.[2] <- aux_0;
-    (aux, aux_0) <- adc_64 t.[3] twop63 cf;
+    (aux, aux_0) <- addc_64 t.[3] twop63 cf;
     cf <- aux;
     t.[3] <- aux_0;
     x.[0] <- (cf ? t.[0] : x.[0]);

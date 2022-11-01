@@ -3,8 +3,7 @@ require "swap.jazz"
 require "Fp_w64x4.jazz"
 
 
-inline fn mulm_ladder(stack u64[nlimbs] m x n) -> (stack u64[nlimbs])
-{
+inline fn mulm_ladder(stack u64[nlimbs] m x n) -> (stack u64[nlimbs]){
   reg u64 ctr bit d p par t1 t2 cbit lbit q;
   stack u64[nlimbs] x1 x2 x3 x4;
   ctr = nlimbs * 64 - 1;
@@ -13,7 +12,7 @@ inline fn mulm_ladder(stack u64[nlimbs] m x n) -> (stack u64[nlimbs])
   d = ith_bit(n,ctr);
 
   x3 = x;
-  x4 = addm3(m,x,x);
+  x4 = addm(m,x,x);
   p = d;
   (x1,x3) = swapr(x1,x3,d);
   (x2,x4) = swapr(x2,x4,d);
@@ -29,8 +28,8 @@ while(ctr > 0){
    d = d | t2;
    par = t1 ^ t2;
    (x1,x2) = swapr(x1,x2,par);
-   x1 = addm3(m,x1,x2);
-   x2 = addm3(m,x2,x2);
+   x1 = addm(m,x1,x2);
+   x2 = addm(m,x2,x2);
    q |= t2;
    cbit = q ^ p;
    (x1,x3) = swapr(x1,x3,cbit);
@@ -54,5 +53,6 @@ inline fn toEC2()
   
   /* normalized versions */
   r = mulm_ladder(a,a,b);
+
 
 }

@@ -9,15 +9,24 @@ param int nlimbs = 4;
 /* performs multi-limb subtraction */
 /* REGS (params + workspace): 2*nlimbs + 0 (inplace 1st arg.) */
 inline fn bn_subc
-( reg u64[nlimbs] a b
-) -> reg bool, reg u64[nlimbs]
+( stack u64[nlimbs] a b
+) -> reg bool, stack u64[nlimbs]
 {
   inline int i;
   reg bool cf;
+  reg u64 x1 x2;
 
-  cf, a[0] -= b[0];
-  for i=1 to nlimbs
-  { cf, a[i] -= b[i] - cf; }
+
+  x1 = a[0];
+  x2 = b[0];
+  cf, x1 = x1 - x2;
+  a[0] =  x1;
+  for i=1 to nlimbs{ 
+    x1 = a[i];
+    x2 = b[i];
+    cf, x1 = x1 - x2 - cf; 
+    a[i] = x1;
+  }
 
   return cf, a;
 }

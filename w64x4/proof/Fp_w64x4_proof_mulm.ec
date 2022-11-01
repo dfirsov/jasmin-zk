@@ -3,7 +3,7 @@ require import AllCore IntDiv CoreMap List.
 require import JModel.
 require import JBigNum.
 
-require import Fp_w64x4_extract_mulm.
+require import Fp_w64x4_extract.
 require import Fp_w64x4_spec.
 require import Ith_Bit64.
 
@@ -25,8 +25,6 @@ module MM = {
   }
 
 }.
-
-
 
 equiv addc_spec:
  M.bn_addc ~ ASpecFp.addn:
@@ -130,33 +128,35 @@ transitivity
 qed.
 
 
+
 equiv M_cminusP_eq:
- M.cminusP ~ CSpecFp.cminusP: valR x{1} = a{2} /\ a{2}<modulusR ==> valR res{1} = res{2}.
+ M.cminusP ~ CSpecFp.cminusP: valR p{1} = P /\ valR x{1} = a{2} /\ a{2}<modulusR ==> valR res{1} = res{2}.
 proof.
-proc.  inline ASpecFp.ctseln. wp.  
+proc.
+  inline ASpecFp.ctseln. wp.  
 call subc_spec. wp. skip. progress. 
-  apply (eq_trans _ (valR pR)); last exact pRE.
-  by congr ;rewrite -ext_eq_all /all_eq.
+congr. 
+apply ext_eq_all. rewrite /all_eq. simplify. auto.
 case (result_L.`1 ). progress. 
-have : result_R.`1 = true. rewrite - H1. rewrite H3. auto. progress. rewrite H4. simplify.
+have : result_R.`1 = true. rewrite - H3. rewrite H5. auto. progress. rewrite H6. simplify.
   by congr ;rewrite -ext_eq_all /all_eq.
 progress.
-have : result_R.`1 = false. rewrite - H1. rewrite H3. auto. progress. rewrite H4. simplify.
+have : result_R.`1 = false. rewrite - H3. rewrite H5. auto. progress. rewrite H6. simplify.
 have -> : (result_L.`2.[0 <- result_L.`2.[0]].[1 <- result_L.`2.[1]].[2 <-
      result_L.`2.[2]].[3 <- result_L.`2.[3]])%Array4 = result_L.`2. smt.
 auto.
 qed.
 
 
+
 equiv cminusP_spec:
  M.cminusP ~ ASpecFp.cminusP:
- ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}.
+ valR p{1} = P /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}.
 proof.
 transitivity CSpecFp.cminusP
- ( ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} )
+ ( valR p{1} = P /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} )
  ( ={a} /\ a{2} < modulusR ==> ={res} ).
-+ move=> /> &2; exists (valR x{2}) => />. 
-  smt.
+  progress. exists (valR x{1}). progress. smt.
 + by auto. conseq M_cminusP_eq. progress. smt.
 + symmetry; conseq cminusP_eq; smt().
 qed.
@@ -164,74 +164,29 @@ qed.
 
 equiv addm_spec:
  M.addm ~ ASpecFp.addm:
-  ImplFp a{1} a{2} /\ ImplFp b{1} b{2}
+  valR p{1} = P /\ ImplFp a{1} a{2} /\ ImplFp b{1} b{2}
   ==> ImplFp res{1} res{2}.
 proof.
 transitivity CSpecFp.addm
- (ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplZZ res{1} res{2})
+ (valR p{1} = P /\ ImplFp a{1} a{2} /\ ImplFp b{1} b{2} ==> ImplZZ res{1} res{2})
  (={a,b} ==> res{1}= asint res{2}).
-+ by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => /=.
-+ by auto.
++ move=> /> &1 &2 H1 H2 H3  /=. exists (a{2},b{2}) => /=.
++ by auto. by auto.
 + proc; simplify.
-  call cminusP_spec.
+  call cminusP_spec. wp. 
   call addc_spec.
   wp. simplify.
-  skip => /> &1 &2 H1 H2.
+  skip => /> &1 &2 H1 H2 H3.
   have HH: forall (f: R),
             (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4
             = f.
    by move=> f; rewrite -ext_eq_all /all_eq /=.
+progress.
+ rewrite - H0. congr.
+  apply ext_eq_all. rewrite /all_eq. simplify. auto.
+            
 + symmetry; conseq addm_eq; smt().
 qed.
-
-
-
-
-(* equiv caddP_spec: *)
-(*  M.caddP ~ ASpecFp.caddP: *)
-(*  cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2}. *)
-(* proof. *)
-(* transitivity CSpecFp.caddP *)
-(*  ( cf{1}=c{2} /\ ImplZZ x{1} a{2} ==> ImplZZ res{1} res{2} ) *)
-(*  ( ={c,a} ==> ={res} ). *)
-(* + by move=> /> &1 &2 ??; exists (c{2},a{2}) => /> /#. *)
-(* + by auto. *)
-(* + proc; simplify. *)
-(*   call addc_spec. *)
-(*   inline*; wp; skip => />; progress. *)
-(*   case: (c{2}) => E /=.  *)
-(*    apply (eq_trans _ (valR pR)); last exact pRE. *)
-(*    by congr; rewrite -ext_eq_all /all_eq. *)
-(*   apply (eq_trans _ (valR zeroR)); last exact zeroRE. *)
-(*   by congr; rewrite -ext_eq_all /all_eq. *)
-(* + symmetry; conseq caddP_eq; smt(). *)
-(* qed. *)
-
-
-(* equiv subm_spec: *)
-(*  M.subm ~ ASpecFp.subm: *)
-(*   ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplFp res{1} res{2}. *)
-(* proof. *)
-(* transitivity CSpecFp.subm *)
-(*  (ImplFp f{1} a{2} /\ ImplFp g{1} b{2} ==> ImplZZ res{1} res{2}) *)
-(*  (={a,b} ==> res{1}= asint res{2}). *)
-(* + by move=> /> &1 &2 H1 H2 /=; exists (a{2},b{2}) => />. *)
-(* + by auto. *)
-(* + proc.  *)
-(*   inline M.subm. *)
-(*   simplify. *)
-(*   wp. simplify. *)
-(*   call caddP_spec. *)
-(*   call subc_spec. *)
-(*    simplify. *)
-(*    simplify. *)
-(*   simplify. *)
-(*   skip => /> &1 &2 H1 H2. *)
-(*   have HH: forall (f: R), *)
-(*             (Array4.of_list W64.zero [f.[0]; f.[1]; f.[2]; f.[3]])%Array4 = f. *)
-(*    by move=> f; rewrite -ext_eq_all /all_eq /=. *)
-(* + symmetry; conseq subm_eq; smt(). *)
-(* qed. *)
 
 
 (* LADDER MULTIPLICATION  *)
@@ -299,8 +254,8 @@ qed.
 
 module AddM = {
   proc ith_bit = M.ith_bit
-  proc swapr = M.swapr
-  proc opr =  M.addm3
+  proc swapr   = M.swapr
+  proc opr     =  M.addm
 }.
 
 
@@ -432,14 +387,14 @@ qed.
 
 lemma klo : 
   equiv[ AddM.opr ~ Spec.mul :
-            ={a} /\ ={b} /\  p{1} = P /\ valR a{1} < P /\ valR b{1} < P ==>
+            ={a} /\ ={b} /\  valR p{1} = P /\ valR a{1} < P /\ valR b{1} < P ==>
             ={res} /\ valR res{1} < P].
 symmetry.
 transitivity ASpecFp.addm 
   (ImplFp arg{1}.`1  arg{2}.`1 /\ ImplFp arg{1}.`2  arg{2}.`2 ==> ImplFp res{1} res{2} )
-  (ImplFp a{2} a{1} /\ ImplFp b{2} b{1} /\  p{1} = P /\ valR a{2} < P /\ valR b{2} < P ==>
+  (ImplFp a{2} a{1} /\ ImplFp b{2} b{1} /\  valR p{2} = P /\ valR a{2} < P /\ valR b{2} < P ==>
             ImplFp res{2} res{1} /\ valR res{2} < P).
-    progress.
+    progress. 
   exists (inzp (valR a{1}), inzp (valR b{1}) )%W64x4. progress.
 rewrite inzpK. smt.
 rewrite inzpK. smt.
@@ -451,9 +406,12 @@ rewrite to_uintP.
        rewrite H H0.
      rewrite addE.
 auto.
-symmetry. transitivity M.addm (arg{1}.`2 = arg{2}.`1 /\ arg{1}.`3 = arg{2}.`2 ==> ={res})   (ImplFp arg{1}.`1  arg{2}.`1 /\ ImplFp arg{1}.`2  arg{2}.`2 ==> ImplFp res{1} res{2} /\ valR res{1} < P ).  progress.  exists (a{1},b{1}). progress. progress. 
+symmetry. 
+transitivity M.addm 
+  (arg{1}.`1 = arg{2}.`1 /\ arg{1}.`2 = arg{2}.`2 /\ arg{1}.`3 = arg{2}.`3 ==> ={res})   
+  (ImplZZ p{1} P /\ ImplFp arg{1}.`2  arg{2}.`1 /\ ImplFp arg{1}.`3  arg{2}.`2 ==> ImplFp res{1} res{2} /\ valR res{1} < P ).
+progress.  exists (p{1},a{1},b{1}). progress. progress. 
 proc*.  sim.
-inline AddM.opr. wp.  call (_:true). sim. wp.  skip. progress.
 conseq addm_spec. progress. smt.
 qed.
 
@@ -533,10 +491,10 @@ qed.
 
 
 lemma right_end : 
- equiv[ M7(AddM).iterop ~ M.mulm_ladder : ={arg} ==> ={res} ].
+ equiv[ M7(AddM).iterop ~ M.mulm : ={arg} ==> ={res} ].
 proc. sim.
-seq  7  19 : (={x1,x2,x3,x4,d,ctr,n,m}). sim. wp. 
-call (_:true). sim. wp.  call (_:true). sim. wp.  skip. progress. rewrite /oneR. 
+seq  7  22 : (={x1,x2,x3,x4,d,ctr,n,m}). sim. wp. 
+call (_:true). sim. wp.  call (_:true). sim. wp.  skip. progress. apply ext_eq_all. auto. rewrite /oneR. 
 have x : valR%W64x4 (witness.[0 <- W64.zero].[1 <- W64.zero].[2 <- W64.zero].[3 <- W64.zero])%Array4 = 0.
 progress. rewrite /bnk.
 have ->: range 0 4 = [0;1;2;3].  rewrite range_ltn. auto.
@@ -589,7 +547,6 @@ smt.
 (* have -> : (Sub.val (inzp 1))%Sub = 1. smt. *)
 (* smt(valR_one). *)
 progress.
-
 have ->: (ExpW64.(^) b (i + 1)) = b *** (ExpW64.(^) b  i).
 rewrite exp_prop3. auto. auto.  auto.
 rewrite exp_prop2.
@@ -613,6 +570,8 @@ rewrite  to_uintP /=. done.
 qed.
 
 
+
+
 lemma left_end :
  equiv[ ASpecFp.mulm ~ M1.iterop_spec  :
     ImplFp arg{2}.`1 arg{1}.`1 /\  bs2int arg{2}.`2  = asint arg{1}.`2 /\ valR%W64x4 x{2} < P ==> ImplFp res{2} res{1}].
@@ -627,8 +586,8 @@ qed.
 
 
 equiv mulm_spec:
- M.mulm_ladder ~ ASpecFp.mulm:
-  ImplFp x{1} a{2} /\ ImplFp n{1} b{2} /\ ImplZZ m{1} P ==> ImplFp res{1} res{2}.
+ M.mulm ~ ASpecFp.mulm:
+  valR m{1} = P /\ ImplFp x{1} a{2} /\ ImplFp n{1} b{2} /\ ImplZZ m{1} P ==> ImplFp res{1} res{2}.
 proof. symmetry.
 transitivity M1.iterop_spec
   (ImplFp arg{2}.`1 arg{1}.`1 /\  bs2int arg{2}.`2  = asint arg{1}.`2 /\ valR%W64x4 x{2} < P ==> ImplFp res{2} res{1})
@@ -637,7 +596,7 @@ transitivity M1.iterop_spec
             bs2int n{1} = valR%W64x4 n{2} /\ (size n{1}) = 256 /\ valR%W64x4 x{1} < P ==>
             ={res}).
 progress. exists (x{2},Rbits n{2}).
-progress. rewrite -  H0. 
+progress. 
 rewrite /Rbits. smt.
 smt.
 rewrite /Rbits. smt.

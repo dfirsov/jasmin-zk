@@ -1,7 +1,3 @@
-/home/aneto/Desktop/jasmin/jasmin-compiler/compiler/jasminc Fp_w64x4.jazz -o Fp_w64x4.s
+/home/aneto/Desktop/jasmin/jasmin-compiler/compiler/jasminc Fp_w64x4.jazz -o ../test/Fp_w64x4.s
 
-/home/aneto/Desktop/jasmin/jasmin-compiler/compiler/jasminc -ec toEC -oec Fp_w64x4_extract.ec Fp_w64x4.jazz
-
-/home/aneto/Desktop/jasmin/jasmin-compiler/compiler/jasminc -ec toEC2 -oec Fp_w64x4_extract_mulm.ec mulm.jazz
-
-/home/aneto/Desktop/jasmin/jasmin-compiler/compiler/jasminc -CT -ec toEC -oec Fp_w64x4_extract_ct.ec Fp_w64x4.jazz
+/home/aneto/Desktop/jasmin/jasmin-compiler/compiler/jasminc -ec toEC -oec ../proof/Fp_w64x4_extract.ec Fp_w64x4.jazz
