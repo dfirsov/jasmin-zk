@@ -1,5 +1,5 @@
 require import AllCore IntDiv CoreMap List Distr.
-from Jasmin require import JModel.
+require import JModel.
 
 require import Array4.
 require import WArray32.
@@ -17,13 +17,13 @@ module M = {
     
     x1 <- a.[0];
     x2 <- b.[0];
-    (cf, x1) <- sbb_64 x1 x2 false;
+    (cf, x1) <- subc_64 x1 x2 false;
     a.[0] <- x1;
     i <- 1;
     while (i < 4) {
       x1 <- a.[i];
       x2 <- b.[i];
-      (cf, x1) <- sbb_64 x1 x2 cf;
+      (cf, x1) <- subc_64 x1 x2 cf;
       a.[i] <- x1;
       i <- i + 1;
     }
@@ -40,13 +40,13 @@ module M = {
     
     x1 <- a.[0];
     x2 <- b.[0];
-    (cf, x1) <- adc_64 x1 x2 false;
+    (cf, x1) <- addc_64 x1 x2 false;
     a.[0] <- x1;
     i <- 1;
     while (i < 4) {
       x1 <- a.[i];
       x2 <- b.[i];
-      (cf, x1) <- adc_64 x1 x2 cf;
+      (cf, x1) <- addc_64 x1 x2 cf;
       a.[i] <- x1;
       i <- i + 1;
     }

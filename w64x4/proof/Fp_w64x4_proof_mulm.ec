@@ -239,10 +239,19 @@ qed.
 realize exp_prop7. progress. smt. qed.
 realize exp_prop6. progress.
 have ->: (valR (bn_ofint ((valR a + valR b) %% P)) + valR c) %% P
-  = ((valR a + valR ((bn_ofint ((valR b + valR c) %% P)))) %% P). timeout 10. smt.
+  = ((valR a + valR ((bn_ofint ((valR b + valR c) %% P)))) %% P). 
+rewrite valr_ofint. smt.
+rewrite valr_ofint. smt.
+print zpcgr.
+search edivz Int.(+).
+rewrite modzDml.
+rewrite modzDmr. smt.
 auto.
 qed.
-realize exp_prop5. progress. smt. qed.
+realize exp_prop5. progress. 
+rewrite valr_ofint. progress. smt. simplify. 
+rewrite modz_small. smt.
+smt. qed.
 realize mult_valr. progress. smt. qed.
 realize idR_leP. smt. qed.
 
@@ -396,10 +405,10 @@ transitivity ASpecFp.addm
             ImplFp res{2} res{1} /\ valR res{2} < P).
     progress. 
   exists (inzp (valR a{1}), inzp (valR b{1}) )%W64x4. progress.
-rewrite inzpK. smt.
-rewrite inzpK. smt.
-rewrite inzpK. smt.
-rewrite inzpK. smt.
+rewrite inzpK. rewrite modz_small. smt. smt.
+rewrite inzpK. rewrite modz_small. smt. smt.
+rewrite inzpK. rewrite modz_small. smt. smt.
+rewrite inzpK. rewrite modz_small. smt. smt.
 progress. smt. 
 proc.  wp. skip.  progress.
 rewrite to_uintP.
