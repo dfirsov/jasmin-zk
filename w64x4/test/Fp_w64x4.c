@@ -12,50 +12,60 @@ extern void __mulm(uint64_t* r, uint64_t* p, uint64_t* a, uint64_t* b);
 extern void __expm(uint64_t* r, uint64_t* p, uint64_t* a, uint64_t* b);
 
 
-uint64_t tadd[][4][4] =
+uint64_t tadd[][4][60] =
  {
-   {  { 7ull , 0ull , 0ull , 0ull }
-    , { 0ull , 0ull , 0ull , 0ull }
-    , { 0ull , 0ull , 0ull , 0ull }
-    , { 0ull , 0ull , 0ull , 0ull }
+   {  { 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull }
+    , { 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull }
+    , { 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull }
+    , { 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull }
    }
- , {  { 13ull , 13ull , 13ull , 13ull }
-    , { 1ull , 1ull , 1ull , 1ull }
-    , { 1ull , 1ull , 1ull , 1ull }
-    , { 2ull , 2ull , 2ull , 2ull }
-   }
- , {  { 5ull , 0ull , 0ull , 0ull }
-    , { 3ull , 0ull , 0ull , 0ull }
-    , { 3ull , 0ull , 0ull , 0ull }
-    , { 1ull , 0ull , 0ull , 0ull }
-   }
+ /* , {  { 13ull , 13ull , 13ull , 13ull } */
+ /*    , { 1ull , 1ull , 1ull , 1ull } */
+ /*    , { 1ull , 1ull , 1ull , 1ull } */
+ /*    , { 2ull , 2ull , 2ull , 2ull } */
+ /*   } */
+ /* , {  { 5ull , 0ull , 0ull , 0ull } */
+ /*    , { 3ull , 0ull , 0ull , 0ull } */
+ /*    , { 3ull , 0ull , 0ull , 0ull } */
+ /*    , { 1ull , 0ull , 0ull , 0ull } */
+ /*   } */
  };
 
 
 
-uint64_t tmul[][4][4] =
+uint64_t tmul[][4][60] =
  {
-   {  { 7ull , 0ull , 0ull , 0ull }
-    , { 0ull , 0ull , 0ull , 0ull }
-    , { 0ull , 0ull , 0ull , 0ull }
-    , { 0ull , 0ull , 0ull , 0ull }
-   }
- , {  { 13ull , 13ull , 13ull , 13ull }
-    , { 1ull , 1ull , 1ull , 1ull }
-    , { 1ull , 1ull , 1ull , 1ull }
-    , { 1ull , 1ull , 1ull , 1ull }
-   }
- , {  { 5ull , 0ull , 0ull , 0ull }
-    , { 3ull , 0ull , 0ull , 0ull }
-    , { 3ull , 0ull , 0ull , 0ull }
-    , { 4ull , 0ull , 0ull , 0ull }
-   }
- , {  { 100ull , 0ull , 0ull , 0ull }
-    , { 50ull , 0ull , 0ull , 0ull }
-    , { 20ull , 0ull , 0ull , 0ull }
-    , { 0ull , 0ull , 0ull , 0ull }
+   {  { 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull }
+    , { 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull }
+    , { 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull }
+    , { 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull, 0ull , 0ull , 0ull , 0ull }
    }
  };
+
+
+/* uint64_t tmul[][4][4] = */
+/*  { */
+/*    {  { 7ull , 0ull , 0ull , 0ull } */
+/*     , { 0ull , 0ull , 0ull , 0ull } */
+/*     , { 0ull , 0ull , 0ull , 0ull } */
+/*     , { 0ull , 0ull , 0ull , 0ull } */
+/*    } */
+/*  , {  { 13ull , 13ull , 13ull , 13ull } */
+/*     , { 1ull , 1ull , 1ull , 1ull } */
+/*     , { 1ull , 1ull , 1ull , 1ull } */
+/*     , { 1ull , 1ull , 1ull , 1ull } */
+/*    } */
+/*  , {  { 5ull , 0ull , 0ull , 0ull } */
+/*     , { 3ull , 0ull , 0ull , 0ull } */
+/*     , { 3ull , 0ull , 0ull , 0ull } */
+/*     , { 4ull , 0ull , 0ull , 0ull } */
+/*    } */
+/*  , {  { 100ull , 0ull , 0ull , 0ull } */
+/*     , { 50ull , 0ull , 0ull , 0ull } */
+/*     , { 20ull , 0ull , 0ull , 0ull } */
+/*     , { 0ull , 0ull , 0ull , 0ull } */
+/*    } */
+/*  }; */
 
 
 
@@ -87,7 +97,7 @@ uint64_t tmul[][4][4] =
 
 
 int main() {
-  uint64_t result[4]; 
+  uint64_t result[60]; 
   int i, b,a;
 
   printf("Testing ADDM: ");
@@ -112,15 +122,18 @@ int main() {
   }
   if (b) printf("OK\n"); else printf("FAIL!\n");
 
-  
+
   /* printf("Testing EXPM: "); */
   /* b = 1; */
-  /* for (i=0; i<sizeof(texp)/sizeof(texp[0]); i++) { */
-  /*  __expm(result, texp[i][0], texp[i][1]); */
-  /*  a = memcmp(result, texp[i][2], sizeof(texp[i][2])/ sizeof(texp[i][2][0])); */
+  /* for (i=0; i<sizeof(tmul)/sizeof(tmul[0]); i++) { */
+  /*   __expm(result, tmul[i][0], tmul[i][1],tmul[i][2]); */
+  /*  a = memcmp(result, tmul[i][3], sizeof(tmul[i][3])); */
   /*  b =   b && !a; */
   /* } */
   /* if (b) printf("OK\n"); else printf("FAIL!\n"); */
+
+  
+  
   
   return 0;
 }

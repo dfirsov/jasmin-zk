@@ -35,4 +35,3 @@ fn swaprf(reg ptr u64[4] x, reg ptr u64[4] y, reg u64 swap) -> (stack u64[4] , s
   }
   return x, y;
 }
-

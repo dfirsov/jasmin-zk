@@ -201,7 +201,7 @@ import Bigint.
 import BIA.
 
 
-clone import Abstract_exp_proof_8 as ExpW64 with type R  <- R.t,
+clone import Abstract_exp_proof_8 as Mult with type R  <- R.t,
                                                  op P <- P,
                                                  op Rsize <- 256,
                                                  op valR <- W64x4.valR,
@@ -209,7 +209,6 @@ clone import Abstract_exp_proof_8 as ExpW64 with type R  <- R.t,
                                                  op idR <- bn_ofint  0,
                                                  op ( ** ) <- Int.(+),
                                                  op ( *** ) <=  fun a b => bn_ofint ((valR a + valR b) %% P)
-
 proof*.
 realize Rsize_max. smt(). qed.
 realize Rsize_pos. smt(). qed.
@@ -549,14 +548,14 @@ qed.
 
 lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : R.t), valR%W64x4 b < P =>
   ImplFp b a =>
-  ImplFp (ExpW64.(^) b n) (inzp (asint a * n)).
+  ImplFp (Mult.(^) b n) (inzp (asint a * n)).
 apply intind. progress.
 rewrite exp_prop1.
 smt.
 (* have -> : (Sub.val (inzp 1))%Sub = 1. smt. *)
 (* smt(valR_one). *)
 progress.
-have ->: (ExpW64.(^) b (i + 1)) = b *** (ExpW64.(^) b  i).
+have ->: (Mult.(^) b (i + 1)) = b *** (Mult.(^) b  i).
 rewrite exp_prop3. auto. auto.  auto.
 rewrite exp_prop2.
 rewrite exp_prop7. smt.
@@ -569,7 +568,7 @@ print ImplFp.
 have ->: asint (inzp (valR b) + inzp (valR b * i))
   = (asint (inzp (valR%W64x4 b)) + (asint  (inzp (valR%W64x4 b * i)))) %% P.
 smt.
-have ih :  ImplFp (b ^ i)%ExpW64  (inzp (valR%W64x4 b * i)).
+have ih :  ImplFp (b ^ i)%Mult  (inzp (valR%W64x4 b * i)).
 smt.
  (* apply H0. auto. auto. *)
 rewrite - ih.
@@ -626,4 +625,144 @@ symmetry.
 conseq mulm_real_spec.
 progress. 
 qed.
+
+
+
+
+clone import Abstract_exp_proof_8 as Exp with type R  <- R.t,
+                                                 op P <- P,
+                                                 op Rsize <- 256,
+                                                 op valR <- W64x4.valR,
+                                                 op of_int <- bn_ofint,
+                                                 op idR <- bn_ofint 1,
+                                                 op ( ** ) <- Int.( * ),
+                                                 op ( *** ) <=  fun a b => bn_ofint ((valR a * valR b) %% P)
+proof*.
+realize Rsize_max. smt(). qed.
+realize Rsize_pos. smt(). qed.
+realize valr_pos. smt (@W64x4). qed.
+realize iii.  rewrite /Rbits. 
+progress. rewrite  size_int2bs. auto. qed.
+realize valr_ofint.  progress.
+search bn_ofint.
+rewrite bn_ofintK. smt.
+qed.
+realize P_pos. smt. qed.
+realize ofint_valr. smt(@W64x4). qed.
+realize rbits_bitsr. 
+progress. rewrite /Rbits. rewrite /bitsR. 
+  have ->: (valR (bn_ofint (bs2int x)))%W64x4 = bs2int x.
+rewrite bn_ofintK. smt. smt. qed.
+realize bitsr_rbits. 
+rewrite /Rbits. rewrite /bitsR.
+progress.
+rewrite int2bsK. auto. simplify. progress. smt(bnk_cmp).
+have : 0 <= valR  x < W64x4.M ^ nlimbs.
+rewrite /valR. 
+apply (bnk_cmp nlimbs).
+progress. smt.
+smt(@W64x4).
+qed.
+realize exp_prop7. progress. smt. qed.
+realize exp_prop6. progress.
+have ->: (valR (bn_ofint ((valR a * valR b) %% P)) * valR c) %% P
+  = ((valR a * valR ((bn_ofint ((valR b * valR c) %% P)))) %% P). 
+rewrite valr_ofint. smt.
+rewrite valr_ofint. smt.
+rewrite modzMml.
+rewrite modzMmr. smt.
+auto.
+qed.
+realize exp_prop5. progress. 
+rewrite valr_ofint. progress. smt. simplify. 
+rewrite modz_small. smt.
+smt. qed.
+realize mult_valr. progress. smt. qed.
+realize idR_leP. smt. qed.
+
+  
+
+module MultM = {
+  proc ith_bit = M.ith_bit
+  proc swapr   = M.swapr
+  proc opr     =  M.mulm
+}.
+
+
+lemma okl : 
+  equiv[ MultM.opr ~ Exp.Spec.mul :
+            x{1} = a{2} /\ n{1} = b{2} /\  valR m{1} = P /\ valR x{1} < P /\ valR n{1} < P ==>
+            ={res} /\ valR res{1} < P].
+symmetry.
+transitivity ASpecFp.mulm 
+  (ImplFp arg{1}.`1  arg{2}.`1 /\ ImplFp arg{1}.`2  arg{2}.`2 ==> ImplFp res{1} res{2} )
+  (ImplFp x{2} a{1} /\ ImplFp n{2} b{1} /\  valR m{2} = P /\ valR x{2} < P /\ valR n{2} < P ==>
+            ImplFp res{2} res{1} /\ valR res{2} < P).
+    progress. 
+  exists (inzp (valR a{1}), inzp (valR b{1}) )%W64x4. progress.
+rewrite inzpK. rewrite modz_small. smt. smt.
+rewrite inzpK. rewrite modz_small. smt. smt.
+rewrite inzpK. rewrite modz_small. smt. smt.
+rewrite inzpK. rewrite modz_small. smt. smt.
+progress. smt. 
+proc.  wp. skip.  progress.
+       rewrite H H0.
+smt.
+auto.
+symmetry. 
+conseq mulm_spec. progress. smt.
+qed.
+
+
+
+
+lemma expm_real_spec : 
+      equiv[ Exp.M1.iterop_spec ~ Exp.M7(MultM).iterop :
+            ImplZZ m{2} P /\
+            ={x} /\
+            bs2int n{1} = valR n{2} /\ size n{1} = 256 /\ valR x{1} < P ==>
+            ={res}].
+apply (Exp.iterop_real_speac MultM _ _ _). 
+
+transitivity M.swapr
+  (={arg} ==> ={res})
+  (a{2} = x{1} /\ b{2} = y{1} /\ swap_0{1} = (as_w64 c{2})%Mult ==>
+          ={res}).
+progress. smt(). smt().
+proc. sim.
+
+symmetry.
+transitivity Mult.Spec.swapr
+  (={arg} ==> ={res})
+  (a{1} = x{2} /\ b{1} = y{2} /\ swap_0{2} = (as_w64 c{1})%Mult ==>
+          ={res}).
+smt(). smt().
+proc. sim.
+
+symmetry. conseq swap_lemma. smt(). 
+
+transitivity MultM.ith_bit
+  (={arg} ==> ={res})
+  (arg{1}.`1 = arg{2}.`1 /\ ImplWord ctr{1} ctr{2} /\ 0 <= ctr{2} && ctr{2} < 256 ==>
+          ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)).
+smt(). smt().
+proc. sim.
+        
+
+
+symmetry.
+transitivity Mult.Spec.ith_bit
+  (={arg} ==> ={res})
+  (arg{1}.`1 = arg{2}.`1 /\ ImplWord ctr{2} ctr{1} /\ 0 <= ctr{1} && ctr{1} < 256 ==>
+          ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)).
+smt(). smt().
+
+
+proc.  skip.  auto.
+
+symmetry.
+conseq ith_bit_lemma'. progress.  smt(). smt().
+conseq okl. smt(). auto. auto.
+qed.
+
 
