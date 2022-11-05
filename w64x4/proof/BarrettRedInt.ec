@@ -131,3 +131,115 @@ lemma st8 x n (k : real) :
   0%r  <= t x n k < 2%r*n .
 smt(st7). qed.
 
+
+
+require import Int IntDiv.
+import Ring.IntID.
+
+op ri(n k : int) : int = ((4^k  %/ n)).
+op ti' (x n k : int) = ( (x * ri n k %/ 4^k)).
+op ti (x n k : int)  : int = x - (ti' x n k) * n.
+
+
+lemma floor_div1 a b : 0 < b => a %/ b = floor (a%r / b%r).
+move => qp.
+apply (divz_eqP     a b (floor (a%r / b%r)) qp).
+progress. 
+have h1 : (floor (a%r / b%r))%r <= a%r / b%r.
+smt (floor_bound).
+progress. 
+have h2 : (a%r / b%r) * b%r <= a%r. smt.
+smt.
+have h1 : a%r < (floor (a%r / b%r) + 1)%r * b%r.
+smt (floor_bound).
+progress. 
+have h2 : a%r < ((a%r / b%r) + 1%r) * b%r. smt.
+smt.
+qed.
+
+lemma mult_lemma1 a b : a%r * b%r = (a * b)%r.
+smt. qed.
+
+require import RealExp.
+
+lemma exp_lemma1 a :  0 < a => forall  b, 0 <= b  => a%r ^ b%r = (a ^ b)%r.
+move => apos. apply intind.
+smt.
+progress. 
+have -> : (a ^ (i + 1)) = a * a ^ i. smt.
+have -> : (a * a ^ i)%r = a%r * (a^i) %r. 
+smt.
+rewrite - H0. simplify. 
+have -> : (i + 1)%r = i%r + 1%r. smt.
+rewrite rpowD. smt. smt.
+qed.
+
+
+lemma same_ri (n k : int) : 0 < n => 0 <= k =>
+  r n%r k%r = (ri n k)%r.
+move => npos kpos.
+rewrite /r /ri.
+congr.
+rewrite floor_div1. auto.
+congr. congr.
+apply exp_lemma1. auto. auto.
+qed.
+
+
+lemma same_t' (x n k : int) : 0 < n => 0 <= k =>
+  t' x%r n%r k%r = (ti' x n k)%r.
+move => npos kpos.
+rewrite /t' /ti'.
+rewrite same_ri. auto. auto.
+congr.
+rewrite floor_div1. smt.
+congr. congr.
+smt.
+rewrite exp_lemma1. auto. auto. auto.
+qed.
+
+
+lemma same_t (x n k : int) : 0 < n => 0 <= k =>
+  t x%r n%r k%r = (ti x n k)%r.
+progress.
+rewrite /t /ti. rewrite same_t'. auto. auto.
+smt.
+qed.
+
+op barrett_reduction (x n k : int) 
+  = let r = ti x n k in (if r < n then r else r - n).
+
+lemma barrett_reduction_correct (x n k : int) : 
+    0 <= x < n * n =>
+    0 < n  < 2 ^ k =>
+    0 <= k =>
+  barrett_reduction x n k = x %% n.
+rewrite /barrett_reduction.
+simplify.
+have timn :  ti x n k %% n = x %% n.
+rewrite /ti. 
+rewrite - modzDm.
+have ->: (- ti' x n k * n) %% n  = 0. 
+  have -> : (- ti' x n k * n) = (- ti' x n k) * n.  smt.
+rewrite - modzMml. 
+rewrite modzMl. auto.
+simplify. apply modz_mod.
+case (ti x n k < n).
+progress. rewrite - timn.
+rewrite modz_small.
+ progress.
+  have : 0%r <= (ti x n k)%r.
+  rewrite - same_t. smt. smt. 
+  have kk : 0%r <= t x%r n%r k%r && t x%r n%r k%r < 2%r * n%r.
+  apply st8. progress. progress.  smt. smt. smt.  
+  elim kk. auto. smt.
+  have -> : `|n| = n. smt.
+  have kk : 0%r <= t x%r n%r k%r && t x%r n%r k%r < 2%r * n%r.
+  apply st8. progress. progress.  smt. smt. smt.  smt. auto.
+progress.
+have :  (ti x n k)%r < (2 * n)%r.
+rewrite - same_t. smt. smt.
+  have kk : 0%r <= t x%r n%r k%r && t x%r n%r k%r < 2%r * n%r.
+  apply st8. progress. progress.  smt. smt. smt.  
+  smt.  smt. 
+qed.
