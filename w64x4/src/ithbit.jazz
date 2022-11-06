@@ -11,7 +11,7 @@ inline fn ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 {
 }
 
 
-inline fn ith_bit(stack u64[nlimbs] kk, reg u64 ctr) -> reg u64
+inline fn ith_bit(reg ptr u64[nlimbs] kk, reg u64 ctr) -> reg u64
 {
   reg u64 p bit r c1 c2 ctr2 ctr3;
   ctr2 = ctr;
