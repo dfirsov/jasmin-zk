@@ -4,6 +4,7 @@
 
 
 param int nlimbs = 4;
+param int dnlimbs = 8;
 
 
 /* performs multi-limb subtraction */
@@ -22,6 +23,29 @@ inline fn bn_subc
   cf, x1 = x1 - x2;
   a[0] =  x1;
   for i=1 to nlimbs{ 
+    x1 = a[i];
+    x2 = b[i];
+    cf, x1 = x1 - x2 - cf; 
+    a[i] = x1;
+  }
+
+  return cf, a;
+}
+
+inline fn dbn_subc
+( stack u64[dnlimbs] a b
+) -> reg bool, stack u64[dnlimbs]
+{
+  inline int i;
+  reg bool cf;
+  reg u64 x1 x2;
+
+
+  x1 = a[0];
+  x2 = b[0];
+  cf, x1 = x1 - x2;
+  a[0] =  x1;
+  for i=1 to dnlimbs{ 
     x1 = a[i];
     x2 = b[i];
     cf, x1 = x1 - x2 - cf; 
@@ -201,6 +225,22 @@ inline fn bn_copy(stack u64[nlimbs] a) -> stack u64[nlimbs] {
   return r;
 }
 
+
+/* copy a bignum */
+inline fn dbn_copy(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
+  inline int i;
+  reg u64 t;
+  stack u64[dnlimbs] r;
+    
+  for i = 0 to dnlimbs {
+    t = a[i];
+    r[i] = t;
+  }
+    
+  return r;
+}
+
+
 /* conditional move bignum [b] into [a] "cond ? b : a" */
 inline fn bn_cmov(reg bool cond, stack u64[nlimbs] a b) -> stack u64[nlimbs] {
   inline int i;
@@ -222,6 +262,19 @@ inline fn bn_set0(stack u64[nlimbs] a) -> stack u64[nlimbs] {
     
   return a;
 }
+
+
+/* zeroing a bignum */
+inline fn bn2_set0(stack u64[2*nlimbs] a) -> stack u64[2*nlimbs] {
+  inline int i;
+    
+  for i = 0 to 2*nlimbs {
+    a[i] = 0;
+  }
+    
+  return a;
+}
+
 
 /* add a digit and propagate carry */
 /* REGS (params + workspace): (nlimbs+2) + 0 (inplace 1st arg.) */
@@ -245,8 +298,8 @@ inline fn bn_add1
 /* performs multi-limb addition */
 /* REGS (params + workspace): 2*nlimbs + 0 (inplace 1st arg.) */
 inline fn bn_addc
-( stack u64[nlimbs] a b
-) -> reg bool, stack u64[nlimbs]
+( reg ptr u64[nlimbs] a b
+) -> reg bool, reg ptr u64[nlimbs]
 {
   inline int i;
   reg bool cf;
@@ -407,4 +460,122 @@ export fn __muln( reg u64 rp ap bp ) {
   _, _, _, r = bn_muln(a_s, b);
   rp = rp2;
   bn2_store(rp, r);
+}
+
+
+
+
+
+
+
+/* multiplies a scalar by a reg array (first iteration of mul) */
+/* REGS (params + workspace): (1+nlimbs) + (nlimbs+2) */
+inline fn dmul1
+( reg u64 a,
+  stack u64[dnlimbs] b
+) -> reg u64, reg bool, reg bool, stack u64[2*dnlimbs]
+{
+  inline int i;
+  reg bool of, cf;
+  reg u64 _zero, lo, a0, x1, x2;
+  stack u64[2*dnlimbs] r;
+  
+
+  of, cf, _, _, _, _zero = #set0();
+
+  x1 = a;
+  x2 = b[0];
+  x1, x2 = #MULX ( x1, x2 );
+  r[1] = x1;
+  r[0] = x2;
+
+  for i = 1 to dnlimbs {
+    x1 = a;
+    x2 = b[i];
+    x1, x2 = #MULX ( x1, x2 );
+    r[i+1] = x1;
+    lo = x2;
+
+    x1 = r[i];
+    x2 = lo;
+    cf, x1 = #ADCX ( x1,x2, cf );
+    r[i] = x1;
+  }
+
+  x1 = r[dnlimbs];
+  cf, x1 = #ADCX ( x1, _zero, cf );
+  r[dnlimbs] = x1;
+
+
+  return _zero, of, cf, r;
+}
+
+inline fn dmul1acc
+( inline int k,
+  reg u64 a,
+  stack u64[dnlimbs] b,
+  stack u64[2*dnlimbs] r,
+  reg u64 _zero, // should be set to 0
+  reg bool of cf // should be set to 0
+) -> reg u64, reg bool, reg bool, stack u64[2*dnlimbs]
+{
+  inline int i;
+  reg u64 ak hi lo  x1 x2;
+
+  for i = 0 to dnlimbs-1 {
+    x1 = a; x2 = b[i];
+    x1, x2 = #MULX ( x1, x2 ); 
+    hi = x1;
+    lo = x2;
+    
+    x1 = r[k+i];
+   
+    of, x1 = #ADOX ( x1, lo, of );
+    r[k+i] = x1;
+
+    x1 = r[k+i+1];
+    cf, x1 = #ADCX ( x1, hi, cf );
+    r[k+i+1] = x1;
+  }
+
+  x1 = a;  x2 = b[dnlimbs-1];
+  x1 , x2 = #MULX ( x1, x2 ); // a is now dead!
+  r[dnlimbs+k] = x1;  lo = x2;
+
+  x1 = r[dnlimbs+k-1];
+  of, x1 = #ADOX ( x1, lo, of );
+  r[dnlimbs+k-1] = x1;
+
+   x1 = r[dnlimbs+k];
+   cf, x1 = #ADCX ( x1, _zero, cf);
+   r[dnlimbs+k] = x1;
+
+   x1 =  r[dnlimbs+k];
+   of, x1 = #ADOX ( x1, _zero, of);
+   r[dnlimbs+k] = x1;
+
+  return _zero, of, cf, r;
+}
+
+
+
+/* full multiplication (first arg. as a reg_ptr) */
+inline fn dbn_muln
+( reg ptr u64[dnlimbs] a, //reg u64 fptr,
+  stack u64[dnlimbs] b
+) -> reg u64, reg bool, reg bool, stack u64[2*dnlimbs]
+{
+  inline int i;
+  reg bool of cf;
+  reg u64 _zero ai;
+  stack u64[2*dnlimbs] r;
+
+  ai = a[0];
+  _zero, of, cf, r = dmul1(ai, b);
+
+  for i = 1 to dnlimbs {
+    ai = a[i];
+    _zero, of, cf, r = dmul1acc(i, ai, b, r, _zero, of, cf);
+  }
+  return _zero, of, cf, r;
 }

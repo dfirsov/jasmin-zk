@@ -1,1 +1,8 @@
 gcc Fp_w64x4.c Fp_w64x4.s -o main && ./main
+
+gcc -pg Fp_w64x4.c Fp_w64x4.s -o main && ./main
+
+command time -v ./main
+
+gcc  Fp_w64x4.c Fp_w64x4.s -o main && command time -v ./main
+

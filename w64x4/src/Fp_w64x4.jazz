@@ -1,50 +1,51 @@
 require "bn_generic.jazz"
-require "ithbit.jazz"
 require "swap.jazz"
-
-param int nlimbs = 4;
-
+require "ithbit.jazz"
 
 inline fn cminusP ( stack u64[nlimbs] p x ) -> stack u64[nlimbs]{
-  stack u64[nlimbs] t z;
+  stack u64[nlimbs] z;
   reg u64 _zero r1 r2;
   reg bool cf;
+  inline int i;
 
-  z[0] = x[0];   z[1] = x[1];   z[2] = x[2];   z[3] = x[3];
-  cf, t = bn_subc(z, p);
+  z = bn_copy(x);
+  cf, z = bn_subc(z, p);
 
-  r1 = t[0];
-  r2 = x[0];
-  r1 = r2 if cf;
-  t[0] = r1;
-
-  r1 = t[1];
-  r2 = x[1];
-  r1 = r2 if cf;
-  t[1] = r1;
-
-  r1 = t[2];
-  r2 = x[2];
-  r1 = r2 if cf;
-  t[2] = r1;
-
-  r1 = t[3];
-  r2 = x[3];
-  r1 = r2 if cf;
-  t[3] = r1;
-
-  return t;
+  for i = 0 to nlimbs{
+   r1 = z[i];
+   r2 = x[i];
+   r1 = r2 if cf;
+   x[i] = r1;
+  }
+  return x;
 }
+
+inline fn dcminusP ( stack u64[dnlimbs] p x ) -> stack u64[dnlimbs]{
+  stack u64[dnlimbs] z;
+  reg u64 _zero r1 r2;
+  reg bool cf;
+  inline int i;
+
+  z = dbn_copy(x);
+  cf, z = dbn_subc(z, p);
+
+  for i = 0 to dnlimbs{
+   r1 = z[i];
+   r2 = x[i];
+   r1 = r2 if cf;
+   x[i] = r1;
+  }
+  return x;
+}
+
 
 
 /*  Modular addition  */
 inline fn addm(stack u64[nlimbs] p a b) -> stack u64[nlimbs]
-{
-  stack u64[nlimbs] f g z;
-  _, f = bn_addc (a,b);
-  z[0] = f[0]; z[1] = f[1]; z[2] = f[2]; z[3] = f[3]; 
-  f = cminusP (p,z);
-  return f;
+{  
+  _, a = bn_addc (a,b);
+  a = cminusP (p,a);
+  return a;
 }
 
 
@@ -53,15 +54,17 @@ inline fn mulm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs]){
   reg u64 ctr bit d p par t1 t2 cbit lbit q;
   stack u64[nlimbs] x1 x2 x3 x4;
   ctr = nlimbs * 64 - 1;
-  x1[0] = 0; x1[1] = 0; x1[2] = 0; x1[3] = 0;
-  x2[0] = 0; x2[1] = 0; x2[2] = 0; x2[3] = 0;
+  x1 = bn_set0(x1);
+  x2 = bn_set0(x2);
+
   d = ith_bit(n,ctr);
 
-   x3[0] = x[0]; x3[1] = x[1]; x3[2] = x[2]; x3[3] = x[3];
+   x3 = bn_copy(x);
+   //x3[0] = x[0]; x3[1] = x[1]; x3[2] = x[2]; x3[3] = x[3];
    x4 = addm(m,x,x);
    p = d;
-   (x1,x3) = swapr(x1,x3,d);
-   (x2,x4) = swapr(x2,x4,d);
+  (x1,x3) = swapr(x1,x3,d);
+  (x2,x4) = swapr(x2,x4,d);
 
 
   while(ctr > 0){
@@ -81,53 +84,179 @@ inline fn mulm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs]){
    cbit = q ^ p;
    (x1,x3) = swapr(x1,x3,cbit);
    (x2,x4) = swapr(x2,x4,cbit); 
+  }
+  
+  par = ith_bit(n,0);
+  (x1,x2) = swapr(x2,x1,par);
+  
+  return x1;
+}
 
-  } 
-   par = ith_bit(n,0);
-   (x1,x2) = swapr(x2,x1,par);
+
+inline fn maskOnCarry
+( inline int mask,
+  reg u64 r,
+  reg bool _cf
+) -> reg u64
+{
+  _cf, r -= r - _cf;
+  r &= mask;
+  return r;
+}
+
+
+
+
+inline fn bn_expand(stack u64[nlimbs] x) -> (stack u64[dnlimbs])
+{
+  stack u64[dnlimbs] r;
+  inline int i;
+  for i = 0 to nlimbs{
+    r[i] = x[i];
+  }  
+  for i = nlimbs to dnlimbs{
+    r[i] = 0;
+  }  
+  return r;
+}
+
+inline fn bn_shrink(stack u64[dnlimbs] x) -> (stack u64[nlimbs])
+{
+  stack u64[nlimbs] r;
+  inline int i;
+  for i = 0 to nlimbs{
+    r[i] = x[i];
+  }  
+  return r;
+}
+
+
+inline fn div2(stack u64[2*dnlimbs] x, inline int k) -> (stack u64[nlimbs])
+{
+  stack u64[nlimbs] r;
+  inline int i;
+  for i = 0 to k{
+   r[i] = x[(int)nlimbs + i];
+  }
+  return r;
+}
+
+
+
+inline fn bnreduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p) 
+ -> (stack u64[nlimbs])
+{
+  inline int i;
+  stack u64[nlimbs] xrf res;
+  stack u64[dnlimbs] xrfn t pp;
+  stack u64[2*dnlimbs] xr;
+
+
+  // |x * r| = 3k
+  xr = dbn_muln(a,r);
+
+  // | floor(x * r / 4^k) | = k
+  xrf = div2(xr, 2 * nlimbs);
+
+  // | floor(x * r / 4^k)  * p | = 2k
+  xrfn = bn_muln(xrf,p);
+
+  // ... = k+1
+  t = dbn_subc(a, xrfn);
+
+
+  pp = bn_expand(p);
+  t = dcminusP(pp, t);
+
+  res = bn_shrink(t);
+  return res;
+}
+
+
+/*  Modular multiplication  */
+inline fn mulmr(stack u64[nlimbs] p a b) -> stack u64[nlimbs]
+{
+  stack u64[2*nlimbs] c;
+  stack u64[nlimbs] d;
+  reg bool _of _cf;
+
+  _of, _cf, c = bn_muln (a,b);
+  d = bnreduce(c, c, p);
+  return d;
+}
+
+
+
+
+
+/*  Modular expanentiation  */
+inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs]){
+  reg u64 ctr bit d p par t1 t2 cbit lbit q;
+  stack u64[nlimbs] x1 x2 x3 x4;
+  ctr = nlimbs * 64 - 1;
+
+  x1 = bn_set0(x1);
+  x2 = bn_set0(x2);
+
+  d = ith_bit(n,ctr);
+
+  x3 = bn_copy(x);
+
+  x4 = mulmr(m,x,x3);
+  p = d;
+  (x1,x3) = swapr(x1,x3,d);
+  (x2,x4) = swapr(x2,x4,d);
+
+
+  while(ctr > 0){
+   lbit = ctr;
+   ctr = ctr - 1;
+   t1 =  ith_bit(n,lbit);
+   t2 =  ith_bit(n,ctr);
+   p = d; 
+   q = d;
+   d = d | t2;
+   par = t1 ^ t2;
+   (x1,x2) = swapr(x1,x2,par);
+   x1 = mulmr(m,x1,x2);
+   x2 = mulmr(m,x2,x2);
+   q |= t2;
+   cbit = q ^ p;
+   (x1,x3) = swapr(x1,x3,cbit);
+   (x2,x4) = swapr(x2,x4,cbit); 
+  }
+  
+  par = ith_bit(n,0);
+  (x1,x2) = swapr(x2,x1,par);
   
   return x1;
 }
 
 
 
-export fn __addm(reg u64 rp pp ap bp) { 
-  reg u64 rp2;
-  stack u64[nlimbs] a b p;
 
+
+export fn __expm(reg u64 rp pp ap bp) { 
+  reg u64 rp2;
+  stack u64[nlimbs] a b c p;
   a = bn_load(ap);
   b = bn_load(bp);
   p = bn_load(pp);
   // relax ABI contraints
   rp2 = rp;
-  a = addm(p,a,b);
-  bn_store(rp2, a);
+  c = expm(p,a,b);
+  bn_store(rp2, c);
 }
-
-
-export fn __mulm(reg u64 rp pp ap bp) { 
-  reg u64 rp2;
-  stack u64[nlimbs] a b p;
-
-  a = bn_load(ap);
-  b = bn_load(bp);
-  p = bn_load(pp);
-  // relax ABI contraints
-  rp2 = rp;
-  a = mulm(p,a,b);
-  bn_store(rp2, a);
-}
-
 
 
 inline fn toEC(){
   stack u64[nlimbs] a b r p;
+  stack u64[2 * nlimbs] z;
   reg u64 x;
-  reg bool _cf;
-  
+  reg bool _cf;  
   /* normalized versions */
-  r = addm(p,a, b);
-  r = mulm(p,a, b);
-  x = ith_bit(a, x);
-  a = swapr(a, a, x);
+  r = bnreduce(z,z, p);
+  // r = mulm(p,a, b);
+  // x = ith_bit(a, x);
+  // a = swapr(a, a, x);
 }

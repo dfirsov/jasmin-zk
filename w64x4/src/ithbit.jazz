@@ -1,32 +1,24 @@
-/* i-th bit from 256bit word */
+require "bn_generic.jazz"
 
-inline fn ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 { reg u64 p
-bit;
-
+inline fn ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 {
+  reg u64 p bit;
   bit =  k;
-
   p = ctr;
   p &= 63;
   bit = bit >> p;
-
   bit &= 1;
-
   return bit;
-
 }
 
 
-inline fn ith_bit(stack u64[4] kk, reg u64 ctr) -> reg u64
+inline fn ith_bit(stack u64[nlimbs] kk, reg u64 ctr) -> reg u64
 {
   reg u64 p bit r c1 c2 ctr2 ctr3;
   ctr2 = ctr;
   ctr3 =  ctr;
-
   c1 = ctr2 >> 6;
   c2 = ctr3 & 63;
   r = kk[(int) c1 ];
-   bit = ith_bit64(r,c2);
-  
+  bit = ith_bit64(r,c2);  
   return bit;
 }
-
