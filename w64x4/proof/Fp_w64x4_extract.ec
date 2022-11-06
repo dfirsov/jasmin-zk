@@ -293,7 +293,7 @@ module M = {
       r.[i] <- x.[i];
       i <- i + 1;
     }
-
+    i <- 4;
     while (i < 8) {
       r.[i] <- (W64.of_int 0);
       i <- i + 1;
@@ -332,36 +332,37 @@ module M = {
   
   proc bnreduce (a:W64.t Array8.t, r:W64.t Array8.t, p:W64.t Array4.t) : 
   W64.t Array4.t = {
-    return p;
     
-    (* var res_0:W64.t Array4.t; *)
-    (* var xr:W64.t Array16.t; *)
-    (* var xrf:W64.t Array8.t; *)
-    (* var xrfn:W64.t Array8.t; *)
-    (* var t:W64.t Array8.t; *)
-    (* var pp:W64.t Array8.t; *)
-    (* var  _0:W64.t; *)
-    (* var  _1:bool; *)
-    (* var  _2:bool; *)
-    (* var  _3:W64.t; *)
-    (* var  _4:bool; *)
-    (* var  _5:bool; *)
-    (* var  _6:bool; *)
-    (* pp <- witness; *)
-    (* res_0 <- witness; *)
-    (* t <- witness; *)
-    (* xr <- witness; *)
-    (* xrf <- witness; *)
-    (* xrfn <- witness; *)
-    (* ( _0,  _1,  _2, xr) <@ dbn_muln (a, r); *)
-    (* xrf <@ div2 (xr, (2 * 4)); *)
-    (* pp <@ bn_expand (p); *)
-    (* ( _3,  _4,  _5, xrfn) <@ dbn_muln (xrf, pp); *)
-    (* ( _6, t) <@ dbn_subc (a, xrfn); *)
-
-    (* t <@ dcminusP (pp, t); *)
-    (* res_0 <@ bn_shrink (t); *)
-    (* return (res_0); *)
+    var res_0:W64.t Array4.t;
+    var xr:W64.t Array16.t;
+    var xrf:W64.t Array8.t;
+    var xrfd:W64.t Array4.t;
+    var xrfn:W64.t Array8.t;
+    var t:W64.t Array8.t;
+    var pp:W64.t Array8.t;
+    var  _0:W64.t;
+    var  _1:bool;
+    var  _2:bool;
+    var  _3:W64.t;
+    var  _4:bool;
+    var  _5:bool;
+    var  _6:bool;
+    pp <- witness;
+    res_0 <- witness;
+    t <- witness;
+    xr <- witness;
+    xrf <- witness;
+    xrfd <- witness;
+    xrfn <- witness;
+    ( _0,  _1,  _2, xr) <@ dbn_muln (a, r);
+    xrf <@ div2 (xr, (2 * 4));
+    xrfd <@ bn_shrink (xrf);
+    ( _3,  _4,  _5, xrfn) <@ bn_muln (xrfd, p);
+    ( _6, t) <@ dbn_subc (a, xrfn);
+    pp <@ bn_expand (p);
+    t <@ dcminusP (pp, t);
+    res_0 <@ bn_shrink (t);
+    return (res_0);
   }
   
   proc toEC () : unit = {

@@ -131,12 +131,12 @@ inline fn bn_shrink(stack u64[dnlimbs] x) -> (stack u64[nlimbs])
 }
 
 
-inline fn div2(stack u64[2*dnlimbs] x, inline int k) -> (stack u64[nlimbs])
+inline fn div2(stack u64[2*dnlimbs] x, inline int k) -> (stack u64[dnlimbs])
 {
-  stack u64[nlimbs] r;
+  stack u64[dnlimbs] r;
   inline int i;
   for i = 0 to k{
-   r[i] = x[(int)nlimbs + i];
+   r[i] = x[(int)dnlimbs + i];
   }
   return r;
 }
@@ -147,8 +147,8 @@ inline fn bnreduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p)
  -> (stack u64[nlimbs])
 {
   inline int i;
-  stack u64[nlimbs] xrf res;
-  stack u64[dnlimbs] xrfn t pp;
+  stack u64[nlimbs] xrfd res;
+  stack u64[dnlimbs] xrf xrfn t pp;
   stack u64[2*dnlimbs] xr;
 
 
@@ -158,8 +158,9 @@ inline fn bnreduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p)
   // | floor(x * r / 4^k) | = k
   xrf = div2(xr, 2 * nlimbs);
 
+  xrfd = bn_shrink(xrf);
   // | floor(x * r / 4^k)  * p | = 2k
-  xrfn = bn_muln(xrf,p);
+  xrfn = bn_muln(xrfd,p);
 
   // ... = k+1
   t = dbn_subc(a, xrfn);

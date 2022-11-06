@@ -233,11 +233,11 @@ import StdBigop.
 import Bigint.
 import BIA.
 lemma bn_div2_correct  z :
-  hoare[ M.div2 : arg = (z,2*nlimbs)  ==> (W64x8.valR res) = (W64x8.valR2 z) %/  2^(8*64) ].
+  phoare[ M.div2 : arg = (z,2*nlimbs)  ==> (W64x8.valR res) = (W64x8.valR2 z) %/  2^(8*64) ] = 1%r.
 proc. sp.
-while (aux = 2*nlimbs /\ i <= 2*nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[2*nlimbs + j]) . progress. wp. skip. progress.
-smt. smt. skip. progress.
-smt. 
+while (aux = 2*nlimbs /\ i <= 2*nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[2*nlimbs + j]) (2*nlimbs - i) . progress. wp. skip. progress.
+smt. smt. smt. skip. progress.
+smt. smt.
 have ->: 13407807929942597099574024998205846127479365820592393377723561443721764030073546976801874298166903427690031858186486050853753882811946569946433649006084096 = W64x8.M^8. smt.
 have ->: (R2.bnk 16 x{hr})%R2 = valR2 x{hr}. auto.
 rewrite R2.bghint_div. auto.
@@ -279,9 +279,9 @@ sp.
 seq 1 : (a = x /\ i = nlimbs /\ forall i, i < nlimbs => r.[i] = x.[i]%Array4).
 while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[j]%Array4). wp.  skip. progress.
 smt. smt. skip. progress.
-smt.  smt. smt.
-seq 1 : (a = x /\  (forall j, 0 <= j < nlimbs => r.[j]%Array8 = x.[j]%Array4)
-     /\ (forall j, nlimbs <= j < 2*nlimbs => r.[j] = W64.zero)).    
+smt.  smt. smt. 
+seq 2 : (a = x /\  (forall j, 0 <= j < nlimbs => r.[j]%Array8 = x.[j]%Array4)
+     /\ (forall j, nlimbs <= j < 2*nlimbs => r.[j] = W64.zero)).     
 while (a = x /\ nlimbs <= i <= 2*nlimbs 
      /\ (forall j, 0 <= j < nlimbs => r.[j]%Array8 = x.[j]%Array4)
      /\ (forall j, nlimbs <= j < i => r.[j] = W64.zero) ). wp.  skip. progress.
@@ -293,7 +293,7 @@ progress.
 have : j < i{hr}. timeout 10. smt.
 progress.
 rewrite - (H2 j).  smt.
-smt.
+smt. wp. 
 skip.  progress.
 smt. smt. smt. 
 skip.  progress.
@@ -333,7 +333,10 @@ qed.
 lemma bn_expand_correct_ph2 a  :
     phoare[ M.bn_expand : arg = a  ==> W64x8.valR res =  W64x4.valR a ] = 1%r.
 bypr. progress.
- have ->:  1%r = Pr[M.bn_expand(arg{m}) @ &m : true ] . admit.
+ have ->:  1%r = Pr[M.bn_expand(arg{m}) @ &m : true ] . 
+byphoare. proc.  while (true) (2*nlimbs -i). progress. wp. skip. smt().
+wp. while true (nlimbs - i). progress. wp. skip. smt().
+wp.  skip. smt(). auto. auto.
   have ->: Pr[M.bn_expand(arg{m}) @ &m : true]
   = Pr[M.bn_expand(arg{m}) @ &m : (W64x8.valR res =  W64x4.valR arg{m}) ]  + Pr[M.bn_expand(arg{m}) @ &m : (W64x8.valR res <>  W64x4.valR arg{m}) ].
 rewrite Pr[mu_split (W64x8.valR res =  W64x4.valR arg{m})]. simplify.   auto.
@@ -349,44 +352,49 @@ equiv bnreduce_spec:
      W64x8.valR a{1} = a{2} 
  /\  W64x8.valR r{1} = r{2} 
  /\  W64x4.valR p{1} = P
- /\  k{2} = nlimbs
+ /\  k{2} = 256                 (* change that *)
    ==>  (W64x4.valR res{1}) = res{2}  %% W64x4.modulusR.
 proof. proc.
 sp.
 simplify.
-seq 0 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = nlimbs). skip. auto.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = nlimbs
+seq 0 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256). skip. auto.
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256
     /\ W64x8.valR2 xr{1} = xr{2} (* /\ xr{2} = a{2} * r{2} *)).
 call dmuln_spec. skip. progress.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrf{1} = xrf{2} ).
-admit.
-(* ecall {1} (bn_div2_correct xr{1} (2 * nlimbs)). inline*. wp.  skip.  progress. *)
-inline ASpecFp.div2.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrf{1} = xrf{2} 
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256
+    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x8.valR xrf{1} = xrf{2} ).
+
+ecall {1} (bn_div2_correct xr{1}). inline*. wp.  skip.  progress.
+
+
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256
+    /\ W64x8.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
+ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. smt.
+
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256
+    /\ W64x8.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
     /\  W64x8.valR xrfn{1} = xrfn{2}).
 call muln_spec. skip. progress.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrf{1} = xrf{2} 
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256
+    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrfd{1} = xrf{2} 
     /\ W64x8.valR xrfn{1} = xrfn{2}
     /\ W64x8.valR t{1} = t{2}).
 call dsubc_spec. skip. progress.
-seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrf{1} = xrf{2} 
+seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256
+    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrfd{1} = xrf{2} 
     /\ W64x8.valR xrfn{1} = xrfn{2}
     /\ W64x8.valR t{1} = t{2}
     /\ W64x8.valR pp{1} = W64x4.valR p{1}).
 ecall {1} (bn_expand_correct_ph2 p{1} ). skip. progress.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrf{1} = xrf{2} 
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256
+    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrfd{1} = xrf{2} 
     /\ W64x8.valR xrfn{1} = xrfn{2}
     /\ W64x8.valR t{1} = t{2}
     /\ W64x8.valR pp{1} = W64x4.valR p{1}
     /\ W64x8.valR t{1} = t{2} ).
 call dcminusP_spec. skip. progress. smt().
-seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrf{1} = xrf{2} 
+seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 256
+    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrfd{1} = xrf{2} 
     /\ W64x8.valR xrfn{1} = xrfn{2}
     /\ W64x8.valR t{1} = t{2}
     /\ W64x8.valR pp{1} = W64x4.valR p{1}

@@ -155,6 +155,7 @@ module CSpecFp = {
    var xr, xrf, xrfn, t, b;
   xr    <@ ASpecFp.muln(a,r);
   xrf   <@ ASpecFp.div2(xr, 2*k);
+  xrf <- xrf %% 2^k;
   xrfn  <@ ASpecFp.muln(xrf, P);
   (b,t) <@ ASpecFp.dsubn(a, xrfn);
   t     <@ ASpecFp.cminusP(t);
@@ -184,7 +185,7 @@ qed.
 
 
 require import BarrettRedInt.
-require import Real.
+require import Real RealExp.
 equiv redm_eq:
  ASpecFp.redm ~ CSpecFp.redm: ={a} /\ r{2} = (nlimbs ^ k{2} %/ P) 
   /\ 0 < P < W64x4.modulusR
@@ -196,11 +197,29 @@ rewrite -  (barrett_reduction_correct a{2} P k{2} ). auto. auto.  auto.
 rewrite /barrett_reduction. simplify. rewrite /ti. rewrite /ti'. rewrite /ri.
 have ->: 2 ^ (2 * k{2}) = 4 ^ k{2}. smt.
 have <-:  a{2} - a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2} * P
- = (a{2} - a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2} * P) %% W64x4.modulusR2.
+ = (a{2} - a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2}  %% 2 ^ k{2} * P) %% W64x4.modulusR2.
 rewrite modz_small.
+
+ have ->: a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2}  = ti' a{2} P k{2}. 
+  rewrite /ti. rewrite /ti'. rewrite /ri. auto.
+
+have -> : ti' a{2} P k{2} %% 2 ^ k{2} = ti' a{2} P k{2}. 
+rewrite modz_small. rewrite /ti'. split. smt. move => ?.
+(* admit. admit. *)
+
+  have ->: `|2 ^ k{2}| = 2 ^ k{2}. smt().
+  have : (ti' a{2} P k{2})%r < (2 ^ k{2})%r.
+   rewrite - same_t'. auto. auto.
+
+  have qq :  a{2}%r - 2%r * P%r < (t' a{2}%r P%r k{2}%r) * P%r <= a{2}%r.
+   apply st6. smt. timeout 10. smt.
+  smt.
+  smt. auto.
+
 
 have -> : a{2} - a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2} * P
  = ti a{2} P k{2}. rewrite /ti. rewrite /ti'. rewrite /ri. auto.
+
 split. 
    have : 0%r <= (ti a{2} P k{2})%r < 2%r * P%r.
    rewrite - same_t. auto. auto.
@@ -215,6 +234,24 @@ split. smt. move => ?. timeout 10. smt.
   progress.   
    have : 2 * P < W64x4.modulusR2.   timeout 15. smt.
 smt.
+
+ have ->: a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2}  = ti' a{2} P k{2}. 
+  rewrite /ti. rewrite /ti'. rewrite /ri. auto.
+
+have -> : ti' a{2} P k{2} %% 2 ^ k{2} = ti' a{2} P k{2}. 
+rewrite modz_small. rewrite /ti'. split. smt. move => ?.
+(* admit. admit. *)
+
+  have ->: `|2 ^ k{2}| = 2 ^ k{2}. smt().
+  have : (ti' a{2} P k{2})%r < (2 ^ k{2})%r.
+   rewrite - same_t'. auto. auto.
+
+  have qq :  a{2}%r - 2%r * P%r < (t' a{2}%r P%r k{2}%r) * P%r <= a{2}%r.
+   apply st6. smt. timeout 10. smt.
+  smt.
+  smt. auto.
+
+ 
 auto.
 auto.
 qed.
