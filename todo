@@ -1,8 +1,6 @@
+1/ define mulm with barrett parameter
+2/ prove correctness of mulm
+3/ instantiate montgomery ladder to get expm
 
-1/ As specification use phoare or Pr and derive equivs as corollaries.
 
-    lemma fin_real1: phoare [ M.expm : ... ==> res = x^y ].
-
-    call my_equiv    
-    lemma fin_real2: ... => Pr [ res = x^y : ].
 
