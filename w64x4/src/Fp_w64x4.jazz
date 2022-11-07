@@ -167,44 +167,35 @@ inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs]){
     x3 = bn_copy(x);
     x4 = mulmr(m,x,x3);
      p = d;
-    (x1,x3) = swapr(x1,x3,par);
-    (x2,x4) = swapr(x2,x4,par);
+    (x1,x3) = swapr(x1,x3,d);
+    (x2,x4) = swapr(x2,x4,d);
 
 
   while(ctr > 0){
     lbit = ctr;
-    t1 =  ith_bit(n,ctr);
     ctr = ctr - 1;
+    t1 =  ith_bit(n,lbit);
 
     t2 =  ith_bit(n,ctr);
     p = d; 
-    q = d;
     d = d | t2;
-   par = t1 ^ t2;
+    par = t1 ^ t2;
     (x1,x2) = swapr(x1,x2,par);
     x1 = mulmr(m,x1,x2);
     x2 = mulmr(m,x2,x2);
-    q |= t2;
+    q = d;
     cbit = q ^ p;
 
-    par = cbit;
-   (x1,x3) = swapr(x1,x3,par);
+
+    (x1,x3) = swapr(x1,x3,cbit);
+    (x2,x4) = swapr(x2,x4,cbit);
 
 
 
   }
   
    p = ith_bit(n,0);
-  mask = p * 0xffffffffffffffff;
-  for i = 0 to nlimbs {
-   p   = x1[i];
-   p  ^= x2[i];
-   p  = p & mask;
-   x1[i]  = x1[i] ^ p;
-   q   = x1[i];
-   q  ^= p;
-   x2[i] = q;
-  }
+   (x1,x2) = swapr(x2,x1,p);
   
   return x1;
 }

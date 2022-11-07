@@ -3,8 +3,8 @@
 */
 
 
-param int nlimbs = 32;
-param int dnlimbs = 64;
+param int nlimbs = 64;
+param int dnlimbs = 128;
 
 
 /* performs multi-limb subtraction */

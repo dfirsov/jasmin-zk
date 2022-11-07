@@ -1,11 +1,15 @@
 require "bn_generic.jazz"
 
-fn swapr(reg ptr u64[nlimbs] x, reg ptr u64[nlimbs] y, reg u64 swap) -> (reg ptr u64[nlimbs] , reg ptr u64[nlimbs]) {
 
-  reg u64 tmp1, tmp2, mask;
+
+inline fn swapr(stack u64[nlimbs] x, stack u64[nlimbs] y, reg u64 swap) -> (stack u64[nlimbs] , stack u64[nlimbs]) {
+
+  reg u64  mask, tmp1, tmp2;
   inline int i;
 
   mask = swap * 0xffffffffffffffff;
+
+  
 
   for i = 0 to nlimbs {
    tmp1   = x[i];
@@ -15,6 +19,7 @@ fn swapr(reg ptr u64[nlimbs] x, reg ptr u64[nlimbs] y, reg u64 swap) -> (reg ptr
    tmp2   = y[i];
    tmp2  ^= tmp1;
    y[i] = tmp2;
+
   }
   return x, y;
 }
