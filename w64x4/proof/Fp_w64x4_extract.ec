@@ -17,13 +17,13 @@ module M = {
     
     x1 <- a.[0];
     x2 <- b.[0];
-    (cf, x1) <- subc_64 x1 x2 false;
+    (cf, x1) <- sbb_64 x1 x2 false;
     a.[0] <- x1;
     i <- 1;
     while (i < 8) {
       x1 <- a.[i];
       x2 <- b.[i];
-      (cf, x1) <- subc_64 x1 x2 cf;
+      (cf, x1) <- sbb_64 x1 x2 cf;
       a.[i] <- x1;
       i <- i + 1;
     }
@@ -443,7 +443,7 @@ module M = {
     return (r);
   }
   
-  proc bnreduce (a:W64.t Array8.t, r:W64.t Array8.t, p:W64.t Array4.t) : 
+  proc bn_breduce (a:W64.t Array8.t, r:W64.t Array8.t, p:W64.t Array4.t) : 
   W64.t Array4.t = {
     
     var res_0:W64.t Array4.t;
@@ -491,7 +491,7 @@ module M = {
     d <@ bn2_set0 (d);
     d.[0] <- (W64.of_int 4);
     ( _0, _of, _cf, c) <@ bn_muln (a, b);
-    a <@ bnreduce (c, d, p);
+    a <@ bn_breduce (c, d, p);
     return (a);
   }
   

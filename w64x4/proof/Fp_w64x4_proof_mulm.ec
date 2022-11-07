@@ -1,15 +1,9 @@
 require import AllCore IntDiv CoreMap List.
 
-require import JModel.
-require import JBigNum.
-
-require import Fp_w64x4_extract.
-require import Fp_w64x4_spec.
-require import Ith_Bit64.
-
+require import JModel JBigNum.
+require import Fp_w64x4_spec Fp_w64x4_extract Ith_Bit64.
 import Array16 Array8 Array4.
 import Zp W64x4 R.
-
 import StdBigop Bigint BIA.
 
 
@@ -200,6 +194,18 @@ apply Array8.ext_eq. progress. smt.
 qed.
 
 
+lemma dbn_set0_correct :
+  phoare[ M.bn_set0 : true  ==> W64x4.valR res = 0 ] = 1%r.
+proc.
+while (i <= nlimbs 
+  /\ (forall j, 0 <= j < i => a.[j]%Array4 = W64.zero)) (nlimbs - i). progress.
+wp.  skip.  progress. smt().  smt(@Array4). smt(). wp.  skip. progress. smt(). smt().
+rewrite - zeroRE. congr.
+apply Array4.ext_eq. progress.  rewrite H1. smt(). 
+rewrite /zeroR. smt(@Array4).
+qed.
+
+
 lemma dbn_copy_correct x :
   phoare[ M.dbn_copy :  arg = x  ==> res = x ] = 1%r.
 proc.
@@ -220,7 +226,6 @@ transitivity CSpecFp.dcminusP
  ( ={a} /\ a{2} < W64x8.modulusR ==> ={res} ).
   progress. exists (W64x8.valR x{1}). progress. smt.
 + by auto. 
-print CSpecFp.
 proc. 
 (ecall {1} (dbn_cmov_correct cf{1} z{1} x{1})).  simplify.
 conseq (_:  ( (W64x8.valR (if cf{1} then x{1} else z{1}))%W64x8 = r{2} )). progress.
@@ -345,13 +350,13 @@ qed.
 
 
 
-
-equiv bnreduce_spec:
- M.bnreduce ~ CSpecFp.redm:
+   
+equiv breduce_cspec:
+ M.bn_breduce ~ CSpecFp.redm:
      W64x8.valR a{1} = a{2} 
  /\  W64x8.valR r{1} = r{2} 
  /\  W64x4.valR p{1} = P
- /\  k{2} = 64 * nlimbs                 (* change that *)
+ /\  k{2} = 64 * nlimbs
    ==>  (W64x4.valR res{1}) = res{2}  %% W64x4.modulusR.
 proof. proc.
 sp.
@@ -399,5 +404,56 @@ seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * 
 ecall {1} (bn_shrink_correct t{1}). skip. progress.
 skip.  progress. 
 qed.
+
+
+equiv bnreduce_spec:
+ M.bn_breduce ~ ASpecFp.redm:
+  valR a{1} = a{2}
+  /\ ImplZZ p{1} P
+  /\ valR r{1} = (nlimbs ^ (64 * nlimbs) %/ P) 
+  /\ 0 < P < W64x4.modulusR
+  /\ 0 <= a{2} < P * P
+  /\ 0 < P < 2 ^ (64 * nlimbs)
+  /\ 0 <= valR r{1} ==> valR res{1} = res{2} .
+proof. 
+  have redm_simp:
+ equiv [ ASpecFp.redm ~ ASpecFp.redm: ={arg} ==> res{1} = res{2} %% W64x4.modulusR ].
+ proc. wp.  skip. progress. smt. 
+symmetry. transitivity ASpecFp.redm
+ (={arg} ==> res{1} = res{2} %% W64x4.modulusR)
+ (valR a{2} = a{1}
+  /\ ImplZZ p{2} P
+  /\ valR r{2} = (nlimbs ^ (64 * nlimbs) %/ P) 
+  /\ 0 < P < W64x4.modulusR
+  /\ 0 <= a{1} < P * P
+  /\ 0 < P < 2 ^ (64 * nlimbs)
+  /\ 0 <= valR r{2} ==> valR res{2} = res{1} %% W64x4.modulusR).
+smt(). auto. conseq redm_simp. 
+symmetry.
+transitivity CSpecFp.redm
+ (W64x8.valR a{1} = a{2} 
+ /\  W64x8.valR r{1} = r{2} 
+ /\  W64x4.valR p{1} = P
+ /\  k{2} = 64 * nlimbs
+   ==>  (W64x4.valR res{1}) = res{2}  %% W64x4.modulusR)
+ (={a} /\ r{1} = (nlimbs ^ k{1} %/ P) 
+  /\ 0 < P < W64x4.modulusR
+  /\ 0 <= a{1} < P * P
+  /\ 0 < P < 2 ^ k{1} 
+  /\ 0 <= k{1} ==> ={res}). 
+move => &1 &2 q. 
+exists (valR a{1} , valR r{1} , 64 * nlimbs). split. smt(). 
+split. smt(). split.  
+have ->: (valR a{1}, valR r{1}, 64 * nlimbs).`2 = valR r{1}. auto.
+have ->: (valR a{1}, valR r{1}, 64 * nlimbs).`3 = 64 * nlimbs. auto.
+rewrite q. smt().
+ simplify. split.  split.  smt(). smt(). 
+split. smt(). split. smt(). 
+have ->: Fp_w64x4_spec.M = W64x4.modulusR. clear q. smt.
+smt(). auto.
+conseq breduce_cspec.
+symmetry. conseq redm_eq. auto. auto.
+qed.
+
 
 

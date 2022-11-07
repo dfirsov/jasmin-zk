@@ -1,0 +1,38 @@
+ISSUE NR 1:
+
+briefly: 
+  non-inlined function can be called
+  only with the same registers (by name). 
+  f :: reg u64 -> ()
+  f(x); f(y) --> not good
+  f(x); tmp = x; x = y; f(x); x = tmp; --> good
+
+ restriction does not apply to "reg ptr".
+
+  
+
+fn f(reg ptr u64[2] ctrz, reg u64 zz) -> (reg ptr u64[2])
+{
+  return ctrz;
+}
+
+
+inline fn expm() -> (){
+  stack u64[2] kk qq;
+  reg u64 lbit ctr tmp;
+  
+
+  f(kk,ctr);
+  tmp = ctr;
+  ctr = lbit;
+  f(qq,ctr);
+  ctr = lbit;
+  
+
+}
+
+export fn __expm(reg u64 rp pp ap bp) { 
+  expm();
+}
+
+==============
