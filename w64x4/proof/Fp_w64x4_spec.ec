@@ -8,6 +8,7 @@ require import JBigNum.
 require import Array4 Array8 Array16.
 
 abbrev nlimbs = 4.
+abbrev dnlimbs = 8.
 
 clone import BigNum as W64x4 with
  op nlimbs <- nlimbs,

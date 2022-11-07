@@ -3,8 +3,8 @@
 */
 
 
-param int nlimbs = 64;
-param int dnlimbs = 128;
+param int nlimbs = 4;
+param int dnlimbs = 8;
 
 
 /* performs multi-limb subtraction */
@@ -289,7 +289,7 @@ inline fn mul1
 }
 
 fn mul1acc
-( reg u64 kk,
+( reg u64 k,
   reg u64 a,
   reg ptr u64[nlimbs] b,
   reg ptr u64[2*nlimbs] r,
@@ -297,8 +297,8 @@ fn mul1acc
   reg bool of cf // should be set to 0
 ) -> reg u64, reg bool, reg bool, reg ptr u64[2*nlimbs]
 {
-  inline int i k;
-  k = (int) kk;
+  inline int i kk;
+  kk = (int) k;
   reg u64 ak hi lo  x1 x2;
 
   for i = 0 to nlimbs-1 {
@@ -307,31 +307,31 @@ fn mul1acc
     hi = x1;
     lo = x2;
     
-    x1 = r[k+i];
+    x1 = r[kk+i];
    
     of, x1 = #ADOX ( x1, lo, of );
-    r[k+i] = x1;
+    r[kk+i] = x1;
 
-    x1 = r[k+i+1];
+    x1 = r[kk+i+1];
     cf, x1 = #ADCX ( x1, hi, cf );
-    r[k+i+1] = x1;
+    r[kk+i+1] = x1;
   }
 
   x1 = a;  x2 = b[nlimbs-1];
   x1 , x2 = #MULX ( x1, x2 ); // a is now dead!
-  r[nlimbs+k] = x1;  lo = x2;
+  r[nlimbs+kk] = x1;  lo = x2;
 
-  x1 = r[nlimbs+k-1];
+  x1 = r[nlimbs+kk-1];
   of, x1 = #ADOX ( x1, lo, of );
-  r[nlimbs+k-1] = x1;
+  r[nlimbs+kk-1] = x1;
 
-   x1 = r[nlimbs+k];
+   x1 = r[nlimbs+kk];
    cf, x1 = #ADCX ( x1, _zero, cf);
-   r[nlimbs+k] = x1;
+   r[nlimbs+kk] = x1;
 
-   x1 =  r[nlimbs+k];
+   x1 =  r[nlimbs+kk];
    of, x1 = #ADOX ( x1, _zero, of);
-   r[nlimbs+k] = x1;
+   r[nlimbs+kk] = x1;
 
   return _zero, of, cf, r;
 }
@@ -438,7 +438,7 @@ inline fn dmul1
 }
 
 fn dmul1acc
-( reg u64 kk,
+( reg u64 k,
   reg u64 a,
   reg ptr u64[dnlimbs] b,
   reg ptr u64[2*dnlimbs] r,
@@ -446,9 +446,9 @@ fn dmul1acc
   reg bool of cf // should be set to 0
 ) -> reg u64, reg bool, reg bool, reg ptr u64[2*dnlimbs]
 {
-  inline int i k;
+  inline int i kk;
   reg u64 ak hi lo  x1 x2;
-   k = (int) kk;
+   kk = (int) k;
 
   for i = 0 to dnlimbs-1 {
     x1 = a; x2 = b[i];
@@ -456,31 +456,31 @@ fn dmul1acc
     hi = x1;
     lo = x2;
     
-    x1 = r[k+i];
+    x1 = r[kk+i];
    
     of, x1 = #ADOX ( x1, lo, of );
-    r[k+i] = x1;
+    r[kk+i] = x1;
 
-    x1 = r[k+i+1];
+    x1 = r[kk+i+1];
     cf, x1 = #ADCX ( x1, hi, cf );
-    r[k+i+1] = x1;
+    r[kk+i+1] = x1;
   }
 
   x1 = a;  x2 = b[dnlimbs-1];
   x1 , x2 = #MULX ( x1, x2 ); // a is now dead!
-  r[dnlimbs+k] = x1;  lo = x2;
+  r[dnlimbs+kk] = x1;  lo = x2;
 
-  x1 = r[dnlimbs+k-1];
+  x1 = r[dnlimbs+kk-1];
   of, x1 = #ADOX ( x1, lo, of );
-  r[dnlimbs+k-1] = x1;
+  r[dnlimbs+kk-1] = x1;
 
-   x1 = r[dnlimbs+k];
+   x1 = r[dnlimbs+kk];
    cf, x1 = #ADCX ( x1, _zero, cf);
-   r[dnlimbs+k] = x1;
+   r[dnlimbs+kk] = x1;
 
-   x1 =  r[dnlimbs+k];
+   x1 =  r[dnlimbs+kk];
    of, x1 = #ADOX ( x1, _zero, of);
-   r[dnlimbs+k] = x1;
+   r[dnlimbs+kk] = x1;
 
   return _zero, of, cf, r;
 }
