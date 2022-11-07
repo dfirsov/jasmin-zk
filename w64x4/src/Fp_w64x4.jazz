@@ -2,39 +2,41 @@ require "bn_generic.jazz"
 require "swap.jazz"
 require "ithbit.jazz"
 
-inline fn cminusP ( stack u64[nlimbs] p x ) -> stack u64[nlimbs]{
+inline fn cminusP ( stack u64[nlimbs] p x ) -> stack u64[nlimbs]
+{
   stack u64[nlimbs] z;
-  reg u64 _zero r1 r2;
   reg bool cf;
   inline int i;
 
   z = bn_copy(x);
   cf, z = bn_subc(z, p);
+  x = bn_cmov(cf, x, z);
 
-  for i = 0 to nlimbs{
-   r1 = z[i];
-   r2 = x[i];
-   r1 = r2 if cf;
-   x[i] = r1;
-  }
+  // for i = 0 to nlimbs{
+  //  r1 = z[i];
+  //  r2 = x[i];
+  //  r1 = r2 if cf;
+  //  x[i] = r1;
+  // }
   return x;
 }
 
-inline fn dcminusP ( stack u64[dnlimbs] p x ) -> stack u64[dnlimbs]{
+inline fn dcminusP ( stack u64[dnlimbs] p x ) -> stack u64[dnlimbs]
+{
   stack u64[dnlimbs] z;
-  reg u64 _zero r1 r2;
   reg bool cf;
   inline int i;
 
   z = dbn_copy(x);
   cf, z = dbn_subc(z, p);
+  x = dbn_cmov(cf, z, x);
 
-  for i = 0 to dnlimbs{
-   r1 = z[i];
-   r2 = x[i];
-   r1 = r2 if cf;
-   x[i] = r1;
-  }
+  // for i = 0 to dnlimbs{
+  //  r1 = z[i];
+  //  r2 = x[i];
+  //  r1 = r2 if cf;
+  //  x[i] = r1;
+  // }
   return x;
 }
 
@@ -109,24 +111,13 @@ inline fn bnreduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p)
   stack u64[dnlimbs] xrf xrfn t pp;
   stack u64[2*dnlimbs] xr;
 
-
-  // |x * r| = 3k
   xr = dbn_muln(a,r);
-
-  // | floor(x * r / 4^k) | = k
   xrf = div2(xr, 2 * nlimbs);
-
   xrfd = bn_shrink(xrf);
-  // | floor(x * r / 4^k)  * p | = 2k
   xrfn = bn_muln(xrfd,p);
-
-  // ... = k+1
   t = dbn_subc(a, xrfn);
-
-
   pp = bn_expand(p);
   t = dcminusP(pp, t);
-
   res = bn_shrink(t);
   return res;
 }
@@ -154,21 +145,22 @@ inline fn mulmr(stack u64[nlimbs] p a b) -> stack u64[nlimbs]
 
 
 /*  Modular expanentiation  */
-inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs]){
+inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs])
+{
   reg u64 ctr bit d p par t1 t2 cbit lbit q mask ;
   inline int i;
   stack u64[nlimbs] x1 x2 x3 x4;
-   ctr = nlimbs * 64 - 1;
+  ctr = nlimbs * 64 - 1;
 
-    x1 = bn_set0(x1);
-    x2 = bn_set0(x2);
+  x1 = bn_set0(x1);
+  x2 = bn_set0(x2);
 
-    d = ith_bit(n,ctr);
-    x3 = bn_copy(x);
-    x4 = mulmr(m,x,x3);
-     p = d;
-    (x1,x3) = swapr(x1,x3,d);
-    (x2,x4) = swapr(x2,x4,d);
+  d = ith_bit(n,ctr);
+  x3 = bn_copy(x);
+  x4 = mulmr(m,x,x3);
+   p = d;
+  (x1,x3) = swapr(x1,x3,d);
+  (x2,x4) = swapr(x2,x4,d);
 
 
   while(ctr > 0){
@@ -185,13 +177,8 @@ inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs]){
     x2 = mulmr(m,x2,x2);
     q = d;
     cbit = q ^ p;
-
-
     (x1,x3) = swapr(x1,x3,cbit);
     (x2,x4) = swapr(x2,x4,cbit);
-
-
-
   }
   
    p = ith_bit(n,0);
@@ -199,9 +186,6 @@ inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs]){
   
   return x1;
 }
-
-
-
 
 
 

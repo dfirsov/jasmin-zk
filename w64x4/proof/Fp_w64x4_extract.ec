@@ -1,5 +1,5 @@
 require import AllCore IntDiv CoreMap List Distr.
-(* from Jasmin *) require import JModel.
+require import JModel.
 
 require import Array4 Array8 Array16.
 (* require import WArray32 WArray64 WArray128. *)
@@ -60,6 +60,24 @@ module M = {
       i <- i + 1;
     }
     return (r);
+  }
+  
+  proc dbn_cmov (cond:bool, a:W64.t Array8.t, b:W64.t Array8.t) : W64.t Array8.t = {
+    var aux: int;
+    
+    var i:int;
+    var r1:W64.t;
+    var r2:W64.t;
+    
+    i <- 0;
+    while (i < 8) {
+      r1 <- a.[i];
+      r2 <- b.[i];
+      r1 <- (cond ? r2 : r1);
+      a.[i] <- r1;
+      i <- i + 1;
+    }
+    return (a);
   }
   
   proc bn_set0 (a:W64.t Array4.t) : W64.t Array4.t = {
@@ -367,24 +385,13 @@ module M = {
   }
   
   proc dcminusP (p:W64.t Array8.t, x:W64.t Array8.t) : W64.t Array8.t = {
-    var aux: int;
     
     var z:W64.t Array8.t;
     var cf:bool;
-    var i:int;
-    var r1:W64.t;
-    var r2:W64.t;
     z <- witness;
     z <@ dbn_copy (x);
     (cf, z) <@ dbn_subc (z, p);
-    i <- 0;
-    while (i < 8) {
-      r1 <- z.[i];
-      r2 <- x.[i];
-      r1 <- (cf ? r2 : r1);
-      x.[i] <- r1;
-      i <- i + 1;
-    }
+    x <@ dbn_cmov (cf, z, x);
     return (x);
   }
   

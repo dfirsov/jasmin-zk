@@ -166,16 +166,30 @@ inline fn dbn_copy(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
 }
 
 
-/* conditional move bignum [b] into [a] "cond ? b : a" */
 inline fn bn_cmov(reg bool cond, stack u64[nlimbs] a b) -> stack u64[nlimbs] {
-  inline int i;
-    
-  for i = 0 to nlimbs {
-    a[i] = b[i] if cond;
+  inline int i;   
+  reg u64 r1 r2;  
+  for i = 0 to nlimbs{
+   r1 = a[i];
+   r2 = b[i];
+   r1 = r2 if cond;
+   a[i] = r1;
   }
-    
   return a;
 }
+
+inline fn dbn_cmov(reg bool cond, stack u64[dnlimbs] a b) -> stack u64[dnlimbs] {
+  inline int i;   
+  reg u64 r1 r2;  
+  for i = 0 to dnlimbs{
+   r1 = a[i];
+   r2 = b[i];
+   r1 = r2 if cond;
+   a[i] = r1;
+  }
+  return a;
+}
+
 
 /* zeroing a bignum */
 inline fn bn_set0(stack u64[nlimbs] a) -> stack u64[nlimbs] {

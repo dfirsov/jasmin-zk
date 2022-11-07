@@ -189,6 +189,27 @@ progress.
 qed.
 
 
+lemma dbn_cmov_correct x y z :
+  phoare[ M.dbn_cmov :  arg = (x,y,z)  ==> res = if x then z else y ] = 1%r.
+proc.
+while (cond = x /\ b = z /\ i <= dnlimbs 
+  /\ (forall j, 0 <= j < i => a.[j] = if cond then z.[j] else y.[j])
+  /\ (forall j, i <= j < dnlimbs => a.[j] = y.[j])) (dnlimbs - i). progress.
+wp.  skip.  progress. smt.   smt. smt. smt. wp.  skip. progress. smt. smt.
+apply Array8.ext_eq. progress. smt. 
+qed.
+
+
+lemma dbn_copy_correct x :
+  phoare[ M.dbn_copy :  arg = x  ==> res = x ] = 1%r.
+proc.
+while (a = x /\ i <= dnlimbs 
+  /\ (forall j, 0 <= j < i => r.[j] = x.[j])
+  ) (dnlimbs - i). progress.
+wp.  skip.  progress. smt. smt. smt. wp.  skip. progress. smt. smt.
+apply Array8.ext_eq. progress. smt. 
+qed.
+
 
 equiv dcminusP_spec:
  M.dcminusP ~ ASpecFp.cminusP:
@@ -199,42 +220,22 @@ transitivity CSpecFp.dcminusP
  ( ={a} /\ a{2} < W64x8.modulusR ==> ={res} ).
   progress. exists (W64x8.valR x{1}). progress. smt.
 + by auto. 
+print CSpecFp.
 proc. 
-  inline ASpecFp.ctseln. wp.  
-unroll {1} 5. rcondt {1} 5.  auto. auto.
-unroll {1} 10. rcondt {1} 10.  auto. auto.
-unroll {1} 15. rcondt {1} 15.  auto. auto.
-unroll {1} 20. rcondt {1} 20.  auto. auto.
-unroll {1} 25. rcondt {1} 25.  auto. auto.
-unroll {1} 30. rcondt {1} 30.  auto. auto.
-unroll {1} 35. rcondt {1} 35.  auto. auto.
-unroll {1} 40. rcondt {1} 40.  auto. auto. 
-rcondf {1} 45.  auto. auto.  wp. simplify.
-call  dsubc_spec. wp. inline*.  
-unroll {1} 5. rcondt {1} 5.  auto. auto.
-unroll {1} 8. rcondt {1} 8.  auto. auto.
-unroll {1} 11. rcondt {1} 11.  auto. auto.
-unroll {1} 14. rcondt {1} 14.  auto. auto.
-unroll {1} 17. rcondt {1} 17.  auto. auto.
-unroll {1} 20. rcondt {1} 20.  auto. auto.
-unroll {1} 23. rcondt {1} 23.  auto. auto.
-unroll {1} 26. rcondt {1} 26.  auto. auto. 
-rcondf {1} 29.  auto. auto.  progress.
-congr. 
-apply Array8.ext_eq_all. rewrite /all_eq. simplify. auto. 
-case (result_L.`1 ). progress. 
-have : result_R.`1 = true. rewrite - H2. rewrite H4. auto. progress. rewrite H5. simplify.
-  by congr ;rewrite -ext_eq_all /all_eq.
-progress.
-have : result_R.`1 = false. rewrite - H2. rewrite H4. auto. progress. rewrite H5. simplify.
-admit.
-auto.
+(ecall {1} (dbn_cmov_correct cf{1} z{1} x{1})).  simplify.
+conseq (_:  ( (W64x8.valR (if cf{1} then x{1} else z{1}))%W64x8 = r{2} )). progress.
+inline ASpecFp.ctseln. wp.   simplify.
+seq 2 0 : ((W64x8.valR p{1})%W64x8 = P /\ (W64x8.valR x{1})%W64x8 = a{2} /\ z{1} = x{1}).
+(ecall {1} (dbn_copy_correct x{1})).  wp. skip. progress.
+seq 1 1 : (cf{1} = c{2} /\ W64x8.valR z{1} = x{2} /\  (W64x8.valR p{1})%W64x8 = P /\ (W64x8.valR x{1})%W64x8 = a{2}).
+call  dsubc_spec.  skip. progress.
+skip. progress.   smt().
 + symmetry; conseq cminusP_eq; smt().
 qed.
 
 
-
 import W64x8.
+
 
 lemma bn_div2_correct z :
   phoare[ M.div2 : arg = (z,dnlimbs)  ==> (W64x8.valR res) = (W64x8.valR2 z) %/  W64x8.modulusR ] = 1%r.
