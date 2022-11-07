@@ -173,7 +173,8 @@ transitivity
   transitivity {1}
    { (c,r) <@ W64x8.R.Ops.subcR(a,b,c); }
    ( ={a,b,c} ==> ={c,r} )
-   ( W64x8.valR a{1} = a{2} /\ W64x8.valR b{1} = b{2} /\ !c{1}  (* /\ W64x8.valR b{1}  <= W64x8.valR a{1} *) ==> ={c} /\ W64x8.valR r{1} = r{2} ).
+   ( W64x8.valR a{1} = a{2} /\ W64x8.valR b{1} = b{2} /\ !c{1}  (* /\ W64x8.valR b{1}  <= W64x8.valR a{1} *) ==> ={c} 
+   /\ W64x8.valR r{1} = r{2} ).
   + by move=> /> &2 H  ; exists a{2} b{2} false.
   + by auto.
   + by inline*; sim.
@@ -232,7 +233,8 @@ conseq (_:  ( (W64x8.valR (if cf{1} then x{1} else z{1}))%W64x8 = r{2} )). progr
 inline ASpecFp.ctseln. wp.   simplify.
 seq 2 0 : ((W64x8.valR p{1})%W64x8 = P /\ (W64x8.valR x{1})%W64x8 = a{2} /\ z{1} = x{1}).
 (ecall {1} (dbn_copy_correct x{1})).  wp. skip. progress.
-seq 1 1 : (cf{1} = c{2} /\ W64x8.valR z{1} = x{2} /\  (W64x8.valR p{1})%W64x8 = P /\ (W64x8.valR x{1})%W64x8 = a{2}).
+seq 1 1 : (cf{1} = c{2} /\ W64x8.valR z{1} = x{2} 
+  /\ (W64x8.valR p{1})%W64x8 = P /\ (W64x8.valR x{1})%W64x8 = a{2}).
 call  dsubc_spec.  skip. progress.
 skip. progress.   smt().
 + symmetry; conseq cminusP_eq; smt().
@@ -245,10 +247,11 @@ import W64x8.
 lemma bn_div2_correct z :
   phoare[ M.div2 : arg = (z,dnlimbs)  ==> (W64x8.valR res) = (W64x8.valR2 z) %/  W64x8.modulusR ] = 1%r.
 proc. sp.
-while (aux = dnlimbs /\ i <= dnlimbs /\ forall j, 0 <= j < i => r.[j] = x.[dnlimbs + j]) (dnlimbs - i) . progress. wp. skip. progress.
+while (aux = dnlimbs /\ i <= dnlimbs /\ forall j, 0 <= j < i => r.[j] = x.[dnlimbs + j]) (dnlimbs - i). 
+progress. wp. skip. progress.
 smt. smt. smt. skip. progress.
 smt. smt.
-have -> :  W64x8.modulusR  = W64x8.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
+have ->:  W64x8.modulusR  = W64x8.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
 have ->: (R2.bnk (2*dnlimbs) x{hr})%R2 = valR2 x{hr}. auto.
 rewrite R2.bghint_div. auto.
 rewrite - R.bnkup0.
@@ -264,13 +267,12 @@ rewrite big_addn. simplify. auto.
 qed.
 
 
-
-
 lemma bn_shrink_correct a  :
   phoare[ M.bn_shrink : arg = a  ==> W64x4.valR res = W64x8.valR a %% W64x4.modulusR ] = 1%r.
 proc.
 sp.
-while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j]%Array4 = x.[j]%Array8) (nlimbs - i). progress. wp. skip. progress.
+while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j]%Array4 = x.[j]%Array8) (nlimbs - i). 
+progress. wp. skip. progress.
 smt. smt. smt. skip. progress.
 progress. 
 smt. smt. 
@@ -341,14 +343,13 @@ byphoare. proc.  while (true) (2*nlimbs -i). progress. wp. skip. smt().
 wp. while true (nlimbs - i). progress. wp. skip. smt().
 wp.  skip. smt(). auto. auto.
   have ->: Pr[M.bn_expand(arg{m}) @ &m : true]
-  = Pr[M.bn_expand(arg{m}) @ &m : (W64x8.valR res =  W64x4.valR arg{m}) ]  + Pr[M.bn_expand(arg{m}) @ &m : (W64x8.valR res <>  W64x4.valR arg{m}) ].
+  = Pr[M.bn_expand(arg{m}) @ &m : (W64x8.valR res =  W64x4.valR arg{m}) ]  
+    + Pr[M.bn_expand(arg{m}) @ &m : (W64x8.valR res <>  W64x4.valR arg{m}) ].
 rewrite Pr[mu_split (W64x8.valR res =  W64x4.valR arg{m})]. simplify.   auto.
 have ->: Pr[M.bn_expand(arg{m}) @ &m : valR res <> valR arg{m}] = 0%r.
 byphoare (_: arg = arg{m} ==> _). 
 hoare. simplify. conseq (bn_expand_correct arg{m}). auto. auto. auto.
 qed.
-
-
 
    
 equiv breduce_cspec:
@@ -361,7 +362,8 @@ equiv breduce_cspec:
 proof. proc.
 sp.
 simplify.
-seq 0 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs). skip. auto.
+seq 0 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs). 
+skip. auto.
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
     /\ W64x8.valR2 xr{1} = xr{2} (* /\ xr{2} = a{2} * r{2} *)).
 call dmuln_spec. skip. progress.

@@ -2,7 +2,8 @@ require "bn_generic.jazz"
 require "swap.jazz"
 require "ithbit.jazz"
 
-inline fn cminusP (stack u64[nlimbs] p x) -> stack u64[nlimbs]
+inline fn cminusP (stack u64[nlimbs] p x) 
+ -> stack u64[nlimbs]
 {
   stack u64[nlimbs] z;
   reg bool cf;
@@ -14,7 +15,9 @@ inline fn cminusP (stack u64[nlimbs] p x) -> stack u64[nlimbs]
   return x;
 }
 
-inline fn dcminusP (stack u64[dnlimbs] p x) -> stack u64[dnlimbs]
+
+inline fn dcminusP (stack u64[dnlimbs] p x) 
+ -> stack u64[dnlimbs]
 {
   stack u64[dnlimbs] z;
   reg bool cf;
@@ -27,16 +30,18 @@ inline fn dcminusP (stack u64[dnlimbs] p x) -> stack u64[dnlimbs]
 }
 
 
-
 /*  Modular addition  */
-inline fn addm(stack u64[nlimbs] p a b) -> stack u64[nlimbs]
+inline fn addm(stack u64[nlimbs] p a b) 
+ -> stack u64[nlimbs]
 {  
   _, a = bn_addc (a,b);
   a = cminusP (p,a);
   return a;
 }
 
-inline fn bn_expand(stack u64[nlimbs] x) -> (stack u64[dnlimbs])
+
+inline fn bn_expand(stack u64[nlimbs] x) 
+ -> (stack u64[dnlimbs])
 {
   stack u64[dnlimbs] r;
   inline int i;
@@ -50,7 +55,8 @@ inline fn bn_expand(stack u64[nlimbs] x) -> (stack u64[dnlimbs])
   return r;
 }
 
-inline fn bn_shrink(stack u64[dnlimbs] x) -> (stack u64[nlimbs])
+inline fn bn_shrink(stack u64[dnlimbs] x) 
+ -> (stack u64[nlimbs])
 {
   stack u64[nlimbs] r;
   inline int i;
@@ -62,7 +68,8 @@ inline fn bn_shrink(stack u64[dnlimbs] x) -> (stack u64[nlimbs])
 }
 
 
-inline fn div2(stack u64[2*dnlimbs] x, inline int k) -> (stack u64[dnlimbs])
+inline fn div2(stack u64[2*dnlimbs] x, inline int k) 
+ -> (stack u64[dnlimbs])
 {
   stack u64[dnlimbs] r;
   inline int i;
@@ -98,7 +105,8 @@ inline fn bn_breduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p)
 
 
 /*  Modular multiplication  */
-inline fn mulmr(stack u64[nlimbs] p a b) -> stack u64[nlimbs]
+inline fn mulmr(stack u64[nlimbs] p a b) 
+ -> stack u64[nlimbs]
 {
   stack u64[2*nlimbs] c d;
   reg bool _of _cf;
@@ -114,7 +122,8 @@ inline fn mulmr(stack u64[nlimbs] p a b) -> stack u64[nlimbs]
 
 
 /*  Modular expanentiation  */
-inline fn expm(stack u64[nlimbs] m x n) -> (stack u64[nlimbs])
+inline fn expm(stack u64[nlimbs] m x n) 
+ -> (stack u64[nlimbs])
 {
   reg u64 ctr bit d p par t1 t2 cbit lbit q mask;
   inline int i;
@@ -178,5 +187,5 @@ inline fn toEC()
   reg bool _cf;  
 
   /* normalized versions */
-  r = expm(a,b, p);
+  r = expm(a,b,p);
 }
