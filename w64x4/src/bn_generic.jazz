@@ -73,6 +73,23 @@ inline fn bn_load
 }
 
 
+/* Loads an array from memory
+ */
+inline fn dbn_load
+( reg u64 a
+) -> stack u64[dnlimbs]
+{
+  inline int i;
+  stack u64[dnlimbs] x;
+
+  for i = 0 to dnlimbs {
+    x[i] = [a + 8*i];
+  }
+
+  return x;
+}
+
+
 
 
 /* Stores a bignum into memory */
@@ -201,6 +218,20 @@ inline fn bn_set0(stack u64[nlimbs] a) -> stack u64[nlimbs] {
     
   return a;
 }
+
+
+/* zeroing a bignum */
+inline fn bn_set1(stack u64[nlimbs] a) -> stack u64[nlimbs] {
+  inline int i;
+
+  a[0] = 1;
+  for i = 1 to nlimbs {
+    a[i] = 0;
+  }
+    
+  return a;
+}
+
 
 
 /* zeroing a bignum */

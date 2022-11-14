@@ -103,26 +103,20 @@ inline fn bn_breduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p)
 }
 
 
-
-/*  Modular multiplication  */
-inline fn mulmr(stack u64[nlimbs] p a b) 
+inline fn mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b) 
  -> stack u64[nlimbs]
 {
-  stack u64[2*nlimbs] c d;
+  stack u64[2*nlimbs] c;
   reg bool _of _cf;
 
-  d = bn2_set0(d);
-  d[0] = 4;
   _of, _cf, c = bn_muln (a,b);
-  a = bn_breduce(c,d,p);
+  a = bn_breduce(c,r,p);
   return a;
 }
 
 
 
-
-/*  Modular expanentiation  */
-inline fn expm(stack u64[nlimbs] m x n) 
+inline fn expm(stack u64[dnlimbs] r, stack u64[nlimbs] m x n) 
  -> (stack u64[nlimbs])
 {
   reg u64 ctr bit d p par t1 t2 cbit lbit q mask;
@@ -130,11 +124,11 @@ inline fn expm(stack u64[nlimbs] m x n)
   stack u64[nlimbs] x1 x2 x3 x4;
 
   ctr = nlimbs * 64 - 1;
-  x1 = bn_set0(x1);
-  x2 = bn_set0(x2);
-  d = ith_bit(n,ctr);
+  x1 = bn_set1(x1);
+  x2 = bn_set1(x2);
+  d  = ith_bit(n,ctr);
   x3 = bn_copy(x);
-  x4 = mulmr(m,x,x3);
+  x4 = mulm(r,m,x,x3);
    p = d;
   (x1,x3) = swapr(x1,x3,d);
   (x2,x4) = swapr(x2,x4,d);
@@ -148,8 +142,8 @@ inline fn expm(stack u64[nlimbs] m x n)
     d = d | t2;
     par = t1 ^ t2;
     (x1,x2) = swapr(x1,x2,par);
-    x1 = mulmr(m,x1,x2);
-    x2 = mulmr(m,x2,x2);
+    x1 = mulm(r,m,x1,x2);
+    x2 = mulm(r,m,x2,x2);
     q = d;
     cbit = q ^ p;
     (x1,x3) = swapr(x1,x3,cbit);
@@ -164,17 +158,19 @@ inline fn expm(stack u64[nlimbs] m x n)
 
 
 
-export fn __expm(reg u64 rp pp ap bp) 
+export fn __expm(reg u64 rp rr pp ap bp) 
 { 
   reg u64 rp2;
   stack u64[nlimbs] a b c p;
+  stack u64[dnlimbs] r;
 
   a = bn_load(ap);
   b = bn_load(bp);
   p = bn_load(pp);
+  r = dbn_load(rr);
   // relax ABI contraints
   rp2 = rp;
-  c = expm(p,a,b);
+  c = expm(r,p,a,b);
   bn_store(rp2, c);
 }
 
@@ -186,6 +182,6 @@ inline fn toEC()
   reg u64 x;
   reg bool _cf;  
 
-  /* normalized versions */
-  r = expm(a,b,p);
+  r = expm(z,a,b,p);
+  r = mulm(z,a,b,p);
 }

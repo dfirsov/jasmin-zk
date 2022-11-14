@@ -171,8 +171,21 @@ module CSpecFp = {
   return r;
  }
 
+ proc mulm(a b: int): int = {
+  var c, z;
+  c <@ ASpecFp.muln(a,b);
+  z <@ ASpecFp.redm(c);
+  return z;
+ }
+
 }.
 
+
+equiv mulm_eq:
+ CSpecFp.mulm ~ ASpecFp.mulm : a{1} = asint a{2} /\ b{1} = asint b{2}  ==> res{1} = asint res{2}.
+proof.  proc. inline*. wp.  skip. progress.
+smt.
+qed.
 
 equiv cminusP_eq:
  ASpecFp.cminusP ~ CSpecFp.dcminusP: ={arg} /\ a{2}<W64x8.modulusR  ==> ={res}.

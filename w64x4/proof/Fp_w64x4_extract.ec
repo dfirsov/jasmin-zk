@@ -80,27 +80,14 @@ module M = {
     return (a);
   }
   
-  proc bn_set0 (a:W64.t Array4.t) : W64.t Array4.t = {
+  proc bn_set1 (a:W64.t Array4.t) : W64.t Array4.t = {
     var aux: int;
     
     var i:int;
     
-    i <- 0;
+    a.[0] <- (W64.of_int 1);
+    i <- 1;
     while (i < 4) {
-      a.[i] <- (W64.of_int 0);
-      i <- i + 1;
-    }
-    return (a);
-  }
-  
-  proc bn2_set0 (a:W64.t Array8.t) : W64.t Array8.t = {
-    var aux: int;
-    
-    var i:int;
-    
-    aux <- (2 * 4);
-    i <- 0;
-    while (i < aux) {
       a.[i] <- (W64.of_int 0);
       i <- i + 1;
     }
@@ -478,25 +465,21 @@ module M = {
     return (res_0);
   }
   
-  proc mulmr (p:W64.t Array4.t, a:W64.t Array4.t, b:W64.t Array4.t) : 
-  W64.t Array4.t = {
+  proc mulm (r:W64.t Array8.t, p:W64.t Array4.t, a:W64.t Array4.t,
+             b:W64.t Array4.t) : W64.t Array4.t = {
     
-    var d:W64.t Array8.t;
     var _of:bool;
     var _cf:bool;
     var c:W64.t Array8.t;
     var  _0:W64.t;
     c <- witness;
-    d <- witness;
-    d <@ bn2_set0 (d);
-    d.[0] <- (W64.of_int 4);
     ( _0, _of, _cf, c) <@ bn_muln (a, b);
-    a <@ bn_breduce (c, d, p);
+    a <@ bn_breduce (c, r, p);
     return (a);
   }
   
-  proc expm (m:W64.t Array4.t, x:W64.t Array4.t, n:W64.t Array4.t) : 
-  W64.t Array4.t = {
+  proc expm (r:W64.t Array8.t, m:W64.t Array4.t, x:W64.t Array4.t,
+             n:W64.t Array4.t) : W64.t Array4.t = {
     
     var x1:W64.t Array4.t;
     var ctr:W64.t;
@@ -516,11 +499,11 @@ module M = {
     x3 <- witness;
     x4 <- witness;
     ctr <- (W64.of_int ((4 * 64) - 1));
-    x1 <@ bn_set0 (x1);
-    x2 <@ bn_set0 (x2);
+    x1 <@ bn_set1 (x1);
+    x2 <@ bn_set1 (x2);
     d <@ ith_bit (n, ctr);
     x3 <@ bn_copy (x);
-    x4 <@ mulmr (m, x, x3);
+    x4 <@ mulm (r, m, x, x3);
     p <- d;
     (x1, x3) <@ swapr (x1, x3, d);
     (x2, x4) <@ swapr (x2, x4, d);
@@ -534,8 +517,8 @@ module M = {
       d <- (d `|` t2);
       par <- (t1 `^` t2);
       (x1, x2) <@ swapr (x1, x2, par);
-      x1 <@ mulmr (m, x1, x2);
-      x2 <@ mulmr (m, x2, x2);
+      x1 <@ mulm (r, m, x1, x2);
+      x2 <@ mulm (r, m, x2, x2);
       q <- d;
       cbit <- (q `^` p);
       (x1, x3) <@ swapr (x1, x3, cbit);
@@ -548,6 +531,7 @@ module M = {
   
   proc toEC () : unit = {
     
+    var z:W64.t Array8.t;
     var a:W64.t Array4.t;
     var b:W64.t Array4.t;
     var p:W64.t Array4.t;
@@ -556,7 +540,9 @@ module M = {
     b <- witness;
     p <- witness;
     r <- witness;
-    r <@ expm (a, b, p);
+    z <- witness;
+    r <@ expm (z, a, b, p);
+    r <@ mulm (z, a, b, p);
     return ();
   }
 }.
