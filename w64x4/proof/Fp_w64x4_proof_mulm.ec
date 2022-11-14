@@ -84,9 +84,10 @@ transitivity
 + proc; simplify.
   while ( #pre /\ (i,_zero,of_0,cf,r){1}=(k,W64.zero,_of,_cf,r){2} /\
           1 <= k{2} <= nlimbs ).
-  wp. call mul1acc_eq. wp. skip. smt.
-   (* by wp; call mul1acc_eq; wp; skip => /> /#. *)
-  wp; call mul1first_eq; wp; skip => /> .
+  wp. call mul1acc_eq. wp. skip. progress. 
+rewrite of_uintK.
+apply modz_small. split. smt(). smt(). smt(). smt(). smt().
+  wp; call mul1first_eq; wp; skip => /> . 
 + proc.
   transitivity {1}
     { (_of,_cf,r) <@ MulOps.mulR(a,b); }
@@ -116,8 +117,9 @@ transitivity
 + proc; simplify.
   while ( #pre /\ (i,_zero,of_0,cf,r){1}=(k,W64.zero,_of,_cf,r){2} /\
           1 <= k{2} <= dnlimbs ).
-  wp. call dmul1acc_eq. wp. skip. smt.
-   (* by wp; call dmul1acc_eq; wp; skip => /> /#;smt. *)
+  wp. call dmul1acc_eq. wp. skip. progress.
+rewrite of_uintK.
+apply modz_small. split. smt(). smt(). smt(). smt(). smt().
   by wp; call dmul1first_eq; wp; skip => /> /#.
 + proc.
   transitivity {1}
@@ -190,8 +192,8 @@ proc.
 while (cond = x /\ b = z /\ i <= dnlimbs 
   /\ (forall j, 0 <= j < i => a.[j] = if cond then z.[j] else y.[j])
   /\ (forall j, i <= j < dnlimbs => a.[j] = y.[j])) (dnlimbs - i). progress.
-wp.  skip.  progress. smt.   smt. smt. smt. wp.  skip. progress. smt. smt.
-apply Array8.ext_eq. progress. smt. 
+wp.  skip.  progress. smt().   smt(@Array8). smt(@Array8). smt(). wp.  skip. progress. smt(@Array8). smt().
+apply Array8.ext_eq. progress. smt(@Array8). 
 qed.
 
 
@@ -207,22 +209,32 @@ qed.
 (* qed. *)
 
 
+require import List.
 
+op oneR : R = (of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero ))%Array4.
 
-op oneR : R = (of_list W64.zero [W64.one; W64.zero; W64.zero; W64.zero])%Array4.
+lemma nseqS' ['a]:
+  forall (n : int) (x : 'a), 0 < n => nseq n x = x :: nseq (n - 1) x.
+smt(nseqS).
+qed.
 
 lemma oneRE: ImplZZ oneR 1.
 rewrite /oneR /valR /bnk.
-have ->: range 0 4 = [0;1;2;3].  rewrite range_ltn. auto.
-rewrite range_ltn. auto. rewrite range_ltn. auto.
-simplify. rewrite range_ltn. auto.
-simplify. rewrite range_geq. auto. auto.
-rewrite big_consT.
-rewrite big_consT.
-rewrite big_consT.
-rewrite big_consT.
+do? (rewrite range_ltn; first by trivial ).
+simplify. rewrite range_geq. auto.
+do rewrite big_consT.
 rewrite big_nil.
-simplify. smt(@Int).
+ have -> : dig ((of_list W64.zero (W64.one :: nseq 3 W64.zero)))%Array4 0 = 1.
+ simplify. smt(@Int).
+ have q : forall x, 0 < x < nlimbs => dig ((of_list W64.zero (W64.one :: nseq 3 W64.zero)))%Array4 x = 0.
+ move => x xp. rewrite /dig.
+   have ->: to_uint ((of_list W64.zero (W64.one :: nseq 3 W64.zero)).[x])%Array4 = 0. 
+    do? (rewrite nseqS'; first by trivial). simplify. 
+   rewrite nseq0. 
+  have -> : (of_list W64.zero [W64.one; W64.zero; W64.zero; W64.zero]).[x]%Array4 = W64.zero. 
+rewrite get_of_list. smt().
+smt(@List).  smt(@W64). smt().
+do? (rewrite q; first smt()). simplify. auto.
 qed.
 
 
@@ -236,7 +248,7 @@ rewrite - oneRE. congr.
 apply Array4.ext_eq. progress.  
 case (x = 0). progress. progress.
 rewrite H2. smt(). 
-rewrite /oneR. smt(@Array4).
+rewrite /oneR. smt(@Array4 @List).
 qed.
 
 
@@ -247,8 +259,8 @@ proc.
 while (a = x /\ i <= dnlimbs 
   /\ (forall j, 0 <= j < i => r.[j] = x.[j])
   ) (dnlimbs - i). progress.
-wp.  skip.  progress. smt. smt. smt. wp.  skip. progress. smt. smt.
-apply Array8.ext_eq. progress. smt. 
+wp.  skip.  progress. smt(). smt(@Array8). smt(). wp.  skip. progress. smt(). smt().
+apply Array8.ext_eq. progress. smt(). 
 qed.
 
 
@@ -258,8 +270,8 @@ proc.
 while (a = x /\ i <= nlimbs 
   /\ (forall j, 0 <= j < i => r.[j]%Array4 = x.[j]%Array4)
   ) (dnlimbs - i). progress.
-wp.  skip.  progress. smt. smt. smt. wp.  skip. progress. smt. smt.
-apply Array4.ext_eq. progress. smt. 
+wp.  skip.  progress. smt(). smt(@Array4). smt(). wp.  skip. progress. smt(). smt().
+apply Array4.ext_eq. progress. smt(). 
 qed.
 
 
@@ -271,7 +283,7 @@ proof.
 transitivity CSpecFp.dcminusP
  ( W64x8.valR p{1} = P /\ W64x8.valR x{1} = a{2} ==> W64x8.valR res{1}  = res{2} )
  ( ={a} /\ a{2} < W64x8.modulusR ==> ={res} ).
-  progress. exists (W64x8.valR x{1}). progress. smt.
+  progress. exists (W64x8.valR x{1}). progress. smt(@W64x8).
 + by auto. 
 proc. 
 (ecall {1} (dbn_cmov_correct cf{1} z{1} x{1})).  simplify.
@@ -295,8 +307,8 @@ lemma bn_div2_correct z :
 proc. sp.
 while (aux = dnlimbs /\ i <= dnlimbs /\ forall j, 0 <= j < i => r.[j] = x.[dnlimbs + j]) (dnlimbs - i). 
 progress. wp. skip. progress.
-smt. smt. smt. skip. progress.
-smt. smt.
+smt(). smt(@Array8). smt(). skip. progress.
+smt(). smt().
 have ->:  W64x8.modulusR  = W64x8.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
 have ->: (R2.bnk (2*dnlimbs) x{hr})%R2 = valR2 x{hr}. auto.
 rewrite R2.bghint_div. auto.
@@ -305,12 +317,13 @@ rewrite /bnkup.
 have ->: 
   bigi predT (fun (i1 : int) => to_uint r0.[i1] * W64x8.M ^ (i1 - 0)) 0 dnlimbs
   = bigi predT (fun (i1 : int) => to_uint x{hr}.[i1 + dnlimbs] * W64x8.M ^ (i1 - 0)) 0 dnlimbs.
-apply eq_big_int. progress. smt. 
+apply eq_big_int. progress. smt(). 
   have ->: bigi predT (fun (i1 : int) => to_uint x{hr}.[i1] * W64x8.M ^ (i1 - dnlimbs)) dnlimbs
   (2 * dnlimbs)  = bigi predT (fun (i1 : int) => to_uint x{hr}.[i1] * W64x8.M ^ (i1 - dnlimbs)) (0 + dnlimbs)
   (2 * dnlimbs). auto.
 rewrite big_addn. simplify. auto.
 qed.
+
 
 
 lemma bn_shrink_correct a  :
@@ -319,13 +332,15 @@ proc.
 sp.
 while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j]%Array4 = x.[j]%Array8) (nlimbs - i). 
 progress. wp. skip. progress.
-smt. smt. smt. skip. progress.
-progress. 
-smt. smt. 
-have ->: W64x4.modulusR = W64x8.M ^ nlimbs. smt.
+smt(). smt(@Array4). smt(). skip. progress.
+smt(). smt(). 
+rewrite /W64x4.modulusR. auto.
 rewrite W64x8.R.bn_mod. auto. 
 rewrite /bnk. 
-apply eq_big_seq. progress. rewrite H1. smt. auto.
+apply eq_big_seq. progress. rewrite H1. split.
+smt (mem_range_le). 
+smt (mem_range_gt).
+auto.
 qed.
 
 
@@ -338,24 +353,24 @@ lemma bn_expand_correct : forall a,
    sp. 
     seq 1 : (a = x /\ i = nlimbs /\ forall i, i < nlimbs => r.[i] = x.[i]%Array4).
     while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[j]%Array4). wp.  skip. progress.
-    smt. smt. skip. progress.
-    smt.  smt. smt. 
+    smt(). smt(@Array4 @Array8). skip. progress.
+    smt().  smt(). smt(@Array8 @Array4). 
     seq 2 : (a = x /\  (forall j, 0 <= j < nlimbs => r.[j]%Array8 = x.[j]%Array4)
          /\ (forall j, nlimbs <= j < 2*nlimbs => r.[j] = W64.zero)).     
     while (a = x /\ nlimbs <= i <= 2*nlimbs 
          /\ (forall j, 0 <= j < nlimbs => r.[j]%Array8 = x.[j]%Array4)
          /\ (forall j, nlimbs <= j < i => r.[j] = W64.zero) ). wp.  skip. progress.
-    smt. smt.
-    have z : i{hr} <> j. smt. 
-    rewrite - H1. auto.  smt.
-    case (j = i{hr}). smt.
+    smt(). smt().
+    have z : i{hr} <> j. smt(). 
+    rewrite - H1. auto.  smt(@Array4 @Array8).
+    case (j = i{hr}). smt(@Array4 @Array8).
     progress.
-    have : j < i{hr}. timeout 10. smt.
+    have : j < i{hr}.  smt().
     progress.
-    rewrite - (H2 j).  smt.
-    smt. wp. 
+    rewrite - (H2 j).  smt().
+    smt(@Array4 @Array8). wp. 
     skip.  progress.
-    smt. smt. smt. 
+    smt(@Array4 @Array8). smt(). smt(). 
     skip.  progress.
     have -> : valR r{hr} = (bn_seq ((to_list r{hr}))%Array8).
     apply W64x8.R.bn2seq. 
@@ -368,7 +383,7 @@ lemma bn_expand_correct : forall a,
     simplify.
     have ->: mkseq (fun (i0 : int) => r{hr}.[nlimbs + i0]) nlimbs
       = mkseq (fun (i0 : int) => W64.zero) nlimbs.
-    apply eq_in_mkseq. progress. rewrite H0. smt. auto.
+    apply eq_in_mkseq. progress. rewrite H0. smt(). auto.
     rewrite mkseq_nseq. 
     rewrite /bn_seq.
     rewrite foldr_cat.
@@ -419,7 +434,7 @@ ecall {1} (bn_div2_correct xr{1}). inline*. wp.  skip.  progress. rewrite H0.
   rewrite /W64x8.modulusR. clear H0 H. smt.
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
     /\ W64x8.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
-ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. smt.
+ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. rewrite H0.  smt.
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
     /\ W64x8.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
     /\  W64x8.valR xrfn{1} = xrfn{2}).
