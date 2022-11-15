@@ -6,8 +6,45 @@ import Array28 Array14 Array7.
 import Zp W64x4 R.
 import StdBigop Bigint BIA.
 
-op R : W64.t Array14.t.
-axiom R_prop : W64x8.valR R = 4 ^ (64 * nlimbs) %/ P.
+op R : W64.t Array14.t = R2.bn_ofint Ri.
+require import BarrettRedInt.
+
+lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
+ a <= b / c => a < b.
+smt(@Real).
+qed.
+
+
+require import RealExp.
+lemma R_prop : W64x8.valR R = 4 ^ (64 * nlimbs) %/ P.
+rewrite /R.
+have q1: 0 <= Ri. rewrite /Ri. 
+rewrite divz_ge0. smt(P_pos). smt(@Ring).
+
+have q2: Ri < W64x8.modulusR .   
+  have ->: W64x8.modulusR = (2^ (64 * dnlimbs)). rewrite /W64x8.modulusR. smt(@Ring).
+
+  have -> : Ri = (ri P (64 * nlimbs)). rewrite /Ri. rewrite /ri. smt().
+  have : (ri P (64 * nlimbs))%r <= ((4 ^ (64*nlimbs))%r / P%r).  rewrite - same_ri. smt(P_pos). smt().
+  rewrite /r.  rewrite - exp_lemma1. smt(). smt(). smt(floor_bound).
+
+  have -> : (4 ^ (64 * nlimbs))%r = ((2 * 2) ^ (64 * nlimbs))%r. smt().
+  have -> : ((2 * 2) ^ (64 * nlimbs))%r = ((2 ^ (2 * 64 * nlimbs)))%r. smt(@Ring).
+  have->: (2 ^ (2 * 64 * nlimbs))%r = (2 ^ (64 * dnlimbs))%r. smt(@RealExp @Ring).
+  pose x := ri P (64 * nlimbs).
+  move => q.
+  have : x%r < 2%r ^ (64 * dnlimbs)%r. apply (kok x%r (2%r ^ (64 * dnlimbs)%r) P%r).
+  have ->: x = Ri. rewrite /x /Ri /ri. smt().
+   smt(@RealExp). smt(@RealExp). smt(P_pos). rewrite exp_lemma1. smt(). smt(). apply q.
+    have ->: 2%r ^ (64 * dnlimbs)%r = (2 ^ (64 * dnlimbs))%r. 
+    rewrite - exp_lemma1. smt(). smt(). trivial.
+smt(@Real).
+have ->: (W64x8.valR ((R2.bn_ofint Ri))%R2)%W64x8   = Ri.
+rewrite W64x8.R.bn_ofintK. 
+smt( modz_small). 
+rewrite /Ri. smt().
+qed.
+
 
 equiv mul1first_eq:
  M.mul1 ~ MulOps.mul1:

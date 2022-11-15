@@ -27,12 +27,14 @@ clone import BigNum as W64x8 with
 type R = W64.t Array7.t.
 type R2 = W64.t Array14.t.
 
-  (* 2 ^ (64 * nlimbs)  *)
-(* abbrev M = 2135987035920910082395021706169552114602704522356652769947041607822219725780640550022962086936576. *)
+(* 2 ^ (64 * nlimbs)  *)
 abbrev M = 2 ^ (64 * nlimbs).
 
 
 op P : int. 
+
+(* parameter for the Barrett reduction  *)
+op Ri : int  = 4 ^ (64 * nlimbs) %/ P.
 
 axiom P_prime: prime P.
 axiom ppos : 2 * P < W64x4.modulusR.
@@ -212,6 +214,8 @@ qed.
 
 require import BarrettRedInt.
 require import Real RealExp.
+
+
 equiv redm_eq:
  ASpecFp.redm ~ CSpecFp.redm: ={a} /\ r{2} = (4 ^ k{2} %/ P) 
   /\ 0 < P < W64x4.modulusR
