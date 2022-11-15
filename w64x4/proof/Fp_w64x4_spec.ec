@@ -110,12 +110,12 @@ module ASpecFp = {
   return r;
  }
 
-  (* proc subn(a b: int): bool * int = { *)
-  (*   var c, r; *)
-  (*   c <- a < b; *)
-  (*   r <- (a - b) %% W64x4.modulusR; *)
-  (*   return (c, r); *)
-  (* }   *)
+  proc subn(a b: int): bool * int = {
+    var c, r;
+    c <- a < b;
+    r <- (a - b) %% W64x4.modulusR;
+    return (c, r);
+  }
 
   proc dsubn(a b: int): bool * int = {
     var c, r;
