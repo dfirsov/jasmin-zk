@@ -1,6 +1,4 @@
-1/ define mulm with barrett parameter
-2/ prove correctness of mulm
-3/ instantiate montgomery ladder to get expm
+proof fix in spec
 
 
 

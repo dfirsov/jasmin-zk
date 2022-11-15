@@ -198,17 +198,18 @@ module CSpecFp = {
 equiv mulm_eq:
  CSpecFp.mulm ~ ASpecFp.mulm : a{1} = asint a{2} /\ b{1} = asint b{2}  ==> res{1} = asint res{2}.
 proof.  proc. inline*. wp.  skip. progress.
-smt.
+smt(@Zp).
 qed.
 
 equiv cminusP_eq:
  ASpecFp.cminusP ~ CSpecFp.dcminusP: ={arg} /\ a{2}<W64x8.modulusR  ==> ={res}.
 proof.
 proc; inline*; wp; skip => &1 &2.
-rewrite W64x8.R.bn_modulusE /= !mulrA expr0.
-progress. smt.
-(* case (a{2} < P). auto. progress. *)
-(* have : (a{2} - P) < modulusR.  smt. progress. smt. *)
+move => [q1  q2].
+case (a{2} < P). auto. move => qq. smt(). rewrite q1. move => qq. rewrite qq.
+rewrite modz_small. split.  smt().
+move => ?. have ->: `|W64x8.modulusR| = W64x8.modulusR. rewrite /W64x8.modulusR. smt(@Ring).
+smt(P_pos). auto.
 qed.
 
 
@@ -225,64 +226,57 @@ equiv redm_eq:
 proc. inline*. wp. skip. progress.
 rewrite -  (barrett_reduction_correct a{2} P k{2} ). auto. auto.  auto. 
 rewrite /barrett_reduction. simplify. rewrite /ti. rewrite /ti'. rewrite /ri.
-have ->: 2 ^ (2 * k{2}) = 4 ^ k{2}. smt.
-
+have ->: 2 ^ (2 * k{2}) = 4 ^ k{2}. smt(@Real).
 have <-:  a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2} * P
  = (a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  %%  2 ^ k{2} * P) %% W64x8.modulusR.
 rewrite modz_small.
-
  have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
   rewrite /ti. rewrite /ti'. rewrite /ri. auto.
-
 have -> : ti' a{2} P k{2} %% 2 ^ k{2} = ti' a{2} P k{2}. 
-rewrite modz_small. rewrite /ti'. split. smt. move => ?.
-
-
+rewrite modz_small. rewrite /ti'. split. 
+apply divz_ge0. 
+smt(exprn_ege1).
+rewrite /ri. 
+  have : 0 <= (4 ^ k{2} %/ P). apply divz_ge0.  smt(P_pos). smt(exprn_ege1). smt().
   have ->: `|2 ^ k{2}| = 2 ^ k{2}. smt().
   have : (ti' a{2} P k{2})%r < (2 ^ k{2})%r.
    rewrite - same_t'. auto. auto.
-
-  have qq :  a{2}%r - 2%r * P%r < (t' a{2}%r P%r k{2}%r) * P%r <= a{2}%r.
-   apply st6. smt. timeout 10. smt.
-  smt.
-  smt. auto.
-
-
+  have qq :  a{2}%r - 2%r * P%r < (t' a{2}%r P%r k{2}%r) * P%r <= a{2}%r. 
+   apply st6. smt(). split. smt().  move => ?. rewrite  exp_lemma1. auto. auto. smt(@Real).
+  smt(). smt(). auto.
 have -> : a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2} * P
  = ti a{2} P k{2}. rewrite /ti. rewrite /ti'. rewrite /ri. auto.
-
 split. 
    have : 0%r <= (ti a{2} P k{2})%r < 2%r * P%r.
    rewrite - same_t. auto. auto.
-     apply (st8 a{2}%r P%r k{2}%r _ _). split.  smt. smt. smt.
-  progress. smt. 
+     apply (st8 a{2}%r P%r k{2}%r _ _). split.  smt(). smt(). smt(exp_lemma1).
+  progress. smt(). 
 move => _.
-have ->: `|W64x4.modulusR2| = W64x4.modulusR2. smt.
+have ->: `|W64x4.modulusR2| = W64x4.modulusR2. rewrite /W64x4.modulusR2. smt(@Ring).
    have : 0%r <= (ti a{2} P k{2})%r < 2%r * P%r.
    rewrite - same_t. auto. auto. 
-     apply (st8 a{2}%r P%r k{2}%r _ _). smt.
-split. smt. move => ?. timeout 10. smt.
-  progress.   
-   have : 2 * P < W64x4.modulusR2.   timeout 15. smt.
-smt.
-
+     apply (st8 a{2}%r P%r k{2}%r _ _). split. smt(). smt().
+split. smt(). move => ?. smt(exp_lemma1).
+  progress. 
+   have : 2 * P < W64x4.modulusR2. rewrite /W64x4.modulusR2. 
+   have : W64x8.M ^ (nlimbs) <= W64x8.M ^ (2 * nlimbs).
+   apply ler_weexpn2l. smt(). smt().
+   have : 2 * P <= W64x8.M ^ ( nlimbs) .    
+    have ->: W64x8.M ^ nlimbs = W64x4.modulusR. rewrite /W64x4.modulusR. auto. smt(ppos).
+smt(). smt().
  have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
   rewrite /ti. rewrite /ti'. rewrite /ri. auto.
-
 have -> : ti' a{2} P k{2} %% 2 ^ k{2} = ti' a{2} P k{2}. 
-rewrite modz_small. rewrite /ti'. split. smt. move => ?.
-(* admit. admit. *)
-
+rewrite modz_small. rewrite /ti'. split. 
+  have : 0 <= ri P k{2} %/ 4 ^ k{2}. apply divz_ge0. smt(exprn_ege1). rewrite /ri.
+  apply divz_ge0.  smt(P_pos). smt(exprn_ege1). smt(). 
   have ->: `|2 ^ k{2}| = 2 ^ k{2}. smt().
   have : (ti' a{2} P k{2})%r < (2 ^ k{2})%r.
    rewrite - same_t'. auto. auto.
-
   have qq :  a{2}%r - 2%r * P%r < (t' a{2}%r P%r k{2}%r) * P%r <= a{2}%r.
-   apply st6. smt. timeout 10. smt.
-  smt.
-  smt. auto.
-
- 
+   apply st6. smt().  split. smt(). move => ?. smt(exp_lemma1).
+  smt().
+  smt(). auto.
 auto.
 auto.
 qed.
