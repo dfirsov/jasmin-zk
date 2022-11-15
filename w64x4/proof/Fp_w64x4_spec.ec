@@ -5,29 +5,31 @@ import Ring.IntID IntOrder.
 require import JModel.
 require import JBigNum.
 
-require import Array4 Array8 Array16.
+require import Array7 Array14 Array28.
 
-abbrev nlimbs = 4.
-abbrev dnlimbs = 8.
+abbrev nlimbs = 7.
+abbrev dnlimbs = 14.
 
 clone import BigNum as W64x4 with
  op nlimbs <- nlimbs,
- theory R.A <= Array4,
- theory R2.A <= Array8
+ theory R.A <= Array7,
+ theory R2.A <= Array14
  proof gt0_nlimbs by done.
 
 
 clone import BigNum as W64x8 with
- op nlimbs <- 8,
- theory R.A <= Array8,
- theory R2.A <= Array16
+ op nlimbs <- dnlimbs,
+ theory R.A <= Array14,
+ theory R2.A <= Array28
  proof gt0_nlimbs by done.
 
  
-type R = W64.t Array4.t.
-type R2 = W64.t Array8.t.
+type R = W64.t Array7.t.
+type R2 = W64.t Array14.t.
 
-abbrev M = 115792089237316195423570985008687907853269984665640564039457584007913129639936.
+  (* 2 ^ (64 * nlimbs)  *)
+(* abbrev M = 2135987035920910082395021706169552114602704522356652769947041607822219725780640550022962086936576. *)
+abbrev M = 2 ^ (64 * nlimbs).
 
 
 op P : int. 
@@ -55,13 +57,22 @@ abbrev ImplFp x y = W64x4.valR x = asint y.
 op pR: R.
 axiom pRE: ImplZZ pR P.
 
-op zeroR : R = W64x4.R.A.of_list W64.zero
-                 [ W64.zero; W64.zero; W64.zero; W64.zero ].
 
+op zeroR : R = W64x4.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
+
+
+
+lemma nseqS' ['a]:
+  forall (n : int) (x : 'a), 0 < n => nseq n x = x :: nseq (n - 1) x.
+smt(nseqS).
+qed.
 
 
 lemma zeroRE: valR zeroR = 0.
 proof.
+rewrite /zeroR.
+do? (rewrite nseqS'; first by trivial). simplify.
+rewrite nseq0.
 by rewrite /zeroR W64x4.R.bn2seq /= W64x4.R.A.of_listK 1:/# /bn_seq.
 qed.
 
@@ -192,7 +203,7 @@ equiv cminusP_eq:
  ASpecFp.cminusP ~ CSpecFp.dcminusP: ={arg} /\ a{2}<W64x8.modulusR  ==> ={res}.
 proof.
 proc; inline*; wp; skip => &1 &2.
-have ->: W64x8.modulusR = 2^512 by rewrite W64x8.R.bn_modulusE /= !mulrA expr0.
+rewrite W64x8.R.bn_modulusE /= !mulrA expr0.
 progress. smt.
 (* case (a{2} < P). auto. progress. *)
 (* have : (a{2} - P) < modulusR.  smt. progress. smt. *)
@@ -202,7 +213,7 @@ qed.
 require import BarrettRedInt.
 require import Real RealExp.
 equiv redm_eq:
- ASpecFp.redm ~ CSpecFp.redm: ={a} /\ r{2} = (nlimbs ^ k{2} %/ P) 
+ ASpecFp.redm ~ CSpecFp.redm: ={a} /\ r{2} = (4 ^ k{2} %/ P) 
   /\ 0 < P < W64x4.modulusR
   /\ 0 <= a{2} < P * P
   /\ 0 < P < 2 ^ k{2} 
@@ -211,16 +222,17 @@ proc. inline*. wp. skip. progress.
 rewrite -  (barrett_reduction_correct a{2} P k{2} ). auto. auto.  auto. 
 rewrite /barrett_reduction. simplify. rewrite /ti. rewrite /ti'. rewrite /ri.
 have ->: 2 ^ (2 * k{2}) = 4 ^ k{2}. smt.
-have <-:  a{2} - a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2} * P
- = (a{2} - a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2}  %% 2 ^ k{2} * P) %% W64x4.modulusR2.
+
+have <-:  a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2} * P
+ = (a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  %%  2 ^ k{2} * P) %% W64x8.modulusR.
 rewrite modz_small.
 
- have ->: a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2}  = ti' a{2} P k{2}. 
+ have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
   rewrite /ti. rewrite /ti'. rewrite /ri. auto.
 
 have -> : ti' a{2} P k{2} %% 2 ^ k{2} = ti' a{2} P k{2}. 
 rewrite modz_small. rewrite /ti'. split. smt. move => ?.
-(* admit. admit. *)
+
 
   have ->: `|2 ^ k{2}| = 2 ^ k{2}. smt().
   have : (ti' a{2} P k{2})%r < (2 ^ k{2})%r.
@@ -232,7 +244,7 @@ rewrite modz_small. rewrite /ti'. split. smt. move => ?.
   smt. auto.
 
 
-have -> : a{2} - a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2} * P
+have -> : a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2} * P
  = ti a{2} P k{2}. rewrite /ti. rewrite /ti'. rewrite /ri. auto.
 
 split. 
@@ -250,7 +262,7 @@ split. smt. move => ?. timeout 10. smt.
    have : 2 * P < W64x4.modulusR2.   timeout 15. smt.
 smt.
 
- have ->: a{2} * (nlimbs ^ k{2} %/ P) %/ nlimbs ^ k{2}  = ti' a{2} P k{2}. 
+ have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
   rewrite /ti. rewrite /ti'. rewrite /ri. auto.
 
 have -> : ti' a{2} P k{2} %% 2 ^ k{2} = ti' a{2} P k{2}. 

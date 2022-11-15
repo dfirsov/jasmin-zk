@@ -2,11 +2,11 @@ require import AllCore IntDiv CoreMap List.
 
 require import JModel JBigNum.
 require import Fp_w64x4_spec Fp_w64x4_extract Ith_Bit64.
-import Array16 Array8 Array4.
+import Array28 Array14 Array7.
 import Zp W64x4 R.
 import StdBigop Bigint BIA.
 
-op R : W64.t Array8.t.
+op R : W64.t Array14.t.
 axiom R_prop : W64x8.valR R = 4 ^ (64 * nlimbs) %/ P.
 
 equiv mul1first_eq:
@@ -19,8 +19,8 @@ proc; simplify.
 wp.
 while ( #pre /\ ={r,i} /\ (a,of_0,cf,_zero){1}=(ak,_of,_cf,W64.zero){2} /\ 
         1 <= i{2} <= nlimbs /\ !_of{2}).
- wp; skip => />; smt(Array8.get_setE Array8.set_set_if).
-wp; skip => />; smt (Array8.set_set_if).
+ wp; skip => />; smt(Array14.get_setE Array14.set_set_if).
+wp; skip => />; smt (Array14.set_set_if).
 qed.
 
 
@@ -34,8 +34,8 @@ proof.
 proc. simplify.
 wp. while ( #pre /\ ={i} /\ (aux,_zero){1}=(nlimbs-1,W64.zero){2} /\ 
             0 <= i{2} <= nlimbs-1 /\ kk{1} = k{2}).
- wp; skip => />; smt(Array8.get_setE Array8.set_set_if).
-wp; skip; smt(Array8.get_setE Array8.set_set_if).
+ wp; skip => />; smt(Array14.get_setE Array14.set_set_if).
+wp; skip; smt(Array14.get_setE Array14.set_set_if).
 qed.
 
 
@@ -49,8 +49,8 @@ proc; simplify.
 wp.
 while ( #pre /\ ={r,i} /\ (a,of_0,cf,_zero){1}=(ak,_of,_cf,W64.zero){2} /\ 
         1 <= i{2} <= dnlimbs /\ !_of{2}).
- wp; skip => />; smt(Array16.get_setE Array16.set_set_if).
-wp; skip => />; smt (Array16.set_set_if).
+ wp; skip => />; smt(Array28.get_setE Array28.set_set_if).
+wp; skip => />; smt (Array28.set_set_if).
 qed.
 
 
@@ -62,10 +62,10 @@ equiv dmul1acc_eq :
  (res.`1,res.`2,res.`3,res.`4){1} = (W64.zero,res.`1,res.`2,res.`3){2}.
 proof.
 proc. simplify.
-wp. while ( #pre /\ ={i} /\ (aux,_zero){1}=(8-1,W64.zero){2} /\ 
-            0 <= i{2} <= 8-1 /\ kk{1} = k{2}).
- wp; skip => />; smt(Array16.get_setE Array16.set_set_if).
-wp; skip; smt(Array16.get_setE Array16.set_set_if).
+wp. while ( #pre /\ ={i} /\ (aux,_zero){1}=(dnlimbs-1,W64.zero){2} /\ 
+            0 <= i{2} <= dnlimbs-1 /\ kk{1} = k{2}).
+ wp; skip => />; smt(Array28.get_setE Array28.set_set_if).
+wp; skip; smt(Array28.get_setE Array28.set_set_if).
 qed.
 
 
@@ -152,8 +152,8 @@ transitivity
   exlim a{1}, b{1} => aa bb.
   while (={i,b} /\ 1 <= i{2} <= dnlimbs /\ 
          (cf, aa){1}=(c, a){2} /\
-         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array8 /\
-         (forall k, i{2} <= k < dnlimbs => a{1}.[k] = aa.[k])%Array8).
+         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array14 /\
+         (forall k, i{2} <= k < dnlimbs => a{1}.[k] = aa.[k])%Array14).
    wp; skip => /> &1 &2 Hi1 _ Hh1 Hh2 Hi2.
    split => *; first smt().
    split => *; first smt().
@@ -172,7 +172,7 @@ transitivity
    split => k *.
     by rewrite (_:k=0) 1:/# !set_eqiE /#.
    by rewrite set_neqiE /#.
-  by apply Array8.ext_eq; smt().
+  by apply Array14.ext_eq; smt().
 + proc; simplify.
   transitivity {1}
    { (c,r) <@ W64x8.R.Ops.subcR(a,b,c); }
@@ -194,8 +194,8 @@ proc.
 while (cond = x /\ b = z /\ i <= dnlimbs 
   /\ (forall j, 0 <= j < i => a.[j] = if cond then z.[j] else y.[j])
   /\ (forall j, i <= j < dnlimbs => a.[j] = y.[j])) (dnlimbs - i). progress.
-wp.  skip.  progress. smt().   smt(@Array8). smt(@Array8). smt(). wp.  skip. progress. smt(@Array8). smt().
-apply Array8.ext_eq. progress. smt(@Array8). 
+wp.  skip.  progress. smt().   smt(@Array14). smt(@Array14). smt(). wp.  skip. progress. smt(@Array14). smt().
+apply Array14.ext_eq. progress. smt(@Array14). 
 qed.
 
 
@@ -203,40 +203,36 @@ qed.
 (*   phoare[ M.bn_set0 : true  ==> W64x4.valR res = 0 ] = 1%r. *)
 (* proc. *)
 (* while (i <= nlimbs  *)
-(*   /\ (forall j, 0 <= j < i => a.[j]%Array4 = W64.zero)) (nlimbs - i). progress. *)
-(* wp.  skip.  progress. smt().  smt(@Array4). smt(). wp.  skip. progress. smt(). smt(). *)
+(*   /\ (forall j, 0 <= j < i => a.[j]%Array7 = W64.zero)) (nlimbs - i). progress. *)
+(* wp.  skip.  progress. smt().  smt(@Array7). smt(). wp.  skip. progress. smt(). smt(). *)
 (* rewrite - zeroRE. congr. *)
-(* apply Array4.ext_eq. progress.  rewrite H1. smt().  *)
-(* rewrite /zeroR. smt(@Array4). *)
+(* apply Array7.ext_eq. progress.  rewrite H1. smt().  *)
+(* rewrite /zeroR. smt(@Array7). *)
 (* qed. *)
 
 
 require import List.
 
-op oneR : R = (of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero ))%Array4.
+op oneR : R = (of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero ))%Array7.
 
-lemma nseqS' ['a]:
-  forall (n : int) (x : 'a), 0 < n => nseq n x = x :: nseq (n - 1) x.
-smt(nseqS).
-qed.
-
+    (* TODO: nlimbs specific *)
 lemma oneRE: ImplZZ oneR 1.
 rewrite /oneR /valR /bnk.
 do? (rewrite range_ltn; first by trivial ).
 simplify. rewrite range_geq. auto.
 do rewrite big_consT.
 rewrite big_nil.
- have -> : dig ((of_list W64.zero (W64.one :: nseq 3 W64.zero)))%Array4 0 = 1.
+ have -> : dig ((of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)))%Array7 0 = 1.
  simplify. smt(@Int).
- have q : forall x, 0 < x < nlimbs => dig ((of_list W64.zero (W64.one :: nseq 3 W64.zero)))%Array4 x = 0.
+ have q : forall x, 0 < x < nlimbs => dig ((of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)))%Array7 x = 0.
  move => x xp. rewrite /dig.
-   have ->: to_uint ((of_list W64.zero (W64.one :: nseq 3 W64.zero)).[x])%Array4 = 0. 
+   have ->: to_uint ((of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)).[x])%Array7 = 0. 
     do? (rewrite nseqS'; first by trivial). simplify. 
    rewrite nseq0. 
-  have -> : (of_list W64.zero [W64.one; W64.zero; W64.zero; W64.zero]).[x]%Array4 = W64.zero. 
+  have -> : (of_list W64.zero [W64.one; W64.zero; W64.zero; W64.zero; W64.zero]).[x]%Array7 = W64.zero. 
 rewrite get_of_list. smt().
 smt(@List).  smt(@W64). smt().
-do? (rewrite q; first smt()). simplify. auto.
+do? (rewrite q; first smt()). auto.
 qed.
 
 
@@ -244,13 +240,13 @@ lemma bn_set1_correct :
   phoare[ M.bn_set1 : true  ==> W64x4.valR res = 1 ] = 1%r.
 proc.
 while (0 < i <= nlimbs 
-  /\ (forall j, 1 <= j < i => a.[j]%Array4 = W64.zero) /\ a.[0]%Array4 = W64.one) (nlimbs - i). progress.
-wp.  skip.  progress. smt(). smt().  smt(@Array4). smt(@Array4). smt(). wp.  skip. progress. smt(@Array4). smt().
+  /\ (forall j, 1 <= j < i => a.[j]%Array7 = W64.zero) /\ a.[0]%Array7 = W64.one) (nlimbs - i). progress.
+wp.  skip.  progress. smt(). smt().  smt(@Array7). smt(@Array7). smt(). wp.  skip. progress. smt(@Array7). smt().
 rewrite - oneRE. congr.
-apply Array4.ext_eq. progress.  
+apply Array7.ext_eq. progress.  
 case (x = 0). progress. progress.
 rewrite H2. smt(). 
-rewrite /oneR. smt(@Array4 @List).
+rewrite /oneR. smt(@Array7 @List).
 qed.
 
 
@@ -261,8 +257,8 @@ proc.
 while (a = x /\ i <= dnlimbs 
   /\ (forall j, 0 <= j < i => r.[j] = x.[j])
   ) (dnlimbs - i). progress.
-wp.  skip.  progress. smt(). smt(@Array8). smt(). wp.  skip. progress. smt(). smt().
-apply Array8.ext_eq. progress. smt(). 
+wp.  skip.  progress. smt(). smt(@Array14). smt(). wp.  skip. progress. smt(). smt().
+apply Array14.ext_eq. progress. smt(). 
 qed.
 
 
@@ -270,10 +266,10 @@ lemma bn_copy_correct x :
   phoare[ M.bn_copy :  arg = x  ==> res = x ] = 1%r.
 proc.
 while (a = x /\ i <= nlimbs 
-  /\ (forall j, 0 <= j < i => r.[j]%Array4 = x.[j]%Array4)
+  /\ (forall j, 0 <= j < i => r.[j]%Array7 = x.[j]%Array7)
   ) (dnlimbs - i). progress.
-wp.  skip.  progress. smt(). smt(@Array4). smt(). wp.  skip. progress. smt(). smt().
-apply Array4.ext_eq. progress. smt(). 
+wp.  skip.  progress. smt(). smt(@Array7). smt(). wp.  skip. progress. smt(). smt().
+apply Array7.ext_eq. progress. smt(). 
 qed.
 
 
@@ -309,7 +305,7 @@ lemma bn_div2_correct z :
 proc. sp.
 while (aux = dnlimbs /\ i <= dnlimbs /\ forall j, 0 <= j < i => r.[j] = x.[dnlimbs + j]) (dnlimbs - i). 
 progress. wp. skip. progress.
-smt(). smt(@Array8). smt(). skip. progress.
+smt(). smt(@Array14). smt(). skip. progress.
 smt(). smt().
 have ->:  W64x8.modulusR  = W64x8.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
 have ->: (R2.bnk (2*dnlimbs) x{hr})%R2 = valR2 x{hr}. auto.
@@ -332,9 +328,9 @@ lemma bn_shrink_correct a  :
   phoare[ M.bn_shrink : arg = a  ==> W64x4.valR res = W64x8.valR a %% W64x4.modulusR ] = 1%r.
 proc.
 sp.
-while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j]%Array4 = x.[j]%Array8) (nlimbs - i). 
+while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j]%Array7 = x.[j]%Array14) (nlimbs - i). 
 progress. wp. skip. progress.
-smt(). smt(@Array4). smt(). skip. progress.
+smt(). smt(@Array7). smt(). skip. progress.
 smt(). smt(). 
 rewrite /W64x4.modulusR. auto.
 rewrite W64x8.R.bn_mod. auto. 
@@ -353,34 +349,34 @@ lemma bn_expand_correct : forall a,
    move => a.
    proc.
    sp. 
-    seq 1 : (a = x /\ i = nlimbs /\ forall i, i < nlimbs => r.[i] = x.[i]%Array4).
-    while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[j]%Array4). wp.  skip. progress.
-    smt(). smt(@Array4 @Array8). skip. progress.
-    smt().  smt(). smt(@Array8 @Array4). 
-    seq 2 : (a = x /\  (forall j, 0 <= j < nlimbs => r.[j]%Array8 = x.[j]%Array4)
+    seq 1 : (a = x /\ i = nlimbs /\ forall i, i < nlimbs => r.[i] = x.[i]%Array7).
+    while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[j]%Array7). wp.  skip. progress.
+    smt(). smt(@Array7 @Array14). skip. progress.
+    smt().  smt(). smt(@Array14 @Array7). 
+    seq 2 : (a = x /\  (forall j, 0 <= j < nlimbs => r.[j]%Array14 = x.[j]%Array7)
          /\ (forall j, nlimbs <= j < 2*nlimbs => r.[j] = W64.zero)).     
     while (a = x /\ nlimbs <= i <= 2*nlimbs 
-         /\ (forall j, 0 <= j < nlimbs => r.[j]%Array8 = x.[j]%Array4)
+         /\ (forall j, 0 <= j < nlimbs => r.[j]%Array14 = x.[j]%Array7)
          /\ (forall j, nlimbs <= j < i => r.[j] = W64.zero) ). wp.  skip. progress.
     smt(). smt().
     have z : i{hr} <> j. smt(). 
-    rewrite - H1. auto.  smt(@Array4 @Array8).
-    case (j = i{hr}). smt(@Array4 @Array8).
+    rewrite - H1. auto.  smt(@Array7 @Array14).
+    case (j = i{hr}). smt(@Array7 @Array14).
     progress.
     have : j < i{hr}.  smt().
     progress.
     rewrite - (H2 j).  smt().
-    smt(@Array4 @Array8). wp. 
+    smt(@Array7 @Array14). wp. 
     skip.  progress.
-    smt(@Array4 @Array8). smt(). smt(). 
+    smt(@Array7 @Array14). smt(). smt(). 
     skip.  progress.
-    have -> : valR r{hr} = (bn_seq ((to_list r{hr}))%Array8).
+    have -> : valR r{hr} = (bn_seq ((to_list r{hr}))%Array14).
     apply W64x8.R.bn2seq. 
     rewrite /to_list.
     have -> : dnlimbs = nlimbs + nlimbs. smt().
     rewrite mkseq_add. auto. auto.
     have -> : mkseq (fun (i0 : int) => r{hr}.[i0]) nlimbs 
-      = mkseq (fun (i0 : int) => x{hr}.[i0]%Array4) nlimbs.
+      = mkseq (fun (i0 : int) => x{hr}.[i0]%Array7) nlimbs.
     apply eq_in_mkseq. progress. 
     simplify.
     have ->: mkseq (fun (i0 : int) => r{hr}.[nlimbs + i0]) nlimbs
@@ -435,7 +431,6 @@ seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * 
 ecall {1} (bn_div2_correct xr{1}). inline*. wp.  skip. move => &1 &2 z. split. auto. move => _.
 move => r zz. split. smt(). split. smt(). split. smt(). split. smt(). split. smt(). rewrite zz.
 have -> : W64x8.modulusR = 2 ^ (2 * k{2}). smt(@Ring). smt().
-
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
     /\ W64x8.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
 ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. rewrite H0.  
@@ -487,20 +482,19 @@ proof.
   have redm_simp:
  equiv [ ASpecFp.redm ~ ASpecFp.redm: ={arg} ==> res{1} = res{2} %% W64x4.modulusR ].
  proc. wp.  skip. progress. 
-
-
 rewrite (pmod_small (a{2} %% P)) . split.  apply modz_ge0. smt(P_pos modz_ge0). move => _.
 smt(ltz_pmod P_pos ppos). auto.
 symmetry. transitivity ASpecFp.redm
  (={arg} ==> res{1} = res{2} %% W64x4.modulusR)
  (valR a{2} = a{1}
   /\ ImplZZ p{2} P
-  /\ valR r{2} = (nlimbs ^ (64 * nlimbs) %/ P) 
+  /\ valR r{2} = (4 ^ (64 * nlimbs) %/ P) 
   /\ 0 < P < W64x4.modulusR
   /\ 0 <= a{1} < P * P
   /\ 0 < P < 2 ^ (64 * nlimbs)
   /\ 0 <= valR r{2} ==> valR res{2} = res{1} %% W64x4.modulusR).
-smt(). auto. conseq redm_simp. 
+smt(). 
+auto. conseq redm_simp. 
 symmetry.
 transitivity CSpecFp.redm
  (W64x8.valR a{1} = a{2} 
@@ -508,7 +502,7 @@ transitivity CSpecFp.redm
  /\  W64x4.valR p{1} = P
  /\  k{2} = 64 * nlimbs
    ==>  (W64x4.valR res{1}) = res{2}  %% W64x4.modulusR)
- (={a} /\ r{1} = (nlimbs ^ k{1} %/ P) 
+ (={a} /\ r{1} = (4 ^ k{1} %/ P) 
   /\ 0 < P < W64x4.modulusR
   /\ 0 <= a{1} < P * P
   /\ 0 < P < 2 ^ k{1} 
@@ -518,11 +512,11 @@ exists (valR a{1} , valR r{1} , 64 * nlimbs). split. smt().
 split. smt(). split.  
 have ->: (valR a{1}, valR r{1}, 64 * nlimbs).`2 = valR r{1}. auto.
 have ->: (valR a{1}, valR r{1}, 64 * nlimbs).`3 = 64 * nlimbs. auto.
-rewrite q. smt().
- simplify. split.  split.  smt(). smt(). 
-split. smt(). split. smt(). 
-have ->: Fp_w64x4_spec.M = W64x4.modulusR. clear q. rewrite /W64x4.modulusR. smt(@Ring).
-smt(). auto.
+rewrite q. smt().  
+ split.  smt(). 
+split. smt(). split. split. smt().  move => ?. 
+ have ->: Fp_w64x4_spec.M = W64x4.modulusR. clear q. rewrite /W64x4.modulusR. smt(@Ring). 
+smt(). smt(). auto.
 conseq breduce_cspec.
 symmetry. conseq redm_eq. auto. auto.
 qed.
@@ -543,12 +537,15 @@ equiv mulm_cspec:
 proc. 
 call bnreduce_spec.
 ecall (muln_spec a{1} b{1}).
-wp. skip. progress.  smt(P_pos). clear H2. smt(ppos).
-clear H2. 
-smt (bnk_cmp).
-rewrite H6.  
-apply q. split. smt(bnk_cmp). smt(bnk_cmp). smt(bnk_cmp).
-smt(P_pos). 
+wp. skip.
+move => &1 &2 H1. split. smt().
+move => q1 r1 r2 r3 . split. simplify. rewrite - r3.
+smt(@W64x4 @W64x8).
+   split.  simplify. smt().
+split. rewrite H1. trivial.
+split.  smt (P_pos bnk_cmp).
+split.  smt (P_pos bnk_cmp).
+split.  split. smt (P_pos).
 have -> : Fp_w64x4_spec.M = W64x4.modulusR. rewrite /W64x4.modulusR. smt(@Ring).
 smt(ppos). smt(W64x8.R.bnk_cmp).
 qed.
@@ -589,7 +586,7 @@ require Abstract_exp_proof_8.
 
 clone import Abstract_exp_proof_8 as Exp with type R  <- t,
                                                  op P <- P,
-                                                 op Rsize <- 256,
+                                                 op Rsize <- 64*nlimbs,
                                                  op valR <- W64x4.valR,
                                                  op of_int <- bn_ofint,
                                                  op idR <- bn_ofint 1,
@@ -613,8 +610,11 @@ rewrite bn_ofintK. apply modz_small.
 rewrite /W64x4.modulusR. 
 split. apply bs2int_ge0. 
 have ->: `|W64x8.M ^ nlimbs| = W64x8.M ^ nlimbs. smt(@Int).
-have xx : bs2int x < 2 ^ 256. rewrite -H. apply bs2int_le2Xs. 
-have <- : 2 ^ 256 = W64x8.M ^ nlimbs. smt(@Ring).
+have xx : bs2int x < 2 ^ (64*nlimbs).  
+  have o : forall n (s : bool list),  n = size s => bs2int s < 2 ^ n. smt(bs2int_le2Xs).
+  apply o. smt().
+
+have <- : 2 ^ (64*nlimbs) = W64x8.M ^ nlimbs. smt(@Ring).
 auto. 
 smt(bs2intK). qed.
 realize bitsr_rbits. 
@@ -661,8 +661,8 @@ rewrite bnk_ofintK. auto. smt(@Ring P_pos). qed.
 module MultM = {
   proc ith_bit = M.ith_bit
   proc swapr   = M.swapr
-  proc opr (p:W64.t Array4.t, a:W64.t Array4.t,
-             b:W64.t Array4.t) : W64.t Array4.t = {
+  proc opr (p:W64.t Array7.t, a:W64.t Array7.t,
+             b:W64.t Array7.t) : W64.t Array7.t = {
     var r;
     r <@ M.mulm(R,p,a,b);
     return r;
@@ -682,77 +682,70 @@ seq 2 0 : (i{1} = 0 /\ a{2} = x{1} /\ b{2} = y{1} /\ swap_0{1} = as_w64 c{2} /\
 wp. skip. progress. smt(@W64). smt(@W64).
 while {1} (0 <= i{1} /\ ((as_bool swap_0{1} => mask{1} = (of_int 18446744073709551615)%W64 )
               /\ (as_bool swap_0{1} = false => mask{1} = (of_int 0)%W64)) 
-   /\ (forall j, 0 <= j < i{1} => (x{1}.[j])%Array4 = (if as_bool swap_0{1} then (b{2}.[j]) else (a{2}.[j]))%Array4 )  
-   /\ (forall j, 0 <= j < i{1} => (y{1}.[j])%Array4 = (if as_bool swap_0{1} then (a{2}.[j]) else (b{2}.[j]))%Array4 )  
-   /\ (forall j, i{1} <= j => (x{1}.[j])%Array4 =  (a{2}.[j]))%Array4
-   /\ (forall j, i{1} <= j => (y{1}.[j])%Array4 =  (b{2}.[j]))%Array4
+   /\ (forall j, 0 <= j < i{1} => (x{1}.[j])%Array7 = (if as_bool swap_0{1} then (b{2}.[j]) else (a{2}.[j]))%Array7 )  
+   /\ (forall j, 0 <= j < i{1} => (y{1}.[j])%Array7 = (if as_bool swap_0{1} then (a{2}.[j]) else (b{2}.[j]))%Array7 )  
+   /\ (forall j, i{1} <= j => (x{1}.[j])%Array7 =  (a{2}.[j]))%Array7
+   /\ (forall j, i{1} <= j => (y{1}.[j])%Array7 =  (b{2}.[j]))%Array7
  ) (nlimbs - i{1} + 1).
 progress. wp.  skip.  progress.   smt().
-case (j <  i{hr}). progress. smt(@Array4).
+case (j <  i{hr}). progress. smt(@Array7).
 progress.
 have : j = i{hr}. smt().
 progress.
 have ->: (x{hr}.[i{hr} <-
-    x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%Array4
- = (x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%Array4. smt(@Array4).
+    x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%Array7
+ = (x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%Array7. smt(@Array7).
 case (as_bool swap_0{hr}). progress.
 rewrite H4. auto.  rewrite H0. auto. rewrite H5. auto. rewrite - ones64. 
-have -> : ((a{m}.[i{hr}])%Array4 `^` (b{m}.[i{hr}])%Array4 `&`
- (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%Array4 `^` ((b{m}.[i{hr}])%Array4 `&`
+have -> : ((a{m}.[i{hr}])%Array7 `^` (b{m}.[i{hr}])%Array7 `&`
+ (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%Array7 `^` ((b{m}.[i{hr}])%Array7 `&`
  (of_int W64.max_uint)%W64).
-pose x := a{m}.[i{hr}]%Array4.
-pose y := b{m}.[i{hr}]%Array4.
+pose x := a{m}.[i{hr}]%Array7.
+pose y := b{m}.[i{hr}]%Array7.
 pose z := (of_int W64.max_uint)%W64.
 rewrite andwDl.
 have ->: (x `&` z) = x. smt (W64.andw1_s).
 auto.
-
-
-
-print W64.andw1_s.
-have ->: ((b{m}.[i{hr}])%Array4 `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%Array4). 
-pose y := b{m}.[i{hr}]%Array4.
+have ->: ((b{m}.[i{hr}])%Array7 `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%Array7). 
+pose y := b{m}.[i{hr}]%Array7.
 pose z := (of_int W64.max_uint)%W64.
 smt (W64.andw1_s).
 smt(@W64).
 progress. rewrite H4. auto.  rewrite H1. smt(). auto. 
-case (j <  i{hr}). progress. smt(@Array4).
+case (j <  i{hr}). progress. smt(@Array7).
 progress.
 have : j = i{hr}. smt().
 progress.
 have ->: (y{hr}.[i{hr} <-
-   y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%Array4
- = (y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%Array4. smt(@Array4).
+   y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%Array7
+ = (y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%Array7. smt(@Array7).
 case (as_bool swap_0{hr}). progress.
 rewrite H4. auto.  rewrite H0. auto. rewrite H5. auto. rewrite - ones64. 
-have -> : ((a{m}.[i{hr}])%Array4 `^` (b{m}.[i{hr}])%Array4 `&`
- (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%Array4 `^` ((b{m}.[i{hr}])%Array4 `&`
+have -> : ((a{m}.[i{hr}])%Array7 `^` (b{m}.[i{hr}])%Array7 `&`
+ (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%Array7 `^` ((b{m}.[i{hr}])%Array7 `&`
  (of_int W64.max_uint)%W64). 
-pose x := a{m}.[i{hr}]%Array4.
-pose y := b{m}.[i{hr}]%Array4.
+pose x := a{m}.[i{hr}]%Array7.
+pose y := b{m}.[i{hr}]%Array7.
 pose z := (of_int W64.max_uint)%W64.
 rewrite andwDl.
 have ->: (x `&` z) = x. smt (W64.andw1_s).
 auto.
-
-have ->: ((b{m}.[i{hr}])%Array4 `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%Array4).
-pose y := b{m}.[i{hr}]%Array4.
+have ->: ((b{m}.[i{hr}])%Array7 `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%Array7).
+pose y := b{m}.[i{hr}]%Array7.
 pose z := (of_int W64.max_uint)%W64.
 smt (W64.andw1_s).
 smt(@W64).
 progress. rewrite H4. auto.  rewrite H1. smt(). smt(@W64).
-smt(@Array4). smt(@Array4). smt().
+smt(@Array7). smt(@Array7). smt().
 skip. progress. smt().   smt().   smt(). 
 case (c{2} = false). progress.  
-apply Array4.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
-apply Array4.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array7.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array7.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
 progress. have ->: c{2} = true. smt(). simplify.
 progress. 
-apply Array4.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
-apply Array4.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array7.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply Array7.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
 qed.
-
-
 
 
 lemma okll : 
@@ -761,6 +754,7 @@ lemma okll :
             ={res}].
 proc. inline M.mulm. sim. wp.  skip.  auto.
 qed.
+
 
 lemma okl : 
   equiv[ MultM.opr ~ Exp.Spec.mul :
@@ -799,20 +793,19 @@ progress. smt(@Zp @W64x4).
 qed.
 
 module MM = {
-  proc ith_bit (kk:W64.t Array4.t, ctr:W64.t) : W64.t = {
+  proc ith_bit (kk:W64.t Array7.t, ctr:W64.t) : W64.t = {
     var bit:W64.t;
     var c1:W64.t;
     var c2:W64.t;
     var r:W64.t;
-    
     c1 <- (ctr `>>` (W8.of_int 6));
     c2 <- (ctr - (c1 * (W64.of_int 64)));
-    r <- kk.[(W64.to_uint c1)]%Array4;
+    r <- kk.[(W64.to_uint c1)]%Array7;
     bit <@ IB.ith_bit64 (r, c2);
     return (bit);
   }
-
 }.
+
 lemma ith_bit_lemmaEq :
       equiv[ MM.ith_bit ~ M.ith_bit : ={arg} ==> ={res}].
 proc.
@@ -851,40 +844,45 @@ qed.
 
 
 
+lemma mkseqS' ['a]:
+  forall (f : int -> 'a) (n : int),
+    0 < n => mkseq f n = rcons (mkseq f (n - 1)) (f (n - 1)).
+smt(mkseqS).
+qed.
 
 lemma ith_bit_lemma' :
       equiv[ M.ith_bit ~ Spec.ith_bit : arg{1}.`1 = arg{2}.`1 /\  W64.to_uint arg{1}.`2 = arg{2}.`2 /\
- 0 <= ctr{2} && ctr{2} < 256 ==>
+ 0 <= ctr{2} && ctr{2} < 64*nlimbs ==>
               ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)].
 transitivity MM.ith_bit
    (={arg} ==> ={res})
    (arg{1}.`1 = arg{2}.`1 /\  W64.to_uint arg{1}.`2 = arg{2}.`2 /\
- 0 <= ctr{2} && ctr{2} < 256 ==>
+ 0 <= ctr{2} && ctr{2} < 64*nlimbs ==>
               ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)).
 progress. smt(). smt().
 symmetry. conseq ith_bit_lemmaEq. auto. auto.
 proc.
 seq 3 0 : (to_uint c1{1} = (to_uint ctr{1} %/ 64) /\ to_uint c2{1} = (to_uint ctr{1} %% 64) /\ to_uint ctr{1} = ctr{2}
-  /\ r{1} = kk{1}.[(to_uint ctr{1} %/ 64)]%Array4 /\ r{2} = kk{1} /\ 0 <= ctr{2} && ctr{2} < 256 ).
+  /\ r{1} = kk{1}.[(to_uint ctr{1} %/ 64)]%Array7 /\ r{2} = kk{1} /\ 0 <= ctr{2} && ctr{2} < 64*nlimbs ).
 wp.  skip. progress.
 rewrite shr_div_le. auto. smt(@Ring).
 rewrite modzE.
 have <-: to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64. rewrite shr_div_le. auto. smt(@Ring).
-rewrite to_uintB. rewrite /(\ule). 
+rewrite to_uintB. rewrite /(\ule).
             rewrite to_uintM_small.
-have x:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64. 
+have x:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64.
 rewrite shr_div_le. auto. smt(@Ring).
 rewrite W64.to_uint_small. auto.
-have  : to_uint ctr{1} %/ 64 * 64 <= to_uint ctr{1}. smt (divz_eqP). 
+have  : to_uint ctr{1} %/ 64 * 64 <= to_uint ctr{1}. smt (divz_eqP).
 have  :  0 <= to_uint ctr{1} && to_uint ctr{1} < W64x8.M.
-apply (W64.to_uint_cmp ctr{1}). 
+apply (W64.to_uint_cmp ctr{1}).
 pose xx := to_uint ctr{1} %/ 64 * 64.
 pose yy := to_uint ctr{1}.
 smt().
 rewrite W64.to_uint_small. auto.
-have ->:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64. 
+have ->:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64.
 rewrite shr_div_le. auto. smt(@Ring).
-smt (divz_eqP). 
+smt (divz_eqP).
 rewrite shr_div_le.  auto.
 rewrite W64.to_uintM.
 rewrite W64.to_uint_small. auto.
@@ -898,69 +896,46 @@ rewrite /ith_bitR. rewrite /Rbits. rewrite /valR.
 rewrite /ith_bit.
 rewrite /as_word.
 rewrite /as_w64.
-have ->: (kk{1}.[to_uint ctr{1} %/ 64])%Array4.[to_uint ctr{1} %% 64]
-  = nth false (int2bs 256 ((valR kk{1}))%W64x4) (to_uint ctr{1}) .
+have ->: (kk{1}.[to_uint ctr{1} %/ 64])%Array7.[to_uint ctr{1} %% 64]
+  = nth false (int2bs (64 * nlimbs) ((valR kk{1}))%W64x4) (to_uint ctr{1}) .
 rewrite - get_w2bits.
 rewrite - get_to_list.
-have -> : (W64.w2bits (nth witness ((to_list kk{1}))%Array4 (to_uint ctr{1} %/ 64)))
- = ((nth witness (map W64.w2bits (to_list kk{1}))%Array4 (to_uint ctr{1} %/ 64))).
+have -> : (W64.w2bits (nth witness ((to_list kk{1}))%Array7 (to_uint ctr{1} %/ 64)))
+ = ((nth witness (map W64.w2bits (to_list kk{1}))%Array7 (to_uint ctr{1} %/ 64))).
 rewrite - (nth_map witness witness W64.w2bits). progress.   smt(). smt(@W64x4).
 auto.
-have -> : (nth witness (map W64.w2bits ((to_list kk{1}))%Array4)
+have -> : (nth witness (map W64.w2bits ((to_list kk{1}))%Array7)
      (to_uint ctr{1} %/ 64))
- = (nth [] (map W64.w2bits ((to_list kk{1}))%Array4)
+ = (nth [] (map W64.w2bits ((to_list kk{1}))%Array7)
      (to_uint ctr{1} %/ 64)).
 rewrite (nth_change_dfl [] witness). progress.  smt(). smt(@W64x4 @List). auto.
-rewrite - (BitChunking.nth_flatten false 64 (map W64.w2bits ((to_list kk{1}))%Array4) (to_uint ctr{1})).
-rewrite  List.allP. progress. 
-have : exists z, z \in ((to_list kk{1}))%Array4 /\ x = W64.w2bits z.
+rewrite - (BitChunking.nth_flatten false 64 (map W64.w2bits ((to_list kk{1}))%Array7) (to_uint ctr{1})).
+rewrite  List.allP. progress.
+have : exists z, z \in ((to_list kk{1}))%Array7 /\ x = W64.w2bits z.
 apply mapP. auto. elim. progress.
-have ->: (flatten (map W64.w2bits ((to_list kk{1}))%Array4))  = (int2bs 256 ((valR kk{1}))%W64x4).
-have -> : (valR kk{1})%W64x4 = bs2int (flatten (map W64.w2bits ((to_list kk{1}))%Array4)).
+have ->: (flatten (map W64.w2bits ((to_list kk{1}))%Array7))  = (int2bs (64*nlimbs) ((valR kk{1}))%W64x4).
+have -> : (valR kk{1})%W64x4 = bs2int (flatten (map W64.w2bits ((to_list kk{1}))%Array7)).
 rewrite /bnk.
-have ->: range 0 4 = [0;1;2;3].  rewrite range_ltn. auto.
-rewrite range_ltn. auto. rewrite range_ltn. auto.
-simplify. rewrite range_ltn. auto.
+do? (rewrite range_ltn; first by trivial).
 simplify. rewrite range_geq. auto. auto.
-rewrite big_consT.
-rewrite big_consT.
-rewrite big_consT.
-rewrite big_consT.
-rewrite big_nil. 
+do? rewrite big_consT.
+rewrite big_nil.
 rewrite /to_list.
-have ->: 4 = 0 + 1 + 1 + 1 + 1 . smt().
-rewrite   mkseqS. auto.
-rewrite   mkseqS. auto.
-rewrite   mkseqS. auto.
-rewrite   mkseqS. auto.
+do? (rewrite mkseqS'; first by trivial).
 rewrite mkseq0. simplify.
-rewrite flatten_cons.
-rewrite flatten_cons.
-rewrite flatten_cons.
-rewrite flatten_cons.
+do? rewrite flatten_cons.
 rewrite flatten_nil.
 rewrite cats0.
-rewrite bs2int_cat.
-rewrite bs2int_cat.
-rewrite bs2int_cat. simplify.
+do? rewrite bs2int_cat.
+simplify.
 smt(@Ring).
-have ->: 256 = size (flatten (map W64.w2bits ((to_list kk{1}))%Array4)).
+have ->: 64*nlimbs = size (flatten (map W64.w2bits ((to_list kk{1}))%Array7)).
 rewrite /to_list.
-have ->: 4 = 0 + 1 + 1 + 1 + 1 . smt().
-rewrite   mkseqS. auto.
-rewrite   mkseqS. auto.
-rewrite   mkseqS. auto.
-rewrite   mkseqS. auto.
+do? (rewrite mkseqS'; first by trivial).
 rewrite mkseq0. simplify.
-rewrite flatten_cons.
-rewrite flatten_cons.
-rewrite flatten_cons.
-rewrite flatten_cons.
+do? rewrite flatten_cons.
 rewrite flatten_nil.
-rewrite size_cat.
-rewrite size_cat.
-rewrite size_cat.
-rewrite size_cat.
+do? rewrite size_cat.
 simplify. auto.
 rewrite  bs2intK. auto. auto.
 auto. smt().
@@ -971,7 +946,7 @@ lemma expm_real_spec :
       equiv[ Exp.M1.iterop_spec ~ Exp.M7(MultM).iterop :
             ImplZZ m{2} P /\
             ={x} /\
-            bs2int n{1} = valR n{2} /\ size n{1} = 256 /\ valR x{1} < P ==>
+            bs2int n{1} = valR n{2} /\ size n{1} = 64*nlimbs /\ valR x{1} < P ==>
             ={res}].
 apply (Exp.iterop_real_speac MultM _ _ _). 
 transitivity M.swapr
@@ -990,7 +965,7 @@ proc. sim.
 symmetry. conseq swap_lemma. smt(). 
 transitivity MultM.ith_bit
   (={arg} ==> ={res})
-  (arg{1}.`1 = arg{2}.`1 /\ ImplWord ctr{1} ctr{2} /\ 0 <= ctr{2} && ctr{2} < 256 ==>
+  (arg{1}.`1 = arg{2}.`1 /\ ImplWord ctr{1} ctr{2} /\ 0 <= ctr{2} && ctr{2} < 64*nlimbs ==>
           ={res} /\ (res{2} = W64.one \/ res{2} = W64.zero)).
 smt(). smt().
 proc. sim.
@@ -1093,11 +1068,8 @@ transitivity Exp.M1.iterop_spec
 progress.
 exists (x{2}, int2bs (64*nlimbs) (valR b{1})).
 progress. smt().
-
 rewrite int2bsK. auto. split.  smt(@W64x4). 
-
 have ->: 2^ (64*nlimbs) =  W64x8.M ^ nlimbs . smt(@Ring). 
-
 have qq:  0 <= valR b{1} && valR b{1} < W64x8.M ^ nlimbs. apply bnk_cmp.
 elim qq. auto.
 auto.
@@ -1112,7 +1084,7 @@ conseq left_end.  smt().
 symmetry.
 transitivity M7(MultM).iterop
  (r{1} = R /\ ={m,x,n}  ==> ={res})
- (p{2} = P /\ size n{2} = 256 /\
+ (p{2} = P /\ size n{2} = 64*nlimbs /\
              x{1} =  x{2} /\
                          ImplZZ m{1} P /\
              valR n{1} = bs2int  n{2}  /\ valR x{2} < P  ==>
