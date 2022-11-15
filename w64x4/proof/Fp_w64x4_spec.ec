@@ -34,6 +34,7 @@ op P : int.
 
 axiom P_prime: prime P.
 axiom ppos : 2 * P < W64x4.modulusR.
+axiom P_pos : 2 <= P.
 
 
 (* Embedding into ring theory *)
