@@ -1,1 +1,0 @@
-gcc Fp_w64.c Fp_w64.s -o main

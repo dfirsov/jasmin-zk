@@ -1,6 +1,50 @@
 require "bn_generic.jazz"
-require "swap.jazz"
-require "ithbit.jazz"
+
+
+inline fn ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 {
+  reg u64 p bit;
+  bit =  k;
+  p = ctr;
+  p &= 63;
+  bit = bit >> p;
+  bit &= 1;
+  return bit;
+}
+
+
+inline fn ith_bit(reg ptr u64[nlimbs] kk, reg u64 ctr) -> reg u64
+{
+  reg u64 p bit r c1 c2 ctr2 ctr3;
+  ctr2 = ctr;
+  ctr3 =  ctr;
+  c1 = ctr2 >> 6;
+  c2 = ctr3 & 63;
+  r = kk[(int) c1 ];
+  bit = ith_bit64(r,c2);  
+  return bit;
+}
+
+
+inline fn swapr(reg ptr u64[nlimbs] x, reg ptr u64[nlimbs] y, reg u64 swap) -> (reg ptr u64[nlimbs] , reg ptr u64[nlimbs]) {
+  reg u64  mask, tmp1, tmp2;
+  inline int i;
+
+  mask = swap * 0xffffffffffffffff;
+
+  for i = 0 to nlimbs {
+   tmp1   = x[i];
+   tmp1  ^= y[i];
+   tmp1  &= mask;
+   x[i]  ^= tmp1;
+   tmp2   = y[i];
+   tmp2  ^= tmp1;
+   y[i] = tmp2;
+
+  }
+  return x, y;
+}
+
+
 
 inline fn cminusP (stack u64[nlimbs] p x) 
  -> stack u64[nlimbs]

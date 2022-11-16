@@ -1,7 +1,7 @@
 require import AllCore IntDiv CoreMap List.
 
-require import JModel JBigNum.
-require import Fp_w64x4_spec Fp_w64x4_extract Ith_Bit64.
+require import JModel JBigNum Ith_Bit64.
+require import Ring_ops_spec Ring_ops_extract.
 import Array128 Array64 Array32.
 import Zp W64xN R.
 import StdBigop Bigint BIA.
@@ -471,7 +471,7 @@ have -> : W64x2N.modulusR = 2 ^ (2 * k{2}). smt(@Ring). smt().
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
     /\ W64x2N.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
 ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. rewrite H0.  
-have ->: W64xN.modulusR = Fp_w64x4_spec.M. rewrite /W64xN.modulusR. rewrite /M. smt(@Ring). rewrite /M. smt(@Ring). 
+have ->: W64xN.modulusR = Ring_ops_spec.M. rewrite /W64xN.modulusR. rewrite /M. smt(@Ring). rewrite /M. smt(@Ring). 
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
     /\ W64x2N.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
     /\  W64x2N.valR xrfn{1} = xrfn{2}).
@@ -646,7 +646,7 @@ split. apply bs2int_ge0.
 have ->: `|W64x2N.M ^ nlimbs| = W64x2N.M ^ nlimbs. smt(@Int).
 have xx : bs2int x < 2 ^ (64*nlimbs).  
     have o : forall n (s : bool list),  n = size s => bs2int s < 2 ^ n. smt(bs2int_le2Xs).
-(* have -> : Fp_w64x4_spec.M = W64xN.modulusR. rewrite /W64xN.modulusR. smt(@Ring). *)
+(* have -> : Ring_ops_spec.M = W64xN.modulusR. rewrite /W64xN.modulusR. smt(@Ring). *)
 (* rewrite /W64xN.modulusR. *)
     (* ??? *)
 have ->:  (dnlimbs * nlimbs) = 2048. smt().
