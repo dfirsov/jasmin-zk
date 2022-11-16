@@ -1,52 +1,42 @@
-require import Core Int Ring IntDiv StdOrder List.
+require import Core Int IntDiv Ring IntDiv StdOrder List.
+
+require import JModel JBigNum.
+require import Array32 Array64 Array128.
 
 import Ring.IntID IntOrder.
 
-require import JModel.
-require import JBigNum.
-
-require import Array7 Array14 Array28.
-
-abbrev nlimbs = 7.
-abbrev dnlimbs = 14.
+abbrev nlimbs = 32.
+abbrev dnlimbs = 64.
 
 clone import BigNum as W64x4 with
  op nlimbs <- nlimbs,
- theory R.A <= Array7,
- theory R2.A <= Array14
+ theory R.A <= Array32,
+ theory R2.A <= Array64
  proof gt0_nlimbs by done.
 
 
 clone import BigNum as W64x8 with
  op nlimbs <- dnlimbs,
- theory R.A <= Array14,
- theory R2.A <= Array28
+ theory R.A <= Array64,
+ theory R2.A <= Array128
  proof gt0_nlimbs by done.
 
  
-type R = W64.t Array7.t.
-type R2 = W64.t Array14.t.
+type R = W64.t Array32.t.
+type R2 = W64.t Array64.t.
 
-(* 2 ^ (64 * nlimbs)  *)
-abbrev M = 2 ^ (64 * nlimbs).
-
-
+op M = 2 ^ (64 * nlimbs).
 op P : int. 
 
-(* parameter for the Barrett reduction  *)
-op Ri : int  = 4 ^ (64 * nlimbs) %/ P.
-
-axiom P_prime: prime P.
-axiom ppos : 2 * P < W64x4.modulusR.
+axiom ppos : P < W64x4.modulusR.
 axiom P_pos : 2 <= P.
 
 
 (* Embedding into ring theory *)
 require ZModP.
-clone import ZModP.ZModField as Zp with
+clone import ZModP.ZModRing as Zp with
         op p <= P
-        rename "zmod" as "zp"
-        proof prime_p by exact P_prime.
+        rename "zmod" as "zp".
 
         
 (** "Implements" relation *)
@@ -57,12 +47,9 @@ abbrev ImplFp x y = W64x4.valR x = asint y.
 
 
 op pR: R.
-axiom pRE: ImplZZ pR P.
-
+axiom pRE: W64x4.valR pR = P.
 
 op zeroR : R = W64x4.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
-
-
 
 lemma nseqS' ['a]:
   forall (n : int) (x : 'a), 0 < n => nseq n x = x :: nseq (n - 1) x.
@@ -85,30 +72,34 @@ op (^) (x : zp)(n : W64x4.R.t) : zp = inzp (asint x ^ W64x4.valR n).
 (******************************************************************)
 (*                  ABSTRACT SPECIFICATIONS                       *)
 (******************************************************************)
-
 module ASpecFp = {
-  (* INTEGER OPS *)
+
+  (* Integer Operations  *)
+
   proc addn(a b: int): bool * int = {
     var c, r;
     c <- W64x4.modulusR <= (a+b);
     r <- (a + b) %% W64x4.modulusR;
     return (c, r);
   }
+  
   proc muln(a b: int): int = {
     var r;
     r <- a * b;
     return r;
   }
- proc redm(a: int): int = {
-   var r;
-   r <- a %% P;
-  return r;
- }
- proc div2(a, n: int): int = {
-   var r;
-   r <- a %/  (2 ^ n);
-  return r;
- }
+  
+  proc redm(a: int): int = {
+    var r;
+    r <- a %% P;
+   return r;
+  }
+ 
+  proc div2(a, n: int): int = {
+    var r;
+    r <- a %/  (2 ^ n);
+   return r;
+  }
 
   proc subn(a b: int): bool * int = {
     var c, r;
@@ -129,21 +120,22 @@ module ASpecFp = {
     r <- (if cond then a else c);
     return r;
   }
+
   proc cminusP(a : int): int = {
     var r;
     r <- if a < P then a else a-P;
     return r;
   }
 
-  
-  (********************)
-  (* Finite Field Ops *)
-  (********************)
+ 
+  (* Finite Ring Ops *)
+
   proc copym(a: zp): zp = {
     var r;
     r <- a;
     return r;
   }
+  
   proc set0m(): zp = {
     var r;
     r <- Zp.zero;
@@ -155,6 +147,7 @@ module ASpecFp = {
     r <- a * b;
     return r;
   }
+  
   proc expm(a : zp,  b: W64x4.R.t): zp = {
     var r;
     r <- a ^ b;
@@ -163,20 +156,21 @@ module ASpecFp = {
   
 }.
 
-require import IntDiv.
+(******************************************************************)
+(*                  CONCRETE SPECIFICATIONS                       *)
+(******************************************************************)
 module CSpecFp = {
 
  proc redm(a r k: int): int = {
    var xr, xrf, xrfn, t, b;
-  xr    <@ ASpecFp.muln(a,r);
-  xrf   <@ ASpecFp.div2(xr, 2*k);
-  xrf <- xrf %% 2^k;
-  xrfn  <@ ASpecFp.muln(xrf, P);
-  (b,t) <@ ASpecFp.dsubn(a, xrfn);
-  t     <@ ASpecFp.cminusP(t);
-  return t;
+   xr    <@ ASpecFp.muln(a,r);
+   xrf   <@ ASpecFp.div2(xr, 2*k);
+   xrf   <- xrf %% 2^k;
+   xrfn  <@ ASpecFp.muln(xrf, P);
+   (b,t) <@ ASpecFp.dsubn(a, xrfn);
+   t     <@ ASpecFp.cminusP(t);
+   return t;
  }
-
 
  proc dcminusP(a: int): int = {
   var c, x, r;
@@ -196,13 +190,16 @@ module CSpecFp = {
 
 
 equiv mulm_eq:
- CSpecFp.mulm ~ ASpecFp.mulm : a{1} = asint a{2} /\ b{1} = asint b{2}  ==> res{1} = asint res{2}.
+ CSpecFp.mulm ~ ASpecFp.mulm: 
+  a{1} = asint a{2} /\ b{1} = asint b{2}  
+    ==> res{1} = asint res{2}.
 proof.  proc. inline*. wp.  skip. progress.
 smt(@Zp).
 qed.
 
 equiv cminusP_eq:
- ASpecFp.cminusP ~ CSpecFp.dcminusP: ={arg} /\ a{2}<W64x8.modulusR  ==> ={res}.
+ ASpecFp.cminusP ~ CSpecFp.dcminusP: 
+ ={arg} /\ a{2}<W64x8.modulusR ==> ={res}.
 proof.
 proc; inline*; wp; skip => &1 &2.
 move => [q1  q2].
@@ -216,6 +213,8 @@ qed.
 require import BarrettRedInt.
 require import Real RealExp.
 
+(* parameter for the Barrett reduction  *)
+op Ri : int  = 4 ^ (64 * nlimbs) %/ P.
 
 equiv redm_eq:
  ASpecFp.redm ~ CSpecFp.redm: ={a} /\ r{2} = (4 ^ k{2} %/ P) 
@@ -261,7 +260,7 @@ split. smt(). move => ?. smt(exp_lemma1).
    have : 2 * P < W64x4.modulusR2. rewrite /W64x4.modulusR2. 
    have : W64x8.M ^ (nlimbs) <= W64x8.M ^ (2 * nlimbs).
    apply ler_weexpn2l. smt(). smt().
-   have : 2 * P <= W64x8.M ^ ( nlimbs) .    
+   have : P <= W64x8.M ^ ( nlimbs) .    
     have ->: W64x8.M ^ nlimbs = W64x4.modulusR. rewrite /W64x4.modulusR. auto. smt(ppos).
 smt(). smt().
  have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
