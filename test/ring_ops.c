@@ -30,19 +30,7 @@ uint64_t texp[][5][64] =
 int main(void) {
   uint64_t result[32]; 
   int i, b,a;
-
-  //  printf("Testing EXPM: ");
-  b = 1;
-  for (i=0; i<1; i++) {
-    __expm(result, texp[0][0], texp[0][1],texp[0][2], texp[0][3]);
-    //   a = memcmp(result, texp[0][3], sizeof(texp[0][3]));
-   //   b =   b && !a;
-  }
-  //if (b) printf("OK\n"); else printf("FAIL!\n");
-
-  
-  //  print_result(result);  
-  
+  __expm(result, texp[0][0], texp[0][1],texp[0][2], texp[0][3]);  
   return 0;
 }
 
