@@ -1,8 +1,8 @@
 require import AllCore IntDiv CoreMap List Distr.
-(* from Jasmin *) require import JModel.
+require import JModel.
 
 require import Array32 Array64 Array128.
-(* require import WArray256 WArray512 WArray1024. *)
+require import WArray256 WArray512 WArray1024.
 
 
 
@@ -18,13 +18,13 @@ module M = {
     
     x1 <- a.[0];
     x2 <- b.[0];
-    (cf, x1) <- sbb_64 x1 x2 false;
+    (cf, x1) <- subc_64 x1 x2 false;
     a.[0] <- x1;
     i <- 1;
     while (i < 64) {
       x1 <- a.[i];
       x2 <- b.[i];
-      (cf, x1) <- sbb_64 x1 x2 cf;
+      (cf, x1) <- subc_64 x1 x2 cf;
       a.[i] <- x1;
       i <- i + 1;
     }
@@ -318,30 +318,6 @@ module M = {
     return (_zero, of_0, cf, r);
   }
   
-  proc swapr (x:W64.t Array32.t, y:W64.t Array32.t, swap_0:W64.t) : W64.t Array32.t *
-                                                                    W64.t Array32.t = {
-    var aux: int;
-    
-    var mask:W64.t;
-    var i:int;
-    var tmp1:W64.t;
-    var tmp2:W64.t;
-    
-    mask <- (swap_0 * (W64.of_int 18446744073709551615));
-    i <- 0;
-    while (i < 32) {
-      tmp1 <- x.[i];
-      tmp1 <- (tmp1 `^` y.[i]);
-      tmp1 <- (tmp1 `&` mask);
-      x.[i] <- (x.[i] `^` tmp1);
-      tmp2 <- y.[i];
-      tmp2 <- (tmp2 `^` tmp1);
-      y.[i] <- tmp2;
-      i <- i + 1;
-    }
-    return (x, y);
-  }
-  
   proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
     
     var bit:W64.t;
@@ -371,6 +347,30 @@ module M = {
     r <- kk.[(W64.to_uint c1)];
     bit <@ ith_bit64 (r, c2);
     return (bit);
+  }
+  
+  proc swapr (x:W64.t Array32.t, y:W64.t Array32.t, swap_0:W64.t) : W64.t Array32.t *
+                                                                    W64.t Array32.t = {
+    var aux: int;
+    
+    var mask:W64.t;
+    var i:int;
+    var tmp1:W64.t;
+    var tmp2:W64.t;
+    
+    mask <- (swap_0 * (W64.of_int 18446744073709551615));
+    i <- 0;
+    while (i < 32) {
+      tmp1 <- x.[i];
+      tmp1 <- (tmp1 `^` y.[i]);
+      tmp1 <- (tmp1 `&` mask);
+      x.[i] <- (x.[i] `^` tmp1);
+      tmp2 <- y.[i];
+      tmp2 <- (tmp2 `^` tmp1);
+      y.[i] <- tmp2;
+      i <- i + 1;
+    }
+    return (x, y);
   }
   
   proc dcminusP (p:W64.t Array64.t, x:W64.t Array64.t) : W64.t Array64.t = {
