@@ -1,3 +1,0 @@
-[submodule "env/jasmin"]
-	path = env/jasmin
-	url = git@github.com:jasmin-lang/jasmin.git
