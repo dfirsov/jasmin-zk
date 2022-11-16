@@ -614,11 +614,11 @@ qed.
 require import BitEncoding.
 import BS2Int.
 
-require Abstract_exp_proof_8.
+require MontgomeryLadder.
 
 
 
-clone import Abstract_exp_proof_8 as Exp with type R  <- t,
+clone import MontgomeryLadder as Exp with type R  <- t,
                                                  op P <- P,
                                                  op Rsize <- 64*nlimbs,
                                                  op valR <- W64xN.valR,
