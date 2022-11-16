@@ -22,5 +22,5 @@
 
 ### `test/`
 * `ring_ops.c` C program for testing (must be linked with `ring_ops.s` which is produced by Jasmin) during the compilation.
-* `gmp_test.c` for perfomance comparison.
+* `gmp_test.c` GMP based modular exponentiation for perfomance comparison.
 
