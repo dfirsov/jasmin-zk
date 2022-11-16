@@ -8,14 +8,14 @@ import Ring.IntID IntOrder.
 abbrev nlimbs = 32.
 abbrev dnlimbs = 64.
 
-clone import BigNum as W64x4 with
+clone import BigNum as W64xN with
  op nlimbs <- nlimbs,
  theory R.A <= Array32,
  theory R2.A <= Array64
  proof gt0_nlimbs by done.
 
 
-clone import BigNum as W64x8 with
+clone import BigNum as W64x2N with
  op nlimbs <- dnlimbs,
  theory R.A <= Array64,
  theory R2.A <= Array128
@@ -28,7 +28,7 @@ type R2 = W64.t Array64.t.
 op M = 2 ^ (64 * nlimbs).
 op P : int. 
 
-axiom ppos : P < W64x4.modulusR.
+axiom ppos : P < W64xN.modulusR.
 axiom P_pos : 2 <= P.
 
 
@@ -41,15 +41,15 @@ clone import ZModP.ZModRing as Zp with
         
 (** "Implements" relation *)
 abbrev ImplWord x y = W64.to_uint x = y.
-abbrev ImplZZ x y = W64x4.valR x = y.
-abbrev ImplZZ2 x y = W64x4.valR2 x = y.
-abbrev ImplFp x y = W64x4.valR x = asint y.
+abbrev ImplZZ x y = W64xN.valR x = y.
+abbrev ImplZZ2 x y = W64xN.valR2 x = y.
+abbrev ImplFp x y = W64xN.valR x = asint y.
 
 
 op pR: R.
-axiom pRE: W64x4.valR pR = P.
+axiom pRE: W64xN.valR pR = P.
 
-op zeroR : R = W64x4.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
+op zeroR : R = W64xN.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
 
 lemma nseqS' ['a]:
   forall (n : int) (x : 'a), 0 < n => nseq n x = x :: nseq (n - 1) x.
@@ -62,11 +62,11 @@ proof.
 rewrite /zeroR.
 do? (rewrite nseqS'; first by trivial). simplify.
 rewrite nseq0.
-by rewrite /zeroR W64x4.R.bn2seq /= W64x4.R.A.of_listK 1:/# /bn_seq.
+by rewrite /zeroR W64xN.R.bn2seq /= W64xN.R.A.of_listK 1:/# /bn_seq.
 qed.
 
 
-op (^) (x : zp)(n : W64x4.R.t) : zp = inzp (asint x ^ W64x4.valR n).
+op (^) (x : zp)(n : int) : zp = inzp (asint x ^ n).
 
 
 (******************************************************************)
@@ -78,8 +78,8 @@ module ASpecFp = {
 
   proc addn(a b: int): bool * int = {
     var c, r;
-    c <- W64x4.modulusR <= (a+b);
-    r <- (a + b) %% W64x4.modulusR;
+    c <- W64xN.modulusR <= (a+b);
+    r <- (a + b) %% W64xN.modulusR;
     return (c, r);
   }
   
@@ -104,14 +104,14 @@ module ASpecFp = {
   proc subn(a b: int): bool * int = {
     var c, r;
     c <- a < b;
-    r <- (a - b) %% W64x4.modulusR;
+    r <- (a - b) %% W64xN.modulusR;
     return (c, r);
   }
 
   proc dsubn(a b: int): bool * int = {
     var c, r;
     c <- a < b;
-    r <- (a - b) %% W64x8.modulusR;
+    r <- (a - b) %% W64x2N.modulusR;
     return (c, r);
   }
   
@@ -148,7 +148,7 @@ module ASpecFp = {
     return r;
   }
   
-  proc expm(a : zp,  b: W64x4.R.t): zp = {
+  proc expm(a : zp,  b: int): zp = {
     var r;
     r <- a ^ b;
     return r;
@@ -199,13 +199,13 @@ qed.
 
 equiv cminusP_eq:
  ASpecFp.cminusP ~ CSpecFp.dcminusP: 
- ={arg} /\ a{2}<W64x8.modulusR ==> ={res}.
+ ={arg} /\ a{2}<W64x2N.modulusR ==> ={res}.
 proof.
 proc; inline*; wp; skip => &1 &2.
 move => [q1  q2].
 case (a{2} < P). auto. move => qq. smt(). rewrite q1. move => qq. rewrite qq.
 rewrite modz_small. split.  smt().
-move => ?. have ->: `|W64x8.modulusR| = W64x8.modulusR. rewrite /W64x8.modulusR. smt(@Ring).
+move => ?. have ->: `|W64x2N.modulusR| = W64x2N.modulusR. rewrite /W64x2N.modulusR. smt(@Ring).
 smt(P_pos). auto.
 qed.
 
@@ -218,7 +218,7 @@ op Ri : int  = 4 ^ (64 * nlimbs) %/ P.
 
 equiv redm_eq:
  ASpecFp.redm ~ CSpecFp.redm: ={a} /\ r{2} = (4 ^ k{2} %/ P) 
-  /\ 0 < P < W64x4.modulusR
+  /\ 0 < P < W64xN.modulusR
   /\ 0 <= a{2} < P * P
   /\ 0 < P < 2 ^ k{2} 
   /\ 0 <= k{2} ==> ={res}.
@@ -227,7 +227,7 @@ rewrite -  (barrett_reduction_correct a{2} P k{2} ). auto. auto.  auto.
 rewrite /barrett_reduction. simplify. rewrite /ti. rewrite /ti'. rewrite /ri.
 have ->: 2 ^ (2 * k{2}) = 4 ^ k{2}. smt(@Real).
 have <-:  a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2} * P
- = (a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  %%  2 ^ k{2} * P) %% W64x8.modulusR.
+ = (a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  %%  2 ^ k{2} * P) %% W64x2N.modulusR.
 rewrite modz_small.
  have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
   rewrite /ti. rewrite /ti'. rewrite /ri. auto.
@@ -251,17 +251,17 @@ split.
      apply (st8 a{2}%r P%r k{2}%r _ _). split.  smt(). smt(). smt(exp_lemma1).
   progress. smt(). 
 move => _.
-have ->: `|W64x4.modulusR2| = W64x4.modulusR2. rewrite /W64x4.modulusR2. smt(@Ring).
+have ->: `|W64xN.modulusR2| = W64xN.modulusR2. rewrite /W64xN.modulusR2. smt(@Ring).
    have : 0%r <= (ti a{2} P k{2})%r < 2%r * P%r.
    rewrite - same_t. auto. auto. 
      apply (st8 a{2}%r P%r k{2}%r _ _). split. smt(). smt().
 split. smt(). move => ?. smt(exp_lemma1).
   progress. 
-   have : 2 * P < W64x4.modulusR2. rewrite /W64x4.modulusR2. 
-   have : W64x8.M ^ (nlimbs) <= W64x8.M ^ (2 * nlimbs).
+   have : 2 * P < W64xN.modulusR2. rewrite /W64xN.modulusR2. 
+   have : W64x2N.M ^ (nlimbs) <= W64x2N.M ^ (2 * nlimbs).
    apply ler_weexpn2l. smt(). smt().
-   have : P <= W64x8.M ^ ( nlimbs) .    
-    have ->: W64x8.M ^ nlimbs = W64x4.modulusR. rewrite /W64x4.modulusR. auto. smt(ppos).
+   have : P <= W64x2N.M ^ ( nlimbs) .    
+    have ->: W64x2N.M ^ nlimbs = W64xN.modulusR. rewrite /W64xN.modulusR. auto. smt(ppos).
 smt(). smt().
  have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
   rewrite /ti. rewrite /ti'. rewrite /ri. auto.

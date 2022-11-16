@@ -3,7 +3,7 @@ require import AllCore IntDiv CoreMap List.
 require import JModel JBigNum.
 require import Fp_w64x4_spec Fp_w64x4_extract Ith_Bit64.
 import Array128 Array64 Array32.
-import Zp W64x4 R.
+import Zp W64xN R.
 import StdBigop Bigint BIA.
 
 op R : W64.t Array64.t = R2.bn_ofint Ri.
@@ -16,13 +16,13 @@ qed.
 
 
 require import RealExp.
-lemma R_prop : W64x8.valR R = 4 ^ (64 * nlimbs) %/ P.
+lemma R_prop : W64x2N.valR R = 4 ^ (64 * nlimbs) %/ P.
 rewrite /R.
 have q1: 0 <= Ri. rewrite /Ri. 
 rewrite divz_ge0. smt(P_pos). smt(@Ring).
 
-have q2: Ri < W64x8.modulusR .   
-  have ->: W64x8.modulusR = (2^ (64 * dnlimbs)). rewrite /W64x8.modulusR. smt(@Ring).
+have q2: Ri < W64x2N.modulusR .   
+  have ->: W64x2N.modulusR = (2^ (64 * dnlimbs)). rewrite /W64x2N.modulusR. smt(@Ring).
 
   have -> : Ri = (ri P (64 * nlimbs)). rewrite /Ri. rewrite /ri. smt().
   have : (ri P (64 * nlimbs))%r <= ((4 ^ (64*nlimbs))%r / P%r).  rewrite - same_ri. smt(P_pos). smt().
@@ -39,8 +39,8 @@ have q2: Ri < W64x8.modulusR .
     have ->: 2%r ^ (64 * dnlimbs)%r = (2 ^ (64 * dnlimbs))%r. 
     rewrite - exp_lemma1. smt(). smt(). smt().
 smt(@Real).
-have ->: (W64x8.valR ((R2.bn_ofint Ri))%R2)%W64x8   = Ri.
-rewrite W64x8.R.bn_ofintK. 
+have ->: (W64x2N.valR ((R2.bn_ofint Ri))%R2)%W64x2N   = Ri.
+rewrite W64x2N.R.bn_ofintK. 
 smt( modz_small). 
 rewrite /Ri. smt().
 qed.
@@ -77,7 +77,7 @@ qed.
 
 
 equiv dmul1first_eq:
- M.dmul1 ~ W64x8.MulOps.mul1:
+ M.dmul1 ~ W64x2N.MulOps.mul1:
  a{1}=ak{2} /\ ={b}
  ==>
  (res.`1,res.`2,res.`3,res.`4){1} = (W64.zero,res.`1,res.`2,res.`3){2}.
@@ -92,7 +92,7 @@ qed.
 
 
 equiv dmul1acc_eq :
- M.dmul1acc ~ W64x8.MulOps.mul1acc:
+ M.dmul1acc ~ W64x2N.MulOps.mul1acc:
    W64.to_uint k{1} = k{2} /\ ={a,b} /\ (_zero,of_0,cf,r){1}=(W64.zero,_of,_cf,x){2} /\
   0 <= k{2} < dnlimbs
  ==>
@@ -141,16 +141,16 @@ qed.
 
 equiv dmuln_spec:
  M.dbn_muln ~ ASpecFp.muln:
-  W64x8.valR a{1} = a{2} /\  W64x8.valR b{1} = b{2}
+  W64x2N.valR a{1} = a{2} /\  W64x2N.valR b{1} = b{2}
   ==> 
- W64x8.valR2 res{1}.`4 = res{2}
+ W64x2N.valR2 res{1}.`4 = res{2}
      /\ res{1}.`1 = W64.zero /\ !res{1}.`2 /\ !res{1}.`3.
 proof.
 transitivity 
- W64x8.MulOps.mulR
+ W64x2N.MulOps.mulR
  ( ={a,b} ==> res{1}.`2=res{2}.`1 /\ res{1}.`3=res{2}.`2 /\ res{1}.`4=res{2}.`3 /\  res{1}.`1 = W64.zero )
- ( W64x8.valR a{1} = a{2} /\ W64x8.valR b{1} = b{2} 
-   ==> !res{1}.`1 /\ !res{1}.`2 /\ W64x8.valR2 res{1}.`3 = res{2}).
+ ( W64x2N.valR a{1} = a{2} /\ W64x2N.valR b{1} = b{2} 
+   ==> !res{1}.`1 /\ !res{1}.`2 /\ W64x2N.valR2 res{1}.`3 = res{2}).
 + by move=> /> &1 &2 H1 H2; exists (a{1},b{1}).
 + by move=> /> /#.
 + proc; simplify.
@@ -162,26 +162,26 @@ apply modz_small. split. smt(). smt(). smt(). smt(). smt().
   by wp; call dmul1first_eq; wp; skip => /> /#.
 + proc.
   transitivity {1}
-    { (_of,_cf,r) <@ W64x8.MulOps.mulR(a,b); }
+    { (_of,_cf,r) <@ W64x2N.MulOps.mulR(a,b); }
     ( ={a,b} ==> ={_cf,_of,r} )
-    ( W64x8.valR a{1} = a{2} /\ W64x8.valR b{1} = b{2} ==> !_cf{1} /\ !_of{1} /\ W64x8.valR2 r{1} = r{2} ).
+    ( W64x2N.valR a{1} = a{2} /\ W64x2N.valR b{1} = b{2} ==> !_cf{1} /\ !_of{1} /\ W64x2N.valR2 r{1} = r{2} ).
   + by move=> /> &1; exists a{1} b{1}; auto.
   + by move=> /> *.
-  + by inline W64x8.MulOps.mulR; sim.
-  + by ecall {1} (W64x8.mulR_ph a{1} b{1}); wp; skip.
+  + by inline W64x2N.MulOps.mulR; sim.
+  + by ecall {1} (W64x2N.mulR_ph a{1} b{1}); wp; skip.
 qed.
 
 
 equiv dsubc_spec:
  M.dbn_subc ~ ASpecFp.dsubn:
-  W64x8.valR a{1} = a{2} /\ W64x8.valR b{1} = b{2} (* /\ W64x8.valR b{1}  <= W64x8.valR a{1} *)
-  ==> res{1}.`1=res{2}.`1 /\ W64x8.valR res{1}.`2 = res{2}.`2.
+  W64x2N.valR a{1} = a{2} /\ W64x2N.valR b{1} = b{2} (* /\ W64x2N.valR b{1}  <= W64x2N.valR a{1} *)
+  ==> res{1}.`1=res{2}.`1 /\ W64x2N.valR res{1}.`2 = res{2}.`2.
 proof.
 transitivity 
- W64x8.R.Ops.subcR
+ W64x2N.R.Ops.subcR
  ( (a,b,false){1}=(a,b,c){2} ==> ={res} )
- (W64x8.valR  a{1} = a{2} /\ W64x8.valR b{1} = b{2} /\ !c{1} (* /\ W64x8.valR b{1}  <= W64x8.valR a{1} *)
-   ==> res{1}.`1 = res{2}.`1 /\ W64x8.valR res{1}.`2 = res{2}.`2 ).
+ (W64x2N.valR  a{1} = a{2} /\ W64x2N.valR b{1} = b{2} /\ !c{1} (* /\ W64x2N.valR b{1}  <= W64x2N.valR a{1} *)
+   ==> res{1}.`1 = res{2}.`1 /\ W64x2N.valR res{1}.`2 = res{2}.`2 ).
 + by move=> /> &1 &2 H1 H2 ; exists (a{1},b{1},false).
 + by move=> /> *.
 + proc; simplify.
@@ -212,16 +212,16 @@ transitivity
   by apply Array64.ext_eq; smt().
 + proc; simplify.
   transitivity {1}
-   { (c,r) <@ W64x8.R.Ops.subcR(a,b,c); }
+   { (c,r) <@ W64x2N.R.Ops.subcR(a,b,c); }
    ( ={a,b,c} ==> ={c,r} )
-   ( W64x8.valR a{1} = a{2} /\ W64x8.valR b{1} = b{2} /\ !c{1}  (* /\ W64x8.valR b{1}  <= W64x8.valR a{1} *) ==> ={c} 
-   /\ W64x8.valR r{1} = r{2} ).
+   ( W64x2N.valR a{1} = a{2} /\ W64x2N.valR b{1} = b{2} /\ !c{1}  (* /\ W64x2N.valR b{1}  <= W64x2N.valR a{1} *) ==> ={c} 
+   /\ W64x2N.valR r{1} = r{2} ).
   + by move=> /> &2 H  ; exists a{2} b{2} false.
   + by auto.
   + by inline*; sim.
-  + ecall {1} (W64x8.R.subcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> .
+  + ecall {1} (W64x2N.R.subcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> .
 progress. 
-    by rewrite W64x8.R.bn_borrowE 1:/# b2i0 /bn_modulus /=.
+    by rewrite W64x2N.R.bn_borrowE 1:/# b2i0 /bn_modulus /=.
 qed.
 
 
@@ -237,7 +237,7 @@ qed.
 
 
 (* lemma dbn_set0_correct : *)
-(*   phoare[ M.bn_set0 : true  ==> W64x4.valR res = 0 ] = 1%r. *)
+(*   phoare[ M.bn_set0 : true  ==> W64xN.valR res = 0 ] = 1%r. *)
 (* proc. *)
 (* while (i <= nlimbs  *)
 (*   /\ (forall j, 0 <= j < i => a.[j]%Array32 = W64.zero)) (nlimbs - i). progress. *)
@@ -274,7 +274,7 @@ qed.
 
 
 lemma bn_set1_correct :
-  phoare[ M.bn_set1 : true  ==> W64x4.valR res = 1 ] = 1%r.
+  phoare[ M.bn_set1 : true  ==> W64xN.valR res = 1 ] = 1%r.
 proc.
 while (0 < i <= nlimbs 
   /\ (forall j, 1 <= j < i => a.[j]%Array32 = W64.zero) /\ a.[0]%Array32 = W64.one) (nlimbs - i). progress.
@@ -313,48 +313,48 @@ qed.
 
 equiv dcminusP_spec:
  M.dcminusP ~ ASpecFp.cminusP:
- W64x8.valR p{1} = P /\ W64x8.valR x{1} = a{2} ==> W64x8.valR res{1}  =res{2}.
+ W64x2N.valR p{1} = P /\ W64x2N.valR x{1} = a{2} ==> W64x2N.valR res{1}  =res{2}.
 proof.
 transitivity CSpecFp.dcminusP
- ( W64x8.valR p{1} = P /\ W64x8.valR x{1} = a{2} ==> W64x8.valR res{1}  = res{2} )
- ( ={a} /\ a{2} < W64x8.modulusR ==> ={res} ).
-  progress. exists (W64x8.valR x{1}). progress. smt(@W64x8).
+ ( W64x2N.valR p{1} = P /\ W64x2N.valR x{1} = a{2} ==> W64x2N.valR res{1}  = res{2} )
+ ( ={a} /\ a{2} < W64x2N.modulusR ==> ={res} ).
+  progress. exists (W64x2N.valR x{1}). progress. smt(@W64x2N).
 + by auto. 
 proc. 
 (ecall {1} (dbn_cmov_correct cf{1} z{1} x{1})).  simplify.
-conseq (_:  ( (W64x8.valR (if cf{1} then x{1} else z{1}))%W64x8 = r{2} )). progress.
+conseq (_:  ( (W64x2N.valR (if cf{1} then x{1} else z{1}))%W64x2N = r{2} )). progress.
 inline ASpecFp.ctseln. wp.   simplify.
-seq 2 0 : ((W64x8.valR p{1})%W64x8 = P /\ (W64x8.valR x{1})%W64x8 = a{2} /\ z{1} = x{1}).
+seq 2 0 : ((W64x2N.valR p{1})%W64x2N = P /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ z{1} = x{1}).
 (ecall {1} (dbn_copy_correct x{1})).  wp. skip. progress.
-seq 1 1 : (cf{1} = c{2} /\ W64x8.valR z{1} = x{2} 
-  /\ (W64x8.valR p{1})%W64x8 = P /\ (W64x8.valR x{1})%W64x8 = a{2}).
+seq 1 1 : (cf{1} = c{2} /\ W64x2N.valR z{1} = x{2} 
+  /\ (W64x2N.valR p{1})%W64x2N = P /\ (W64x2N.valR x{1})%W64x2N = a{2}).
 call  dsubc_spec.  skip. progress.
 skip. progress.   smt().
 + symmetry; conseq cminusP_eq; smt().
 qed.
 
 
-import W64x8.
+import W64x2N.
 
 
 lemma bn_div2_correct z :
-  phoare[ M.div2 : arg = (z,dnlimbs)  ==> (W64x8.valR res) = (W64x8.valR2 z) %/  W64x8.modulusR ] = 1%r.
+  phoare[ M.div2 : arg = (z,dnlimbs)  ==> (W64x2N.valR res) = (W64x2N.valR2 z) %/  W64x2N.modulusR ] = 1%r.
 proc. sp.
 while (aux = dnlimbs /\ i <= dnlimbs /\ forall j, 0 <= j < i => r.[j] = x.[dnlimbs + j]) (dnlimbs - i). 
 progress. wp. skip. progress.
 smt(). smt(@Array64). smt(). skip. progress.
 smt(). smt().
-have ->:  W64x8.modulusR  = W64x8.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
+have ->:  W64x2N.modulusR  = W64x2N.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
 have ->: (R2.bnk (2*dnlimbs) x{hr})%R2 = valR2 x{hr}. auto.
 rewrite R2.bghint_div. auto.
 rewrite - R.bnkup0.
 rewrite /bnkup.
 have ->: 
-  bigi predT (fun (i1 : int) => to_uint r0.[i1] * W64x8.M ^ (i1 - 0)) 0 dnlimbs
-  = bigi predT (fun (i1 : int) => to_uint x{hr}.[i1 + dnlimbs] * W64x8.M ^ (i1 - 0)) 0 dnlimbs.
+  bigi predT (fun (i1 : int) => to_uint r0.[i1] * W64x2N.M ^ (i1 - 0)) 0 dnlimbs
+  = bigi predT (fun (i1 : int) => to_uint x{hr}.[i1 + dnlimbs] * W64x2N.M ^ (i1 - 0)) 0 dnlimbs.
 apply eq_big_int. progress. smt(). 
-  have ->: bigi predT (fun (i1 : int) => to_uint x{hr}.[i1] * W64x8.M ^ (i1 - dnlimbs)) dnlimbs
-  (2 * dnlimbs)  = bigi predT (fun (i1 : int) => to_uint x{hr}.[i1] * W64x8.M ^ (i1 - dnlimbs)) (0 + dnlimbs)
+  have ->: bigi predT (fun (i1 : int) => to_uint x{hr}.[i1] * W64x2N.M ^ (i1 - dnlimbs)) dnlimbs
+  (2 * dnlimbs)  = bigi predT (fun (i1 : int) => to_uint x{hr}.[i1] * W64x2N.M ^ (i1 - dnlimbs)) (0 + dnlimbs)
   (2 * dnlimbs). auto.
 rewrite big_addn. simplify. auto.
 qed.
@@ -362,15 +362,15 @@ qed.
 
 
 lemma bn_shrink_correct a  :
-  phoare[ M.bn_shrink : arg = a  ==> W64x4.valR res = W64x8.valR a %% W64x4.modulusR ] = 1%r.
+  phoare[ M.bn_shrink : arg = a  ==> W64xN.valR res = W64x2N.valR a %% W64xN.modulusR ] = 1%r.
 proc.
 sp.
 while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j]%Array32 = x.[j]%Array64) (nlimbs - i). 
 progress. wp. skip. progress.
 smt(). smt(@Array32). smt(). skip. progress.
 smt(). smt(). 
-rewrite /W64x4.modulusR. auto.
-rewrite W64x8.R.bn_mod. auto. 
+rewrite /W64xN.modulusR. auto.
+rewrite W64x2N.R.bn_mod. auto. 
 rewrite /bnk. 
 apply eq_big_seq. progress. rewrite H1. split.
 smt (mem_range_le). 
@@ -380,9 +380,9 @@ qed.
 
 
 lemma bn_expand_correct : forall a,
-      phoare[ M.bn_expand : arg = a  ==> W64x8.valR res =  W64x4.valR a ] = 1%r.
+      phoare[ M.bn_expand : arg = a  ==> W64x2N.valR res =  W64xN.valR a ] = 1%r.
  have  bn_expand_correct : forall a, 
-    hoare[ M.bn_expand : arg = a  ==> W64x8.valR res = W64x4.valR a ].
+    hoare[ M.bn_expand : arg = a  ==> W64x2N.valR res = W64xN.valR a ].
    move => a.
    proc.
    sp. 
@@ -408,7 +408,7 @@ lemma bn_expand_correct : forall a,
     smt(@Array32 @Array64). smt(). smt(). 
     skip.  progress.
     have -> : valR r{hr} = (bn_seq ((to_list r{hr}))%Array64).
-    apply W64x8.R.bn2seq. 
+    apply W64x2N.R.bn2seq. 
     rewrite /to_list.
     have -> : dnlimbs = nlimbs + nlimbs. smt().
     rewrite mkseq_add. auto. auto.
@@ -422,15 +422,15 @@ lemma bn_expand_correct : forall a,
     rewrite mkseq_nseq. 
     rewrite /bn_seq.
     rewrite foldr_cat.
-    have ->: (foldr (fun (w : W64.t) (r0 : int) => to_uint w + W64x8.M * r0) 0
+    have ->: (foldr (fun (w : W64.t) (r0 : int) => to_uint w + W64x2N.M * r0) 0
          (nseq nlimbs W64.zero)) = 0.  
-       have gen : forall n, 0 <= n => foldr (fun (w : W64.t) (r0 : int) => to_uint w + W64x8.M * r0) 0
+       have gen : forall n, 0 <= n => foldr (fun (w : W64.t) (r0 : int) => to_uint w + W64x2N.M * r0) 0
                      (nseq n  W64.zero) = 0.
        apply intind. progress. rewrite nseq0. simplify. auto.
        progress. rewrite nseqS. auto. simplify. rewrite H2. auto.
        apply gen. auto.
-    rewrite W64x4.R.bn2seq. rewrite /bn_seq. rewrite /to_list. 
-    pose f := (fun (w : W64.t) (r0 : int) => to_uint w + W64x8.M * r0).
+    rewrite W64xN.R.bn2seq. rewrite /bn_seq. rewrite /to_list. 
+    pose f := (fun (w : W64.t) (r0 : int) => to_uint w + W64x2N.M * r0).
     simplify. auto.    
 move => a.
 bypr. progress.
@@ -439,9 +439,9 @@ byphoare. proc.  while (true) (2*nlimbs -i). progress. wp. skip. smt().
 wp. while true (nlimbs - i). progress. wp. skip. smt().
 wp.  skip. smt(). auto. auto.
   have ->: Pr[M.bn_expand(arg{m}) @ &m : true]
-  = Pr[M.bn_expand(arg{m}) @ &m : (W64x8.valR res =  W64x4.valR arg{m}) ]  
-    + Pr[M.bn_expand(arg{m}) @ &m : (W64x8.valR res <>  W64x4.valR arg{m}) ].
-rewrite Pr[mu_split (W64x8.valR res =  W64x4.valR arg{m})]. simplify.   auto.
+  = Pr[M.bn_expand(arg{m}) @ &m : (W64x2N.valR res =  W64xN.valR arg{m}) ]  
+    + Pr[M.bn_expand(arg{m}) @ &m : (W64x2N.valR res <>  W64xN.valR arg{m}) ].
+rewrite Pr[mu_split (W64x2N.valR res =  W64xN.valR arg{m})]. simplify.   auto.
 have ->: Pr[M.bn_expand(arg{m}) @ &m : valR res <> valR arg{m}] = 0%r.
 byphoare (_: arg = arg{m} ==> _). 
 hoare. simplify. conseq (bn_expand_correct arg{m}). auto. auto. auto.
@@ -450,57 +450,57 @@ qed.
    
 equiv breduce_cspec:
  M.bn_breduce ~ CSpecFp.redm:
-     W64x8.valR a{1} = a{2} 
- /\  W64x8.valR r{1} = r{2} 
- /\  W64x4.valR p{1} = P
+     W64x2N.valR a{1} = a{2} 
+ /\  W64x2N.valR r{1} = r{2} 
+ /\  W64xN.valR p{1} = P
  /\  k{2} = 64 * nlimbs
-   ==>  (W64x4.valR res{1}) = res{2}  %% W64x4.modulusR.
+   ==>  (W64xN.valR res{1}) = res{2}  %% W64xN.modulusR.
 proof. proc.
 sp.
 simplify.
 seq 0 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs). 
 skip. auto.
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} (* /\ xr{2} = a{2} * r{2} *)).
+    /\ W64x2N.valR2 xr{1} = xr{2} (* /\ xr{2} = a{2} * r{2} *)).
 call dmuln_spec. skip. progress.
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x8.valR xrf{1} = xrf{2} ).
+    /\ W64x2N.valR2 xr{1} = xr{2} /\ W64x2N.valR xrf{1} = xrf{2} ).
 ecall {1} (bn_div2_correct xr{1}). inline*. wp.  skip. move => &1 &2 z. split. auto. move => _.
 move => r zz. split. smt(). split. smt(). split. smt(). split. smt(). split. smt(). rewrite zz.
-have -> : W64x8.modulusR = 2 ^ (2 * k{2}). smt(@Ring). smt().
+have -> : W64x2N.modulusR = 2 ^ (2 * k{2}). smt(@Ring). smt().
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
+    /\ W64x2N.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
 ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. rewrite H0.  
-have ->: W64x4.modulusR = Fp_w64x4_spec.M. rewrite /W64x4.modulusR. rewrite /M. smt(@Ring). rewrite /M. smt(@Ring). 
+have ->: W64xN.modulusR = Fp_w64x4_spec.M. rewrite /W64xN.modulusR. rewrite /M. smt(@Ring). rewrite /M. smt(@Ring). 
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
-    /\  W64x8.valR xrfn{1} = xrfn{2}).
+    /\ W64x2N.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
+    /\  W64x2N.valR xrfn{1} = xrfn{2}).
 ecall  (muln_spec xrfd{1} p{1}). skip. progress.
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrfd{1} = xrf{2} 
-    /\ W64x8.valR xrfn{1} = xrfn{2}
-    /\ W64x8.valR t{1} = t{2}).
+    /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
+    /\ W64x2N.valR xrfn{1} = xrfn{2}
+    /\ W64x2N.valR t{1} = t{2}).
 call dsubc_spec. skip. progress.
 seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrfd{1} = xrf{2} 
-    /\ W64x8.valR xrfn{1} = xrfn{2}
-    /\ W64x8.valR t{1} = t{2}
-    /\ W64x8.valR pp{1} = W64x4.valR p{1}).
+    /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
+    /\ W64x2N.valR xrfn{1} = xrfn{2}
+    /\ W64x2N.valR t{1} = t{2}
+    /\ W64x2N.valR pp{1} = W64xN.valR p{1}).
 ecall {1} (bn_expand_correct p{1}). skip. progress.
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrfd{1} = xrf{2} 
-    /\ W64x8.valR xrfn{1} = xrfn{2}
-    /\ W64x8.valR t{1} = t{2}
-    /\ W64x8.valR pp{1} = W64x4.valR p{1}
-    /\ W64x8.valR t{1} = t{2} ).
+    /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
+    /\ W64x2N.valR xrfn{1} = xrfn{2}
+    /\ W64x2N.valR t{1} = t{2}
+    /\ W64x2N.valR pp{1} = W64xN.valR p{1}
+    /\ W64x2N.valR t{1} = t{2} ).
 call dcminusP_spec. skip. progress. smt().
 seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
-    /\ W64x8.valR2 xr{1} = xr{2} /\ W64x4.valR xrfd{1} = xrf{2} 
-    /\ W64x8.valR xrfn{1} = xrfn{2}
-    /\ W64x8.valR t{1} = t{2}
-    /\ W64x8.valR pp{1} = W64x4.valR p{1}
-    /\ W64x8.valR t{1} = t{2}
-    /\ W64x4.valR res_0{1} = W64x8.valR t{1} %% W64x4.modulusR).
+    /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
+    /\ W64x2N.valR xrfn{1} = xrfn{2}
+    /\ W64x2N.valR t{1} = t{2}
+    /\ W64x2N.valR pp{1} = W64xN.valR p{1}
+    /\ W64x2N.valR t{1} = t{2}
+    /\ W64xN.valR res_0{1} = W64x2N.valR t{1} %% W64xN.modulusR).
 ecall {1} (bn_shrink_correct t{1}). skip. progress.
 skip.  progress. 
 qed.
@@ -511,36 +511,36 @@ equiv bnreduce_spec:
   valR a{1} = a{2}
   /\ ImplZZ p{1} P
   /\ valR r{1} = (ri P (64 * nlimbs))  
-  /\ 0 < P < W64x4.modulusR
+  /\ 0 < P < W64xN.modulusR
   /\ 0 <= a{2} < P * P
   /\ 0 < P < 2 ^ (64 * nlimbs)
   /\ 0 <= valR r{1} ==> valR res{1} = res{2} .
 proof. 
   have redm_simp:
- equiv [ ASpecFp.redm ~ ASpecFp.redm: ={arg} ==> res{1} = res{2} %% W64x4.modulusR ].
+ equiv [ ASpecFp.redm ~ ASpecFp.redm: ={arg} ==> res{1} = res{2} %% W64xN.modulusR ].
  proc. wp.  skip. progress. 
 rewrite (pmod_small (a{2} %% P)) . split.  apply modz_ge0. smt(P_pos modz_ge0). move => _.
 smt(ltz_pmod P_pos ppos). auto.
 symmetry. transitivity ASpecFp.redm
- (={arg} ==> res{1} = res{2} %% W64x4.modulusR)
+ (={arg} ==> res{1} = res{2} %% W64xN.modulusR)
  (valR a{2} = a{1}
   /\ ImplZZ p{2} P
   /\ valR r{2} =  (ri P (64 * nlimbs))  
-  /\ 0 < P < W64x4.modulusR
+  /\ 0 < P < W64xN.modulusR
   /\ 0 <= a{1} < P * P
   /\ 0 < P < 2 ^ (64 * nlimbs)
-  /\ 0 <= valR r{2} ==> valR res{2} = res{1} %% W64x4.modulusR).
+  /\ 0 <= valR r{2} ==> valR res{2} = res{1} %% W64xN.modulusR).
 smt(). 
 auto. conseq redm_simp. 
 symmetry.
 transitivity CSpecFp.redm
- (W64x8.valR a{1} = a{2} 
- /\  W64x8.valR r{1} = r{2} 
- /\  W64x4.valR p{1} = P
+ (W64x2N.valR a{1} = a{2} 
+ /\  W64x2N.valR r{1} = r{2} 
+ /\  W64xN.valR p{1} = P
  /\  k{2} = 64 * nlimbs
-   ==>  (W64x4.valR res{1}) = res{2}  %% W64x4.modulusR)
+   ==>  (W64xN.valR res{1}) = res{2}  %% W64xN.modulusR)
  (={a} /\ r{1} = (ri P k{1}) 
-  /\ 0 < P < W64x4.modulusR
+  /\ 0 < P < W64xN.modulusR
   /\ 0 <= a{1} < P * P
   /\ 0 < P < 2 ^ k{1} 
   /\ 0 <= k{1} ==> ={res}). 
@@ -549,7 +549,7 @@ exists (valR a{1} , valR r{1} , 64 * nlimbs). split. smt().
 split. smt(). split. smt().   split.  smt(). 
 split. smt(). split. split. smt().  move => ?. 
 have ->: (valR a{1}, valR r{1}, 64 * nlimbs).`3 = 64 * nlimbs. smt().
- have ->: 2 ^ (dnlimbs * nlimbs) = W64x4.modulusR. clear q. rewrite /W64x4.modulusR. smt(@Ring).
+ have ->: 2 ^ (dnlimbs * nlimbs) = W64xN.modulusR. clear q. rewrite /W64xN.modulusR. smt(@Ring).
 smt(). smt(). auto.
 conseq breduce_cspec.
 symmetry. conseq redm_eq. auto. auto.
@@ -574,14 +574,14 @@ ecall (muln_spec a{1} b{1}).
 wp. skip.
 move => &1 &2 H1. split. smt().
 move => q1 r1 r2 r3 . split. simplify. rewrite - r3.
-smt(@W64x4 @W64x8).
+smt(@W64xN @W64x2N).
    split.  simplify. smt().
 split. smt().
 split.  smt (P_pos bnk_cmp).
 split.  smt (P_pos bnk_cmp).
 split.  split. smt (P_pos).
-have -> :  2 ^ (dnlimbs * nlimbs) = W64x4.modulusR. rewrite /W64x4.modulusR. smt(@Ring).
-smt(ppos). smt(W64x8.R.bnk_cmp).
+have -> :  2 ^ (dnlimbs * nlimbs) = W64xN.modulusR. rewrite /W64xN.modulusR. smt(@Ring).
+smt(ppos). smt(W64x2N.R.bnk_cmp).
 qed.
 
 
@@ -621,49 +621,47 @@ require Abstract_exp_proof_8.
 clone import Abstract_exp_proof_8 as Exp with type R  <- t,
                                                  op P <- P,
                                                  op Rsize <- 64*nlimbs,
-                                                 op valR <- W64x4.valR,
+                                                 op valR <- W64xN.valR,
                                                  op of_int <- bn_ofint,
                                                  op idR <- bn_ofint 1,
                                                  op ( ** ) <- Int.( * ),
-                                                 op ( *** ) <=  fun a b => bn_ofint ((valR%W64x4 a * valR%W64x4 b) %% P)
+                                                 op ( *** ) <=  fun a b => bn_ofint ((valR%W64xN a * valR%W64xN b) %% P)
 proof*.
 realize Rsize_max. smt(). qed.
 realize Rsize_pos. smt(). qed.
-realize valr_pos. smt (@W64x4). qed.
+realize valr_pos. smt (@W64xN). qed.
 realize iii.  rewrite /Rbits. 
 progress. rewrite  size_int2bs. auto. qed.
 realize valr_ofint.  progress.
 rewrite bn_ofintK. apply modz_small. split. auto. smt(ppos).
 qed.
 realize P_pos. smt(P_pos). qed.
-realize ofint_valr. smt(@W64x4). qed.
+realize ofint_valr. smt(@W64xN). qed.
 realize rbits_bitsr. 
 progress. rewrite /Rbits. rewrite /bitsR. 
-  have ->: (valR (bn_ofint (bs2int x)))%W64x4 = bs2int x.
+  have ->: (valR (bn_ofint (bs2int x)))%W64xN = bs2int x.
 rewrite bn_ofintK. apply modz_small.
-rewrite /W64x4.modulusR. 
+rewrite /W64xN.modulusR. 
 split. apply bs2int_ge0. 
-have ->: `|W64x8.M ^ nlimbs| = W64x8.M ^ nlimbs. smt(@Int).
+have ->: `|W64x2N.M ^ nlimbs| = W64x2N.M ^ nlimbs. smt(@Int).
 have xx : bs2int x < 2 ^ (64*nlimbs).  
     have o : forall n (s : bool list),  n = size s => bs2int s < 2 ^ n. smt(bs2int_le2Xs).
-(* have -> : Fp_w64x4_spec.M = W64x4.modulusR. rewrite /W64x4.modulusR. smt(@Ring). *)
-(* rewrite /W64x4.modulusR. *)
-
+(* have -> : Fp_w64x4_spec.M = W64xN.modulusR. rewrite /W64xN.modulusR. smt(@Ring). *)
+(* rewrite /W64xN.modulusR. *)
     (* ??? *)
 have ->:  (dnlimbs * nlimbs) = 2048. smt().
 clear o. rewrite -H. smt(bs2int_le2Xs).
-
-have <- : 2 ^ (64*nlimbs) = W64x8.M ^ nlimbs. smt(@Ring).
+have <- : 2 ^ (64*nlimbs) = W64x2N.M ^ nlimbs. smt(@Ring).
 move => ?. assumption.
 smt(bs2intK). qed.
 realize bitsr_rbits. 
 rewrite /Rbits. rewrite /bitsR.
 progress.
 rewrite int2bsK. auto. simplify. progress. smt(bnk_cmp).
-have : 0 <= valR  x < W64x4.M ^ nlimbs.
+have : 0 <= valR  x < W64xN.M ^ nlimbs.
 apply (bnk_cmp nlimbs).
 smt(@Ring).
-smt(@W64x4).
+smt(@W64xN).
 qed.
 realize exp_prop7. progress.
 have -> : valR a * valR b = valR b * valR a. smt(@Int). auto.
@@ -804,14 +802,14 @@ transitivity ASpecFp.mulm
   (ImplFp a{2} a{1} /\ ImplFp b{2} b{1} /\  valR p{2} = P /\ valR a{2} < P /\ valR b{2} < P ==>
             ImplFp res{2} res{1} /\ valR res{2} < P).
     progress. 
-  exists (inzp (valR a{1}), inzp (valR b{1}) )%W64x4. progress.
+  exists (inzp (valR a{1}), inzp (valR b{1}) )%W64xN. progress.
 rewrite inzpK. rewrite modz_small. smt(bnk_cmp). smt(@Zp).
 rewrite inzpK. rewrite modz_small. smt(bnk_cmp). smt(@Zp).
 rewrite inzpK. rewrite modz_small. smt(bnk_cmp). smt(@Zp).
 rewrite inzpK. rewrite modz_small. smt(bnk_cmp). smt(@Zp).
 progress. 
 have : valR res{1} = valR res{2}. smt().
-smt(@W64x4).
+smt(@W64xN).
 proc.  wp. skip.  progress.
        rewrite H H0.
 rewrite valr_ofint. 
@@ -827,7 +825,7 @@ transitivity M.mulm
 progress. exists (R,p{1},a{1},b{1}). progress. auto.
 conseq okll. auto.
 conseq mulm_spec. progress. rewrite H4. apply R_prop. 
-progress. smt(@Zp @W64x4).
+progress. smt(@Zp @W64xN).
 qed.
 
 module MM = {
@@ -859,7 +857,7 @@ rewrite to_uintB.  rewrite /(\ule).
 rewrite to_uintM_small. rewrite x.  
 rewrite W64.to_uint_small. auto.
 have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt (divz_eqP). 
-have  :  0 <= to_uint ctr{2} && to_uint ctr{2} < W64x8.M.
+have  :  0 <= to_uint ctr{2} && to_uint ctr{2} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{2}). clear x.
 pose x := to_uint ctr{2} %/ 64 * 64.
 pose y := to_uint ctr{2}.
@@ -869,7 +867,7 @@ rewrite to_uintM_small. rewrite x.
 have ->: to_uint ((of_int 64))%W64 = 64.
 rewrite W64.to_uint_small.  auto. auto.
 have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt (divz_eqP). 
-have  :  0 <= to_uint ctr{2} && to_uint ctr{2} < W64x8.M.
+have  :  0 <= to_uint ctr{2} && to_uint ctr{2} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{2}). clear x.
 pose x := to_uint ctr{2} %/ 64 * 64.
 pose y := to_uint ctr{2}.
@@ -912,7 +910,7 @@ have x:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64.
 rewrite shr_div_le. auto. smt(@Ring).
 rewrite W64.to_uint_small. auto.
 have  : to_uint ctr{1} %/ 64 * 64 <= to_uint ctr{1}. smt (divz_eqP).
-have  :  0 <= to_uint ctr{1} && to_uint ctr{1} < W64x8.M.
+have  :  0 <= to_uint ctr{1} && to_uint ctr{1} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{1}).
 pose xx := to_uint ctr{1} %/ 64 * 64.
 pose yy := to_uint ctr{1}.
@@ -935,24 +933,24 @@ rewrite /ith_bit.
 rewrite /as_word.
 rewrite /as_w64.
 have ->: (kk{1}.[to_uint ctr{1} %/ 64])%Array32.[to_uint ctr{1} %% 64]
-  = nth false (int2bs (64 * nlimbs) ((valR kk{1}))%W64x4) (to_uint ctr{1}) .
+  = nth false (int2bs (64 * nlimbs) ((valR kk{1}))%W64xN) (to_uint ctr{1}) .
 rewrite - get_w2bits.
 rewrite - get_to_list.
 have -> : (W64.w2bits (nth witness ((to_list kk{1}))%Array32 (to_uint ctr{1} %/ 64)))
  = ((nth witness (map W64.w2bits (to_list kk{1}))%Array32 (to_uint ctr{1} %/ 64))).
-rewrite - (nth_map witness witness W64.w2bits). progress.   smt(). smt(@W64x4).
+rewrite - (nth_map witness witness W64.w2bits). progress.   smt(). smt(@W64xN).
 auto.
 have -> : (nth witness (map W64.w2bits ((to_list kk{1}))%Array32)
      (to_uint ctr{1} %/ 64))
  = (nth [] (map W64.w2bits ((to_list kk{1}))%Array32)
      (to_uint ctr{1} %/ 64)).
-rewrite (nth_change_dfl [] witness). progress.  smt(). smt(@W64x4 @List). auto.
+rewrite (nth_change_dfl [] witness). progress.  smt(). smt(@W64xN @List). auto.
 rewrite - (BitChunking.nth_flatten false 64 (map W64.w2bits ((to_list kk{1}))%Array32) (to_uint ctr{1})).
 rewrite  List.allP. progress.
 have : exists z, z \in ((to_list kk{1}))%Array32 /\ x = W64.w2bits z.
 apply mapP. auto. elim. progress.
-have ->: (flatten (map W64.w2bits ((to_list kk{1}))%Array32))  = (int2bs (64*nlimbs) ((valR kk{1}))%W64x4).
-have -> : (valR kk{1})%W64x4 = bs2int (flatten (map W64.w2bits ((to_list kk{1}))%Array32)).
+have ->: (flatten (map W64.w2bits ((to_list kk{1}))%Array32))  = (int2bs (64*nlimbs) ((valR kk{1}))%W64xN).
+have -> : (valR kk{1})%W64xN = bs2int (flatten (map W64.w2bits ((to_list kk{1}))%Array32)).
 rewrite /bnk.
 do? (rewrite range_ltn; first by trivial).
 simplify. rewrite range_geq. auto. auto.
@@ -1013,6 +1011,7 @@ conseq ith_bit_lemma'.
 conseq okl. smt(). auto. auto.
 qed.
 
+
 lemma to_uintP: forall (x y : R), valR (x *** y) = (valR x * valR y) %% P.
 progress. rewrite /( *** ). simplify. 
 rewrite valr_ofint. split. apply modz_ge0. smt(P_pos).
@@ -1020,7 +1019,7 @@ smt(ltz_pmod P_pos). auto.
 qed.
 
 
-lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : t), valR%W64x4 b < P =>
+lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : t), valR%W64xN b < P =>
   ImplFp b a =>
   ImplFp ((^) b n) (inzp (asint a ^ n)).
 apply intind. progress.
@@ -1039,13 +1038,13 @@ smt(@Ring).
 have ->:  inzp (asint a * (asint a ^ i)) = (inzp (asint a)) * (inzp (asint a ^ i)).
 smt(@Zp).
 rewrite - H2. 
-have ->: asint (inzp (valR%W64x4 b) * inzp (valR%W64x4 b ^ i))
-  = (asint (inzp (valR%W64x4 b)) * (asint  (inzp (valR%W64x4 b ^ i)))) %% P.
+have ->: asint (inzp (valR%W64xN b) * inzp (valR%W64xN b ^ i))
+  = (asint (inzp (valR%W64xN b)) * (asint  (inzp (valR%W64xN b ^ i)))) %% P.
 simplify. smt(@Zp).
-have ih :  ImplFp (b ^ i)  (inzp (valR%W64x4 b ^ i)).
+have ih :  ImplFp (b ^ i)  (inzp (valR%W64xN b ^ i)).
 simplify. smt(@Zp).
 rewrite - ih.
-have ->: asint (inzp (valR%W64x4 b)) = valR%W64x4 b. simplify. smt(@Zp).
+have ->: asint (inzp (valR%W64xN b)) = valR%W64xN b. simplify. smt(@Zp).
 simplify. 
 rewrite  to_uintP /=. done.
 qed.
@@ -1053,7 +1052,7 @@ qed.
 
 lemma left_end :
  equiv[ ASpecFp.expm ~ Exp.M1.iterop_spec  :
-    ImplFp x{2} a{1} /\  bs2int n{2}  = valR b{1} /\ valR%W64x4 x{2} < P ==> ImplFp res{2} res{1}]. 
+    ImplFp x{2} a{1} /\  bs2int n{2}  =  b{1} /\ valR%W64xN x{2} < P ==> ImplFp res{2} res{1}]. 
 proc.
 wp.  skip.  progress.
 rewrite  (kk (bs2int n{2}) _ a{1}). smt(@BS2Int). auto. auto. smt(@Zp).
@@ -1094,29 +1093,30 @@ lemma expm_correct :
       equiv[ ASpecFp.expm ~ M.expm :
              ImplZZ m{2} P /\
              asint a{1} = valR x{2} /\
-             b{1} = n{2}  /\ 
+             b{1} = valR n{2}  /\ 
              valR x{2} < P /\ 
              r{2} = R
-             ==> asint res{1} = valR{2}%W64x4 res{2}]. 
+             ==> asint res{1} = valR{2}%W64xN res{2}]. 
 simplify.
 transitivity Exp.M1.iterop_spec
-  (ImplFp x{2} a{1} /\  bs2int n{2} = valR b{1} /\ size n{2} = 64 * nlimbs  /\ valR%W64x4 x{2} < P ==> ImplFp res{2} res{1})
+  (ImplFp x{2} a{1} /\  bs2int n{2} = b{1} /\ size n{2} = 64 * nlimbs  /\ valR%W64xN x{2} < P ==> ImplFp res{2} res{1})
   (ImplZZ m{2} P /\
              x{1} =  x{2} /\
             bs2int n{1} = valR n{2} /\ size n{1} = 64 * nlimbs /\ valR x{2} < P /\ r{2} = R ==>
             res{1} =  res{2}).
 progress.
-exists (x{2}, int2bs (64*nlimbs) (valR b{1})).
+exists (x{2}, int2bs (64*nlimbs) (b{1})).
 progress. smt().
-rewrite int2bsK. auto. split.  smt(@W64x4). 
-have ->: 2^ (64*nlimbs) =  W64x8.M ^ nlimbs . smt(@Ring). 
-have qq:  0 <= valR b{1} && valR b{1} < W64x8.M ^ nlimbs. apply bnk_cmp.
+rewrite int2bsK. auto. split.  smt(@W64xN). 
+have ->: 2^ (64*nlimbs) =  W64x2N.M ^ nlimbs . smt(@Ring).
+  
+have qq:  0 <= b{1} &&  b{1} < W64x2N.M ^ nlimbs.  rewrite H1. apply bnk_cmp.
 elim qq. auto.
 auto.
 smt(@BS2Int). rewrite - H1.
-rewrite int2bsK.  auto. split. smt(@W64x4).
-have ->: 2^ (64*nlimbs) =  W64x8.M ^ nlimbs . smt(@Ring). 
-have qq:  0 <= valR b{1} && valR b{1} < W64x8.M ^ nlimbs. apply bnk_cmp.
+rewrite int2bsK.  auto. split. smt(@W64xN).
+have ->: 2^ (64*nlimbs) =  W64x2N.M ^ nlimbs . smt(@Ring). 
+have qq:  0 <= b{1} && b{1} < W64x2N.M ^ nlimbs. rewrite H1. apply bnk_cmp.
 elim qq. auto.   auto.
 smt(@BS2Int).
 smt().
