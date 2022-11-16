@@ -17,23 +17,8 @@ int main()
 
 
 	
-	//	mpz_init(m);
-
-
 	mpz_init(r);
 	mpz_powm(r, a, b, m);
-	mpz_powm(r, b, a, m);
-	mpz_powm(r, a, b, m);
-	mpz_powm(r, a, b, m);
-	mpz_powm(r, a, b, m);
-	mpz_powm(r, a, b, m);
-	mpz_powm(r, a, b, m);
-	mpz_powm(r, a, b, m);
-	//	mpz_powm(r, a, b, m);
-
-
-        //printf("ok!");
-	//	gmp_printf("%Zd\n", r); /* ...16808958343740453059 */
 
 
 	return 0;
