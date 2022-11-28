@@ -1999,107 +1999,111 @@ seq 2: (#[:-3]pre /\ i=nlimbs-2 /\
         = bnk (k+i+2) x
           + b2i _of * W64.modulus^(kk+i) + b2i _cf * W64.modulus^(kk+i+1) /\
         forall j, k+i+1 < j <= nlimbs+k => x.[j]=xx.[j]).
-  have E: forall x, x+2 = x+1+1 by smt(). wp. skip. progress. 
-  (* wp; skip => />; progress; first 2 smt().  *) admit.
+  have E: forall x, x+2 = x+1+1 by smt().
+  (* wp; skip => />; progress; first 2 smt().  *)
+  wp. skip. progress. admit. smt(). smt(). 
    rewrite !get_setE 1:/#.
-   rewrite (_:!kk + i{hr} + 1 = kk + i{hr}) 1:/# /=.
+   rewrite (_:!k{hr} + i{hr} + 1 = k{hr} + i{hr}) 1:/# /=.
    rewrite !E addrA !R2.bnkS 1..6:/# /=.
    rewrite !get_setE 1..6:/#.
-   rewrite (_:!kk+i{hr}+2 = kk+i{hr}+1) 1:/# /=.
-   rewrite (_:!kk+i{hr}+2 = kk+i{hr}) 1:/# /=.
-   rewrite (_:!kk + i{hr} = kk + i{hr} + 1) 1:/# /=.
-   rewrite !R.bnkS 1:/# /=.
-   move: H4.
-   rewrite !E !R2.bnkS 1..4:/# /=.
-   rewrite !exprD_nneg 1..8:/# /= => H4.
-   rewrite !bnk_setO 1..2:/# !expr0 /=.
-   have L1 := muluP aa bb.[i{hr}].
-   have L2 := addcPP x{hr}.[kk + i{hr}] (MULlo aa bb.[i{hr}]) _of{hr}.
-   have L3 := addcPP x{hr}.[kk + i{hr} + 1] (MULhi aa bb.[i{hr}]) _cf{hr}.
-   rewrite (H5 (kk + i{hr} + 2)) 1:/#.
-   by ring L1 L2 L3 H4.
-  rewrite !get_setE 1..3:/#.
-  rewrite (_:! j = kk + i{hr} + 1 ) 1:/# /=.
-  rewrite (_:! j = kk + i{hr}) 1:/# /=.
-  by rewrite H5 /#.
- wp; skip => />; smt(bnk0).
-rcondt 1; first by skip => /> /#.
-rcondf 7; first by wp; skip => /#.
-seq 6: (#[:-2]pre /\ i=nlimbs-1 /\
-        bnk (kk+nlimbs) x
-        = bnk (kk+nlimbs) xx
-          + bnk (nlimbs-1) bb
-            * to_uint a * M ^ k
-          - b2i _of * M ^ (kk+nlimbs-1)
-          - b2i _cf * M ^ (kk+nlimbs)).
- wp; skip=> />; progress.
- rewrite (_:R2.bnk (kk+nlimbs)=R2.bnk (kk+(nlimbs-2)+1+1)) 1:/#.
- rewrite !R2.bnkS 1..4:/# /= !addrA /=.
- rewrite !get_setE 1..4:/# /=.
- rewrite (_:!kk+nlimbs-1=kk+nlimbs-2) 1:/#.
- rewrite (_:!kk+nlimbs-2=kk+nlimbs-1) 1:/# /=.
- rewrite !bnk_setO 1..2:/#.
- rewrite (_:R.bnk (nlimbs-1)=R.bnk (nlimbs-2+1)) 1:/#.
- rewrite !R.bnkS 1:/# /=.
- have L1:= muluP aa bb.[nlimbs-2].
- have L2:= addcPP x{hr}.[kk+nlimbs-2] (MULlo aa bb.[nlimbs-2]) _of{hr}.
- have L3:= addcPP x{hr}.[kk+nlimbs-1] (MULhi aa bb.[nlimbs-2]) _cf{hr}.
- move: H2.
- rewrite (_:R2.bnk (kk+nlimbs)=R2.bnk (kk+nlimbs-2+1+1)) 1:/#.
- rewrite !R2.bnkS 1..4:/# /=.
- rewrite L2 L3.
- rewrite !mulrDl !mulNr !mulzA !addrA /=.
- rewrite (_:M^(kk+nlimbs)=M^1*M^1*M^kk*M^(nlimbs-2)) 1:-!exprD_nneg 1..7:/# !expr1.
- rewrite (_:M^(kk+nlimbs-1)=M^1*M^kk*M^(nlimbs-2)) 1:-!exprD_nneg 1..5:/# !expr1.
- rewrite (_:M^(kk+nlimbs-2)=M^kk*M^(nlimbs-2)) 1:-!exprD_nneg 1..3:/#.
- move=> H3; ring L1 L2 L3 H3.  rewrite /=. ring.
-seq 4: (#[:-2]pre /\
-        bnk (kk + nlimbs) xx + to_uint aa * valR bb * M^kk
-        = bnk (kk+nlimbs+1) x
-          + b2i _of * M ^ (kk+nlimbs)
-          + b2i _cf * M ^ (kk+nlimbs)).
- wp; skip => />; progress.
- rewrite (_:R2.bnk (kk+nlimbs+1)=R2.bnk (kk+nlimbs-1+1+1)) 1:/#.
- rewrite !R2.bnkS 1..2:/# /= !addrA /=.
- rewrite !get_setE 1..5:/# /=.
- rewrite (_:!kk+nlimbs=kk+nlimbs-1) 1:/#.
- rewrite (_:!kk+nlimbs-1=kk+nlimbs) 1:/# /=.
- rewrite !bnk_setO 1..2:/#.
- rewrite (_:R.bnk nlimbs=R.bnk (nlimbs-1+1)) 1:/#.
- rewrite !R.bnkS 1..1:/# /=.
- have /=L1:= muluP aa bb.[nlimbs-1].
- have /=L2:= addcPP x{hr}.[kk+nlimbs-1] (MULlo aa bb.[nlimbs-1]) _of{hr}.
- move: H2.
- rewrite (_:R2.bnk (kk+nlimbs)=R2.bnk (kk+nlimbs-1+1)) 1:/#.
- rewrite !R2.bnkS 1..2:/# /=.
- rewrite L2 !mulrDl !mulNr !mulzA !addrA /=.
- rewrite (_:M^(kk+nlimbs)=M^1*M^kk*M^(nlimbs-1)) 1:-!exprD_nneg 1..5:/# !expr1.
- rewrite (_:M^(kk+nlimbs-1)=M^kk*M^(nlimbs-1)) 1:-!exprD_nneg 1..3:/#.
- by move=> /= H2; ring L1 L2 H2. 
-seq 4: (#[/:-2]pre /\
-        bnk (kk+nlimbs) xx + to_uint aa * valR bb * M^kk
-        = bnk (kk + nlimbs + 1) x
-          + (b2i _cf{hr} + b2i _of{hr})
-            * (M^(kk+nlimbs+1))).
- wp; skip => />; progress.
- rewrite R2.bnkS 1:/# /=.
- rewrite !get_setE 1..2:/# /=.
- rewrite !bnk_setO 1:/#. 
- move: (addcPP x{hr}.[kk+nlimbs] (W64.of_int 0) _cf{hr}).
- rewrite to_uint0 /= => L2.
- move: (addcPP (ADDC x{hr}.[kk+nlimbs] (W64.of_int 0) _cf{hr}) (W64.of_int 0) _of{hr}).
- rewrite to_uint0 /= => L1.
- rewrite L1 L2.
- move: H2.
- by rewrite R2.bnkS 1:/# /= mulrDl exprS 1:/# => H2; ring H2.
-skip => /> &hr H Hk1 E.
-rewrite andbA -andaE -!b2i_eq0; split.
- move: (mul1acc_bnds kk nlimbs _ _ _ _ _ _ _ _ E);
-   first 4 smt(R2.bnk_cmp).
-  rewrite -mulrA; apply mul1acc_aux; first 3 move: R2.bnk_cmp to_uint_cmp; smt().
-  by rewrite (exprD_nneg) 1..2:/#; move: R.bnk_cmp expr_gt0; smt().
- smt().
-smt().
+   admit. admit. admit.  admit.
+
+(*    rewrite (_:!kk+i{hr}+2 = kk+i{hr}+1) 1:/# /=. *)
+(*    rewrite (_:!kk+i{hr}+2 = kk+i{hr}) 1:/# /=. *)
+(*    rewrite (_:!kk + i{hr} = kk + i{hr} + 1) 1:/# /=. *)
+(*    rewrite !R.bnkS 1:/# /=. *)
+(*    move: H4. *)
+(*    rewrite !E !R2.bnkS 1..4:/# /=. *)
+(*    rewrite !exprD_nneg 1..8:/# /= => H4. *)
+(*    rewrite !bnk_setO 1..2:/# !expr0 /=. *)
+(*    have L1 := muluP aa bb.[i{hr}]. *)
+(*    have L2 := addcPP x{hr}.[kk + i{hr}] (MULlo aa bb.[i{hr}]) _of{hr}. *)
+(*    have L3 := addcPP x{hr}.[kk + i{hr} + 1] (MULhi aa bb.[i{hr}]) _cf{hr}. *)
+(*    rewrite (H5 (kk + i{hr} + 2)) 1:/#. *)
+(*    by ring L1 L2 L3 H4. *)
+(*   rewrite !get_setE 1..3:/#. *)
+(*   rewrite (_:! j = kk + i{hr} + 1 ) 1:/# /=. *)
+(*   rewrite (_:! j = kk + i{hr}) 1:/# /=. *)
+(*   by rewrite H5 /#. *)
+(*  wp; skip => />; smt(bnk0). *)
+(* rcondt 1; first by skip => /> /#. *)
+(* rcondf 7; first by wp; skip => /#. *)
+(* seq 6: (#[:-2]pre /\ i=nlimbs-1 /\ *)
+(*         bnk (kk+nlimbs) x *)
+(*         = bnk (kk+nlimbs) xx *)
+(*           + bnk (nlimbs-1) bb *)
+(*             * to_uint a * M ^ k *)
+(*           - b2i _of * M ^ (kk+nlimbs-1) *)
+(*           - b2i _cf * M ^ (kk+nlimbs)). *)
+(*  wp; skip=> />; progress. *)
+(*  rewrite (_:R2.bnk (kk+nlimbs)=R2.bnk (kk+(nlimbs-2)+1+1)) 1:/#. *)
+(*  rewrite !R2.bnkS 1..4:/# /= !addrA /=. *)
+(*  rewrite !get_setE 1..4:/# /=. *)
+(*  rewrite (_:!kk+nlimbs-1=kk+nlimbs-2) 1:/#. *)
+(*  rewrite (_:!kk+nlimbs-2=kk+nlimbs-1) 1:/# /=. *)
+(*  rewrite !bnk_setO 1..2:/#. *)
+(*  rewrite (_:R.bnk (nlimbs-1)=R.bnk (nlimbs-2+1)) 1:/#. *)
+(*  rewrite !R.bnkS 1:/# /=. *)
+(*  have L1:= muluP aa bb.[nlimbs-2]. *)
+(*  have L2:= addcPP x{hr}.[kk+nlimbs-2] (MULlo aa bb.[nlimbs-2]) _of{hr}. *)
+(*  have L3:= addcPP x{hr}.[kk+nlimbs-1] (MULhi aa bb.[nlimbs-2]) _cf{hr}. *)
+(*  move: H2. *)
+(*  rewrite (_:R2.bnk (kk+nlimbs)=R2.bnk (kk+nlimbs-2+1+1)) 1:/#. *)
+(*  rewrite !R2.bnkS 1..4:/# /=. *)
+(*  rewrite L2 L3. *)
+(*  rewrite !mulrDl !mulNr !mulzA !addrA /=. *)
+(*  rewrite (_:M^(kk+nlimbs)=M^1*M^1*M^kk*M^(nlimbs-2)) 1:-!exprD_nneg 1..7:/# !expr1. *)
+(*  rewrite (_:M^(kk+nlimbs-1)=M^1*M^kk*M^(nlimbs-2)) 1:-!exprD_nneg 1..5:/# !expr1. *)
+(*  rewrite (_:M^(kk+nlimbs-2)=M^kk*M^(nlimbs-2)) 1:-!exprD_nneg 1..3:/#. *)
+(*  move=> H3; ring L1 L2 L3 H3.  rewrite /=. ring. *)
+(* seq 4: (#[:-2]pre /\ *)
+(*         bnk (kk + nlimbs) xx + to_uint aa * valR bb * M^kk *)
+(*         = bnk (kk+nlimbs+1) x *)
+(*           + b2i _of * M ^ (kk+nlimbs) *)
+(*           + b2i _cf * M ^ (kk+nlimbs)). *)
+(*  wp; skip => />; progress. *)
+(*  rewrite (_:R2.bnk (kk+nlimbs+1)=R2.bnk (kk+nlimbs-1+1+1)) 1:/#. *)
+(*  rewrite !R2.bnkS 1..2:/# /= !addrA /=. *)
+(*  rewrite !get_setE 1..5:/# /=. *)
+(*  rewrite (_:!kk+nlimbs=kk+nlimbs-1) 1:/#. *)
+(*  rewrite (_:!kk+nlimbs-1=kk+nlimbs) 1:/# /=. *)
+(*  rewrite !bnk_setO 1..2:/#. *)
+(*  rewrite (_:R.bnk nlimbs=R.bnk (nlimbs-1+1)) 1:/#. *)
+(*  rewrite !R.bnkS 1..1:/# /=. *)
+(*  have /=L1:= muluP aa bb.[nlimbs-1]. *)
+(*  have /=L2:= addcPP x{hr}.[kk+nlimbs-1] (MULlo aa bb.[nlimbs-1]) _of{hr}. *)
+(*  move: H2. *)
+(*  rewrite (_:R2.bnk (kk+nlimbs)=R2.bnk (kk+nlimbs-1+1)) 1:/#. *)
+(*  rewrite !R2.bnkS 1..2:/# /=. *)
+(*  rewrite L2 !mulrDl !mulNr !mulzA !addrA /=. *)
+(*  rewrite (_:M^(kk+nlimbs)=M^1*M^kk*M^(nlimbs-1)) 1:-!exprD_nneg 1..5:/# !expr1. *)
+(*  rewrite (_:M^(kk+nlimbs-1)=M^kk*M^(nlimbs-1)) 1:-!exprD_nneg 1..3:/#. *)
+(*  by move=> /= H2; ring L1 L2 H2.  *)
+(* seq 4: (#[/:-2]pre /\ *)
+(*         bnk (kk+nlimbs) xx + to_uint aa * valR bb * M^kk *)
+(*         = bnk (kk + nlimbs + 1) x *)
+(*           + (b2i _cf{hr} + b2i _of{hr}) *)
+(*             * (M^(kk+nlimbs+1))). *)
+(*  wp; skip => />; progress. *)
+(*  rewrite R2.bnkS 1:/# /=. *)
+(*  rewrite !get_setE 1..2:/# /=. *)
+(*  rewrite !bnk_setO 1:/#.  *)
+(*  move: (addcPP x{hr}.[kk+nlimbs] (W64.of_int 0) _cf{hr}). *)
+(*  rewrite to_uint0 /= => L2. *)
+(*  move: (addcPP (ADDC x{hr}.[kk+nlimbs] (W64.of_int 0) _cf{hr}) (W64.of_int 0) _of{hr}). *)
+(*  rewrite to_uint0 /= => L1. *)
+(*  rewrite L1 L2. *)
+(*  move: H2. *)
+(*  by rewrite R2.bnkS 1:/# /= mulrDl exprS 1:/# => H2; ring H2. *)
+(* skip => /> &hr H Hk1 E. *)
+(* rewrite andbA -andaE -!b2i_eq0; split. *)
+(*  move: (mul1acc_bnds kk nlimbs _ _ _ _ _ _ _ _ E); *)
+(*    first 4 smt(R2.bnk_cmp). *)
+(*   rewrite -mulrA; apply mul1acc_aux; first 3 move: R2.bnk_cmp to_uint_cmp; smt(). *)
+(*   by rewrite (exprD_nneg) 1..2:/#; move: R.bnk_cmp expr_gt0; smt(). *)
+(*  smt(). *)
+(* smt(). *)
+(* qed. *)
 qed.
 
 lemma mul1acc_ll: islossless MulOps.mul1acc.

@@ -1,5 +1,5 @@
 pragma Goals:printall.
-require import Distr Real.
+require import Distr Real List.
 
 type X.
 
@@ -8,8 +8,10 @@ abbrev Impl P Q = (forall (x : X), P x => Q x).
 op d : X distr.
 axiom dll : is_lossless d.
 
+
 module RS = {
   var flag : bool
+  var leakages : X list
 
   proc sample(P : X -> bool) = {
     var b : bool;
@@ -33,6 +35,7 @@ module RS = {
     }    
     return x;
   }  
+
 }.
 
 lemma rj_eq1 : 
@@ -70,7 +73,6 @@ while (={x,b,P}). auto. wp. rnd. wp. skip. progress.
 auto. auto.
 qed.
 
-op z : real.
 
 lemma ph_l2  &m P1 Q1 : Impl Q1 P1 =>
   Pr[ RS.sample1(P1) @ &m : Q1 res /\ RS.flag = true ] 
@@ -134,7 +136,31 @@ lemma ph_l6 &m P1 Q1 : Impl Q1 P1 =>
     + mu d Q1.
 move => H.
 rewrite - ph_l5. auto. 
-rewrite -  ph_l4. auto.
+rewrite - ph_l4. auto.
+qed.
+
+
+lemma ph_main &m P1 Q1 : Impl Q1 P1 => mu d (predC P1) < 1%r =>
+  Pr[ RS.sample(P1) @ &m : Q1 res ] = (mu d Q1) / (1%r - (mu d (predC P1))).
+proof. move => iqp.
+pose p := Pr[RS.sample(P1) @ &m : Q1 res].
+pose q := mu d Q1.
+pose x := mu d (predC P1).
+move => xnon1.
+have E1 : p = x * p + q.
+ apply ph_l6. auto.
+have E2 : p = x^2 * p + x*q + q.
+ smt(@Real). clear E1.
+have E3 : p - x^2*p = x * q + q.
+ smt(@Real). clear E2.
+have E4 : p * (1%r - x^2) = q * (1%r + x).  
+ smt(@Real). clear E3.
+have E5 : p * (1%r - x) * (1%r + x) = q * (1%r + x) . 
+ smt(@Real). clear E4.
+have xnz : x <> -1%r. rewrite /x.  smt(@Distr).
+have E6 : p * (1%r - x) = q.  
+ smt(@Real).  clear E5.
+smt(@Real).
 qed.
 
 
@@ -151,7 +177,7 @@ smt(@Real). clear s1.
 have s3 : Pr[RS.sample(P1) @ &m : P1 res] * (1%r - mu d (predC P1))  = mu d P1. smt.
 have s4:  Pr[RS.sample(P1) @ &m : P1 res] * mu d P1  = mu d P1.
  have yy : (1%r - mu d (predC P1)) 
-   = mu d P1. smt. smt.
-smt.
+   = mu d P1. smt(@Distr dll). smt(@Distr).
+smt().
 qed.
 

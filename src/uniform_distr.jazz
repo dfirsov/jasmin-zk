@@ -1,0 +1,50 @@
+require "bn_generic.jazz"
+
+inline fn rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
+{
+  stack u64[nlimbs] byte_q byte_p;
+  reg u64 bit q0 q1;
+  reg bool  z cf;
+  inline int i;
+
+  q0 = 0;
+  q1 = 1;
+  i = 0;
+  
+  z = (q0 == 0);
+  while (z) {
+    byte_p = #randombytes(byte_p);
+
+    cf , byte_q = bn_subc(byte_q, byte_z);
+    q0 = q1 if cf;
+    z = (q0 == 1);
+    i = i + 1;
+  }
+
+  return i, byte_p;
+}
+
+
+export fn __rsample(reg u64 zp rp) 
+{ 
+  reg u64 rp2;
+  stack u64[nlimbs] r z;
+
+  rp2 = rp; // TODO: ask why is it so fragile
+
+  z = bn_load(zp);
+  _, r = rsample(z);
+
+  bn_store(rp2, r);
+}
+
+
+inline fn toEC()
+{
+  stack u64[nlimbs] a b r p;
+  stack u64[2 * nlimbs] z;
+  reg u64 x;
+  reg bool _cf;  
+
+  r = rsample(a);
+}

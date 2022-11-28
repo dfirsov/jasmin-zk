@@ -28,8 +28,7 @@ uint64_t texp[][5][64] =
 
 
 int main(void) {
-  uint64_t result[32]; 
-  int i, b,a;
+  uint64_t result[NLIMBS]; 
   __expm(result, texp[0][0], texp[0][1],texp[0][2], texp[0][3]);  
   return 0;
 }
