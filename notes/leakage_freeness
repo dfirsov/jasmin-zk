@@ -1,0 +1,82 @@
+
+search for "probabilistic non-interferance (in inputs/outputs)"
+
+==========
+
+usual equivalences do not make sense: 
+
+b <$ d
+leak b;
+
+=======
+only outputs (input-free)
+
+exists f g, forall l a, 
+ Pr[prog: leak = l /\ res=a]
+   = f(l) * g(a)
+
+example (our case):
+
+  forall l a , 
+      Pr[ prog :  M.leakages = l /\ res = a ]
+       = Pr[ body : res notin GOOD ] ^ size'(l) 
+	 Pr[ body : res = a ].
+
+
+  corollary (not allways; only for uniform) 
+    : forall l a b , 
+      Pr[ prog :  M.leakages = l /\ res = a ]
+       = Pr[ prog :  M.leakages = l /\ res = b ]
+===========
+only inputs: usual equivalences
+
+===========
+
+We want: 
+  1/ input not leaked
+  2/ output not leaked
+  3/ correlation of input/output beyond what is the 
+     functional relation leaks anyway.
+  4/ implies output-free definition. 
+  5/ implies input-free definition. (obvious)
+
+A)
+exists f, forall x l a,
+Pr[prog(x): leak = l & res=a]
+=
+Pr[prog(x): res=a] * f(l)
+
+B)
+exists f g, forall x l a,
+Pr[prog(x): leak = l & res=a]
+=
+g(x,a) * f(l)
+
+====
+
+EQUIVALENCE OF A,B:
+Assume B. Assume termination.
+Note: sum f(l) != 0
+
+Sum over all l
+=>
+Pr[prog(x)=a] = g(x,a) * sum f(l)
+=>
+Pr[prog(x)=a, l] = Pr[prog(x)=a] / sum f(l) * f(l)
+f'(l) := f(l) / sum f(l)
+=> Pr[prog(x)=a, l] = Pr[prog(x)=a] * f'(l)
+=> A)
+
+====
+
+Proofsketch 4/:
+Sum A over a
+=>
+Pr[prog(x): leak=l] = 1 * f(l)
+Pr[prog(y): leak=l] = 1 * f(l)
+==>
+Pr[prog(x): leak=l] = Pr[prog(y): leak=l]
+==>
+output-free def
+
+*)

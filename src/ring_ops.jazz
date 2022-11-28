@@ -1,4 +1,5 @@
 require "bn_generic.jazz"
+require "uniform_distr.jazz"
 
 
 inline fn ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 {
@@ -228,4 +229,5 @@ inline fn toEC()
 
   r = expm(z,a,b,p);
   r = mulm(z,a,b,p);
+  r = rsample(a);
 }

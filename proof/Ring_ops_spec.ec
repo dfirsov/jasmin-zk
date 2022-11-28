@@ -29,6 +29,8 @@ type R2 = W64.t Array64.t.
 op M = 2 ^ (64 * nlimbs).
 op P : int. 
 
+op D : int distr.
+
 axiom ppos : P < W64xN.modulusR.
 axiom P_pos : 2 <= P.
 
@@ -186,6 +188,20 @@ module CSpecFp = {
   c <@ ASpecFp.muln(a,b);
   z <@ ASpecFp.redm(c);
   return z;
+ }
+
+ proc rsample(a:int) : int * int = {
+   var x, b, i,z;
+   x <- 0;
+   b <- true;
+   i <- 0;
+   while(b){
+     x <$ D;
+     (b , z) <@ ASpecFp.subn(x,a);
+     b <- !b;
+     i <- i + 1;
+   }
+   return (i,x);
  }
 
 }.

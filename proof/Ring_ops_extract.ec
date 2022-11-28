@@ -1,12 +1,48 @@
 require import AllCore IntDiv CoreMap List Distr.
 require import JModel.
 
-require import Array32 Array64 Array128.
+require import Array32 Array64 Array128 Array256.
 require import WArray256 WArray512 WArray1024.
 
 
 
-module M = {
+module type Syscall_t = {
+  proc randombytes_256(_:W8.t Array256.t) : W8.t Array256.t
+}.
+
+module Syscall : Syscall_t = {
+  proc randombytes_256(a:W8.t Array256.t) : W8.t Array256.t = {
+    a <$ dmap WArray256.darray
+         (fun a => Array256.init (fun i => WArray256.get8 a i));
+    return a;
+  }
+}.
+
+module M(SC:Syscall_t) = {
+  proc bn_subc (a:W64.t Array32.t, b:W64.t Array32.t) : bool *
+                                                        W64.t Array32.t = {
+    var aux: int;
+    
+    var cf:bool;
+    var x1:W64.t;
+    var x2:W64.t;
+    var i:int;
+    
+    x1 <- a.[0];
+    x2 <- b.[0];
+    (cf, x1) <- subc_64 x1 x2 false;
+    a.[0] <- x1;
+    i <- 1;
+    while (i < 32) {
+      x1 <- a.[i];
+      x2 <- b.[i];
+      (cf, x1) <- subc_64 x1 x2 cf;
+      a.[i] <- x1;
+      i <- i + 1;
+    }
+    return (cf, a);
+  }
+  
   proc dbn_subc (a:W64.t Array64.t, b:W64.t Array64.t) : bool *
                                                          W64.t Array64.t = {
     var aux: int;
@@ -76,6 +112,19 @@ module M = {
       r2 <- b.[i];
       r1 <- (cond ? r2 : r1);
       a.[i] <- r1;
+      i <- i + 1;
+    }
+    return (a);
+  }
+  
+  proc bn_set0 (a:W64.t Array32.t) : W64.t Array32.t = {
+    var aux: int;
+    
+    var i:int;
+    
+    i <- 0;
+    while (i < 32) {
+      a.[i] <- (W64.of_int 0);
       i <- i + 1;
     }
     return (a);
@@ -318,6 +367,40 @@ module M = {
     return (_zero, of_0, cf, r);
   }
   
+  proc rsample (byte_z:W64.t Array32.t) : int * W64.t Array32.t = {
+    var aux: W8.t Array256.t;
+    
+    var i:int;
+    var byte_p:W64.t Array32.t;
+    var q0:W64.t;
+    var q1:W64.t;
+    var z:bool;
+    var byte_q:W64.t Array32.t;
+    var cf:bool;
+    byte_p <- witness;
+    byte_q <- witness;
+    byte_p <@ bn_set0 (byte_p);
+    q0 <- (W64.of_int 0);
+    q1 <- (W64.of_int 1);
+    i <- 0;
+    z <- (q0 = (W64.of_int 0));
+    
+    while (z) {
+      aux <@ SC.randombytes_256 ((Array256.init (fun i_0 => get8
+                                 (WArray256.init64 (fun i_0 => byte_p.[i_0]))
+                                 i_0)));
+      byte_p <-
+      (Array32.init (fun i_0 => get64
+      (WArray256.init8 (fun i_0 => aux.[i_0])) i_0));
+      byte_q <@ bn_copy (byte_p);
+      (cf, byte_q) <@ bn_subc (byte_q, byte_z);
+      q0 <- (cf ? q1 : q0);
+      z <- (q0 = (W64.of_int 0));
+      i <- (i + 1);
+    }
+    return (i, byte_p);
+  }
+  
   proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
     
     var bit:W64.t;
@@ -538,6 +621,7 @@ module M = {
     var b:W64.t Array32.t;
     var p:W64.t Array32.t;
     var r:W64.t Array32.t;
+    var  _0:int;
     a <- witness;
     b <- witness;
     p <- witness;
@@ -545,6 +629,7 @@ module M = {
     z <- witness;
     r <@ expm (z, a, b, p);
     r <@ mulm (z, a, b, p);
+    ( _0, r) <@ rsample (a);
     return ();
   }
 }.

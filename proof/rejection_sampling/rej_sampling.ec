@@ -141,7 +141,8 @@ qed.
 
 
 lemma ph_main &m P1 Q1 : Impl Q1 P1 => mu d (predC P1) < 1%r =>
-  Pr[ RS.sample(P1) @ &m : Q1 res ] = (mu d Q1) / (1%r - (mu d (predC P1))).
+  Pr[ RS.sample(P1) @ &m : Q1 res ] = 
+ (mu d Q1) / (1%r - (mu d (predC P1))).
 proof. move => iqp.
 pose p := Pr[RS.sample(P1) @ &m : Q1 res].
 pose q := mu d Q1.

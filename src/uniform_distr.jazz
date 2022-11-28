@@ -7,17 +7,18 @@ inline fn rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
   reg bool  z cf;
   inline int i;
 
+  byte_p = bn_set0(byte_p);
   q0 = 0;
   q1 = 1;
   i = 0;
   
   z = (q0 == 0);
-  while (z) {
+  while (cf) {
     byte_p = #randombytes(byte_p);
-
+    byte_q = bn_copy(byte_p);
     cf , byte_q = bn_subc(byte_q, byte_z);
     q0 = q1 if cf;
-    z = (q0 == 1);
+    z = (q0 == 0);
     i = i + 1;
   }
 
@@ -38,13 +39,3 @@ export fn __rsample(reg u64 zp rp)
   bn_store(rp2, r);
 }
 
-
-inline fn toEC()
-{
-  stack u64[nlimbs] a b r p;
-  stack u64[2 * nlimbs] z;
-  reg u64 x;
-  reg bool _cf;  
-
-  r = rsample(a);
-}

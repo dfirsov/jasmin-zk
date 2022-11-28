@@ -9,13 +9,113 @@ import StdBigop Bigint BIA.
 op R : W64.t Array64.t = R2.bn_ofint Ri.
 require import BarrettRedInt.
 
+module M = M(Syscall).
+
 lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
  a <= b / c => a < b.
 smt(@Real).
 qed.
 
-
 require import RealExp.
+
+
+lemma bn_copy_correct x :
+  phoare[ M.bn_copy :  arg = x  ==> res = x ] = 1%r.
+proc.
+while (a = x /\ i <= nlimbs 
+  /\ (forall j, 0 <= j < i => r.[j]%Array32 = x.[j]%Array32)
+  ) (dnlimbs - i). progress.
+wp.  skip.  progress. smt(). smt(@Array32). smt(). wp.  skip. progress. smt(). smt().
+apply Array32.ext_eq. progress. smt(). 
+qed.
+
+
+lemma bn_set0_correct :
+  phoare[ M.bn_set0 : true  ==> W64xN.valR res = 0 ] = 1%r.
+proc.
+while (i <= nlimbs
+  /\ (forall j, 0 <= j < i => a.[j]%Array32 = W64.zero)) (nlimbs - i). progress.
+wp.  skip.  progress. smt().  smt(@Array32). smt(). wp.  skip. progress. smt(). smt().
+rewrite - zeroRE. congr.
+apply Array32.ext_eq. progress.  rewrite H1. smt().
+rewrite /zeroR. smt(@Array32 @List). 
+qed.
+
+equiv subc_spec:
+ M.bn_subc ~ ASpecFp.subn:
+  W64xN.valR a{1} = a{2} /\ W64xN.valR b{1} = b{2} (* /\ W64xN.valR b{1}  <= W64xN.valR a{1} *)
+  ==> res{1}.`1=res{2}.`1 /\ W64xN.valR res{1}.`2 = res{2}.`2.
+proof.
+transitivity 
+ W64xN.R.Ops.subcR
+ ( (a,b,false){1}=(a,b,c){2} ==> ={res} )
+ (W64xN.valR  a{1} = a{2} /\ W64xN.valR b{1} = b{2} /\ !c{1} (* /\ W64xN.valR b{1}  <= W64xN.valR a{1} *)
+   ==> res{1}.`1 = res{2}.`1 /\ W64xN.valR res{1}.`2 = res{2}.`2 ).
++ by move=> /> &1 &2 H1 H2 ; exists (a{1},b{1},false).
++ by move=> /> *.
++ proc; simplify.
+  unroll {2} 3; rcondt {2} 3; first by auto.
+  exlim a{1}, b{1} => aa bb.
+  while (={i,b} /\ 1 <= i{2} <= dnlimbs /\ 
+         (cf, aa){1}=(c, a){2} /\
+         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array32 /\
+         (forall k, i{2} <= k < dnlimbs => a{1}.[k] = aa.[k])%Array32).
+   wp; skip => /> &1 &2 Hi1 _ Hh1 Hh2 Hi2.
+   split => *; first smt().
+   split => *; first smt().
+   split.
+    move=> k Hk1 Hk2.
+    pose X := (subc _ _ _)%W64.
+    pose Y := (subc _ _ _)%W64.
+    have ->: X=Y by smt().
+    case: (k = i{2}) => ?.
+     by rewrite !set_eqiE /#.
+    by rewrite !set_neqiE /#.
+   move=> k Hk1 Hk2.
+   by rewrite set_neqiE /#.
+  wp; skip => />.
+  split => *.
+   split => k *.
+    by rewrite (_:k=0) 1:/# !set_eqiE /#.
+   by rewrite set_neqiE /#.
+  by apply Array32.ext_eq; smt().
++ proc; simplify.
+  transitivity {1}
+   { (c,r) <@ W64xN.R.Ops.subcR(a,b,c); }
+   ( ={a,b,c} ==> ={c,r} )
+   ( W64xN.valR a{1} = a{2} /\ W64xN.valR b{1} = b{2} /\ !c{1}  (* /\ W64xN.valR b{1}  <= W64xN.valR a{1} *) ==> ={c} 
+   /\ W64xN.valR r{1} = r{2} ).
+  + by move=> /> &2 H  ; exists a{2} b{2} false.
+  + by auto.
+  + by inline*; sim.
+  + ecall {1} (W64xN.R.subcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> .
+progress. 
+    by rewrite W64xN.R.bn_borrowE 1:/# b2i0 /bn_modulus /=.
+qed.
+
+
+(* TODO: properties about conversion  *)
+op conv1 :    int -> W8.t Array256.Array256.t.
+op conv2 :    W8.t Array256.Array256.t -> int.
+require import WArray256 Array256.
+equiv rsample_cspec:
+ M.rsample ~ CSpecFp.rsample:
+  W64xN.valR byte_z{1} = a{2}
+  ==> W64xN.valR res{1}.`2 = res{2}.`2 /\ res{1}.`1 = res{2}.`1.
+proc. wp.
+  while (={i} /\ z{1} = b{2} /\ ImplZZ byte_p{1}  x{2} /\ W64xN.valR  byte_z{1} = a{2} /\  q1{1} = W64.one  
+  /\ (z{1} => q0{1} = W64.zero) /\ (!z{1} => q0{1} = W64.one)    ). wp.
+call  subc_spec. wp. ecall {1} (bn_copy_correct byte_p{1}).
+wp. inline*. wp. 
+rnd conv2 conv1. wp.  skip. progress. admit. admit. admit. admit. admit.
+rewrite H. auto. rewrite H9. 
+case (!result_R.`1). progress. rewrite H11. simplify. auto. progress. rewrite H11. simplify. smt(@W64).
+smt(). smt(@W64). smt().
+wp. call{1} bn_set0_correct. wp. skip. progress.
+qed.
+
+
+
 lemma R_prop : W64x2N.valR R = 4 ^ (64 * nlimbs) %/ P.
 rewrite /R.
 have q1: 0 <= Ri. rewrite /Ri. 
@@ -225,6 +325,7 @@ progress.
 qed.
 
 
+
 lemma dbn_cmov_correct x y z :
   phoare[ M.dbn_cmov :  arg = (x,y,z)  ==> res = if x then z else y ] = 1%r.
 proc.
@@ -235,17 +336,6 @@ wp.  skip.  progress. smt().   smt(@Array64). smt(@Array64). smt(). wp.  skip. p
 apply Array64.ext_eq. progress. smt(@Array64). 
 qed.
 
-
-(* lemma dbn_set0_correct : *)
-(*   phoare[ M.bn_set0 : true  ==> W64xN.valR res = 0 ] = 1%r. *)
-(* proc. *)
-(* while (i <= nlimbs  *)
-(*   /\ (forall j, 0 <= j < i => a.[j]%Array32 = W64.zero)) (nlimbs - i). progress. *)
-(* wp.  skip.  progress. smt().  smt(@Array32). smt(). wp.  skip. progress. smt(). smt(). *)
-(* rewrite - zeroRE. congr. *)
-(* apply Array32.ext_eq. progress.  rewrite H1. smt().  *)
-(* rewrite /zeroR. smt(@Array32). *)
-(* qed. *)
 
 
 require import List.
@@ -298,16 +388,6 @@ wp.  skip.  progress. smt(). smt(@Array64). smt(). wp.  skip. progress. smt(). s
 apply Array64.ext_eq. progress. smt(). 
 qed.
 
-
-lemma bn_copy_correct x :
-  phoare[ M.bn_copy :  arg = x  ==> res = x ] = 1%r.
-proc.
-while (a = x /\ i <= nlimbs 
-  /\ (forall j, 0 <= j < i => r.[j]%Array32 = x.[j]%Array32)
-  ) (dnlimbs - i). progress.
-wp.  skip.  progress. smt(). smt(@Array32). smt(). wp.  skip. progress. smt(). smt().
-apply Array32.ext_eq. progress. smt(). 
-qed.
 
 
 
