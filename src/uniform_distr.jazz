@@ -13,7 +13,7 @@ inline fn rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
   i = 0;
   
   z = (q0 == 0);
-  while (cf) {
+  while (z) {
     byte_p = #randombytes(byte_p);
     byte_q = bn_copy(byte_p);
     cf , byte_q = bn_subc(byte_q, byte_z);

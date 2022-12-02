@@ -107,7 +107,7 @@ proc. wp.
   /\ (z{1} => q0{1} = W64.zero) /\ (!z{1} => q0{1} = W64.one)    ). wp.
 call  subc_spec. wp. ecall {1} (bn_copy_correct byte_p{1}).
 wp. inline*. wp. 
-rnd conv2 conv1. wp.  skip. progress. admit. admit. admit. admit. admit.
+rnd conv2 conv1. wp.  skip. progress. admit. admit. admit. admit. admit. (* must be resolved by conv1 and conv2 properties *)
 rewrite H. auto. rewrite H9. 
 case (!result_R.`1). progress. rewrite H11. simplify. auto. progress. rewrite H11. simplify. smt(@W64).
 smt(). smt(@W64). smt().
@@ -698,7 +698,7 @@ require MontgomeryLadder.
 
 
 
-clone import MontgomeryLadder as Exp with type R  <- t,
+clone import MontgomeryLadder as Exp with type R  <- W64xN.R.t,
                                                  op P <- P,
                                                  op Rsize <- 64*nlimbs,
                                                  op valR <- W64xN.valR,
@@ -1099,7 +1099,7 @@ smt(ltz_pmod P_pos). auto.
 qed.
 
 
-lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : t), valR%W64xN b < P =>
+lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : W64xN.R.t), valR%W64xN b < P =>
   ImplFp b a =>
   ImplFp ((^) b n) (inzp (asint a ^ n)).
 apply intind. progress.

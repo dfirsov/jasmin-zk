@@ -192,7 +192,7 @@ module CSpecFp = {
 
  proc rsample(a:int) : int * int = {
    var x, b, i,z;
-   x <- 0;
+   x <- witness;
    b <- true;
    i <- 0;
    while(b){
@@ -205,6 +205,57 @@ module CSpecFp = {
  }
 
 }.
+
+
+
+require RejectionSampling.
+clone import RejectionSampling as RS with type X <- int,
+                                          op d <- D.
+
+
+op RSP a x =  x < a.
+lemma rsample_pr1  a1  &m r : 
+  Pr[CSpecFp.rsample(a1) @ &m : res = r]
+  =  Pr[RS.sample(RSP a1, 0) @ &m : res = r].
+byequiv (_: arg{1} = a1 /\ c{2} = 0 /\ P{2} = RSP a1  ==> _) .
+proc. sp.
+while (a{1} = a1 /\ P{2} = RSP a1 /\ i{1} = c{2} /\ b{1} = !b{2} /\ x{1} = x{2} ).
+wp. inline*. wp.  rnd. skip. progress. rewrite /RSP.
+skip. progress. auto. auto.
+qed.
+
+require import Real AllCore.
+
+lemma rsample_pr a1 &m i x : 1 <= i => RSP a1 x =>
+    Pr[CSpecFp.rsample(a1) @ &m : res = (i,x) ]
+     = (mu D (predC (RSP a1)) ^ (i - 1) * mu D (pred1 x)).
+progress.
+rewrite rsample_pr1.
+have ->: Pr[RS.sample(RSP a1, 0) @ &m : res = (i, x)] 
+ = Pr[RS.sample(RSP a1, 0) @ &m : res.`2 = x /\ res.`1 = i]. 
+rewrite Pr[mu_eq]. smt(). auto.
+rewrite   (Indexed.prob  &m (RSP a1) (fun z => z = x) _ (i - 1) _).
+progress.  auto. smt(). congr. simplify. smt(@Distr).
+qed.
+
+
+
+lemma rsample_lossless a1 &m  : 0%r < mu D (RSP a1) =>
+    Pr[CSpecFp.rsample(a1) @ &m : true ]
+     = 1%r.
+have ->: Pr[CSpecFp.rsample(a1) @ &m : true ]
+  =  Pr[RS.sample(RSP a1, 0) @ &m : true ].
+byequiv (_: arg{1} = a1 /\ c{2} = 0 /\ P{2} = RSP a1  ==> _) .
+proc. sp.
+while (a{1} = a1 /\ P{2} = RSP a1  /\ b{1} = !b{2} /\ x{1} = x{2} ).
+wp. inline*. wp.  rnd. skip. progress. rewrite /RSP.
+    skip. progress. auto. auto.
+progress.
+have xx : Pr[RS.sample(RSP a1, 0) @ &m : RSP a1 res.`2 ] = 1%r.
+apply (Correctness.rj_lossless &m (RSP a1) 0 _) .  auto. 
+smt(@Distr).
+qed.
+
 
 
 equiv mulm_eq:

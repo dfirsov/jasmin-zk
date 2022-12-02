@@ -1,7 +1,7 @@
 require import AllCore.
 
-op inv ['a 'b] : 'a -> ('a -> 'b) -> 'b -> 'a = 
-  fun d f b => 
+op inv ['a 'b] : 'a -> ('a -> 'b) -> 'b -> 'a
+ = fun d f b => 
     choiceb (fun x => f x = b) 
             d.
 

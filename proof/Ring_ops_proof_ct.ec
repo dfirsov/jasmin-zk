@@ -6,8 +6,6 @@ require import JModel List Int AllCore.
 equiv expm_ct :
   M(Syscall).expm ~ M(Syscall).expm :
   ={M.leakages, glob M} ==> ={M.leakages}.
-proof. 
-
-    proc; inline *; sim. qed.
+proof.  proc; inline *; sim. qed.
 
 

@@ -1,3 +1,4 @@
+
 require import AllCore Distr.
 
 type X.
