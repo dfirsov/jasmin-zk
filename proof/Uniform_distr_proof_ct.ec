@@ -106,6 +106,7 @@ LeakAddr [] :: (copy_f 32 ++
 axiom samp_g_comp_1 x : 0 <= x  => samp_g x = [].
 axiom samp_g_comp_2 x : 0 < x => samp_g x = samp_step (x-1) ++ samp_g (x - 1).
 
+
 op samp_suffix : leakages_t = 
  LeakCond false :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: (
 sub_f 32 ++
@@ -114,6 +115,7 @@ LeakAddr [] :: (copy_f 32 ++ LeakAddr [] :: LeakAddr [] :: [])).
 op samp_f (x : int) : leakages_t = samp_g x ++ samp_prefix.
 op samp_t (x : int) : leakages_t = samp_suffix ++ samp_f (x - 1).
 
+axiom samp_t_inj : injective samp_t.
 
 
 lemma rsample_leakages :
@@ -233,8 +235,6 @@ qed.
 require import InvFun.
 
 
-lemma samp_t_inj : injective samp_t.
-admitted.
 
 
     
