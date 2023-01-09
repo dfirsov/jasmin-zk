@@ -8,7 +8,7 @@ lemma rj_eq1 :
    : ={arg} ==> ={res} ].
 proof. 
 proc.
-unroll {1} 2. inline RS.sample. 
+unroll {1} 3. inline RS.sample. 
 sp.  rcondt {1} 1. auto. 
 seq 3 2 : (={x, P, c} /\ b{1} = P{2} x{2}).
 wp. rnd. skip. progress.
@@ -30,10 +30,10 @@ lemma ph_l &m P1 Q1 c1 :
    = (Pr[ RS.sample(P1, c1) @ &m : Q1 res.`2 ]).
 bypr. move => &m0 q. rewrite q.
 byequiv (_: arg{1}.`1 = arg{2}.`1 ==> _). proc. 
-unroll {1} 2.
-unroll {2} 2.
-rcondt {1} 2. progress. wp. auto.
-rcondt {2} 2. progress. wp. auto.
+unroll {1} 3.
+unroll {2} 3.
+rcondt {1} 3. progress. wp. auto.
+rcondt {2} 3. progress. wp. auto.
 while (={x,b,P}). auto. wp. rnd. wp. skip. progress. smt().
 auto. 
 qed.

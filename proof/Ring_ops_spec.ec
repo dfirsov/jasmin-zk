@@ -192,7 +192,7 @@ module CSpecFp = {
 
  proc rsample(a:int) : int * int = {
    var x, b, i,z;
-   x <- witness;
+   x <- 0;
    b <- true;
    i <- 0;
    while(b){
@@ -210,10 +210,11 @@ module CSpecFp = {
 
 require RejectionSampling.
 clone import RejectionSampling as RS with type X <- int,
-                                          op d <- D.
+                                          op d <- D,
+                                          op defX <- 0.
 
 
-op RSP a x =  x < a.
+op RSP (a:int) x =  x < a.
 lemma rsample_pr1  a1  &m r : 
   Pr[CSpecFp.rsample(a1) @ &m : res = r]
   =  Pr[RS.sample(RSP a1, 0) @ &m : res = r].

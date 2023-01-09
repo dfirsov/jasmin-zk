@@ -7,7 +7,7 @@ abbrev Impl P Q = (forall (x : X), P x => Q x).
 
 op d : X distr.
 axiom dll : is_lossless d.
-
+op defX : X.
 
 module RS = {
   var flag : bool
@@ -15,6 +15,7 @@ module RS = {
   proc sample(P : X -> bool,c:int) = {
     var b : bool;
     var x : X;
+    x <- defX;
     b <- false;
     while(!b){
      x <$ d;

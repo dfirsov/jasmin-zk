@@ -71,21 +71,6 @@ qed.
 
     
 
-(* proof. rewrite /( *** ).   admitted. *)
-
-(* have ->: (valR ((of_int (valR a + valR b %% P))) + valR c %% P) *)
-(*   = (valR a + valR ((of_int (valR b + valR c %% P))) %% P). *)
-
-(*   have ->: valR ((of_int (valR a + valR b %% P))) = (valR a + valR b %% P). *)
-(*    smt. *)
-(*   have ->: ((valR a + valR b) %% P) + valR c %% P = ((valR a + valR b)  + valR c) %% P .  *)
-(*   smt (mod_lemm). *)
-(*   have ->: valR ((of_int (valR b + valR c %% P))) = valR b + valR c %% P. smt. *)
-(*   have ->: valR a + (valR b + valR c %% P) %% P = valR a + (valR b + valR c) %% P. smt (mod_lemm). *)
-(*   smt(). *)
-(*   auto. *)
-(* qed.  *)
-
 
 (* lemma to_uintP: forall (x y : R), valR (x *** y) = (valR x ** valR y) %% P. *)
 (* progress. rewrite /( *** ). smt. *)
@@ -139,14 +124,15 @@ rewrite iteriS. smt().
 simplify. smt().
 qed.
 
-
+search bs2int.
 lemma prop1 : bs2int [true] = 1.
-rewrite - (bs2int1 0). rewrite /nseq. rewrite iter0.  auto. auto. 
+rewrite bs2int_cons. rewrite bs2int_nil. simplify. 
+  auto. 
 qed.
 
 lemma prop2   : bs2int [false] = 0.
-rewrite - (bs2int_nseq_false 1).
-rewrite nseq1. auto.
+rewrite bs2int_cons. rewrite bs2int_nil. simplify. 
+  auto. 
 qed.
 
 lemma prop3 s : bs2int (true :: s) = 2 * (bs2int s) + 1.
@@ -390,7 +376,7 @@ smt (exp_prop6).
 pose n := bs2int (drop ctr{hr} n{hr}).
 rewrite exp_prop3. smt (prop5). auto. auto. rewrite exp_prop2.
 have ->: (2 * n) = n + n. smt().
-rewrite exp_prop3. admit. admit. auto. auto.
+rewrite exp_prop3. smt. smt. auto. auto.
 progress.
 have z: has_true (drop ctr{hr} n{hr}) = true. 
 have x : drop (ctr{hr} - 1) n{hr} = ith_bit n{hr} (ctr{hr} - 1) :: drop ctr{hr} n{hr}.

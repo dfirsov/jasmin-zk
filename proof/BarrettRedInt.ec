@@ -10,7 +10,7 @@ op t (x n k : real)  : real = x - (t' x n k) * n.
 
 lemma r_pos n (k : real): 
    0%r <= n < 2%r^k =>
-  r n k >= 0%r. rewrite /r. move => Q. smt(@Real @RealExp). qed.
+  r n k >= 0%r. rewrite /r. move => Q. smt.  qed.
 
   
 lemma nn_bound n (k : real) : 
@@ -89,7 +89,7 @@ smt(st3).
 move => _. smt(st3).
 qed.
 
-
+require import FloorCeil.
 lemma st6 x n (k : real) : 
   0%r <= x < n * n =>
   0%r <= n < 2%r^k =>
@@ -99,7 +99,7 @@ proof. move => x_bounds n_bounds.
   smt(@Real).
   have st5_2 : (floor (x / n - 1%r)) %r <= t' x n k.
   rewrite /t'.
-  apply le_fromint.
+  apply le_fromint. 
   apply floor_mono.  
   smt(st4).
   have st5_3: t' x n k <= x / n.
@@ -144,6 +144,10 @@ op ri(n k : int) : int = ((4^k  %/ n)).
 op ti' (x n k : int) = ( (x * ri n k %/ 4^k)).
 op ti (x n k : int)  : int = x - (ti' x n k) * n.
 
+lemma divz_eqP (m d n : int) :
+  0 < d => m %/ d = n <=> n * d <= m < (n + 1) * d.
+proof. smt(@IntDiv).
+qed.
 
 lemma floor_div1 a b : 0 < b => a %/ b = floor (a%r / b%r).
 move => qp.

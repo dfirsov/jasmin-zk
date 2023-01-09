@@ -2,12 +2,13 @@ pragma Goals:printall.
 require import AllCore Distr Real List.
 require import RejectionSamplingModule.
 
+
 lemma rj_eq1 : 
  equiv [RS.sample ~ RS.sample1 
    : ={arg} ==> ={res} ].
 proof. 
 proc.
-unroll {1} 2. inline RS.sample. 
+unroll {1} 3. inline RS.sample. 
 sp.  rcondt {1} 1. auto. 
 seq 3 2 : (={x, P, c} /\ b{1} = P{2} x{2}).
 wp. rnd. skip. progress.
@@ -29,10 +30,10 @@ lemma ph_l &m P1 Q1 c1 i :
    = (Pr[ RS.sample(P1,c1) @ &m : Q1 res.`2 /\ res.`1 = i ]).
 bypr. move => &m0 q. rewrite q.
 byequiv (_: ={arg} ==> _). proc. 
-unroll {1} 2.
-unroll {2} 2.
-rcondt {1} 2. progress. wp. auto.
-rcondt {2} 2. progress. wp. auto.
+unroll {1} 3.
+unroll {2} 3.
+rcondt {1} 3. progress. wp. auto.
+rcondt {2} 3. progress. wp. auto.
 while (={c,x,b,P}). auto. wp. rnd. wp. skip. progress.
 auto. auto.
 qed.
@@ -87,7 +88,7 @@ lemma ph_l5''  &m P1 Q1  :
 have :    Pr[RS.sample(P1, 0) @ &m : res.`1 = 0] = 0%r.
 byphoare (_: arg = (P1, 0) ==> res.`1 = 0);auto. hoare.
 proc.  simplify.
-unroll 2. rcondt 2. wp. skip.  auto.
+unroll 3. rcondt 3. wp. skip.  auto.
 while (0 < c). wp. rnd. skip. smt().
 wp. rnd. wp. skip. auto. smt().
 smt.
@@ -101,7 +102,7 @@ progress.
 byequiv (_: ={P} /\ c{2} + 1 = c{1}  ==> _).
 proc.
 sp.  while (={P, x, b} /\ c{2} + 1 = c{1}   ).
-wp. rnd. skip. progress. skip. progress.  admit.  smt().
+wp. rnd. skip. progress. skip. progress. smt().
 progress.  auto.
 qed.
 
@@ -112,7 +113,7 @@ progress.
 byequiv (_: ={P} /\ c{2} + 1 = c{1}  ==> _).
 proc.
 sp.  while (={P, x, b} /\ c{2} + 1 = c{1}   ).
-wp. rnd. skip. progress. skip. progress.  admit.  smt().
+wp. rnd. skip. progress. skip. progress. smt().
 progress.  
 qed.
 

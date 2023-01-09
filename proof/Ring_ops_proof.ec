@@ -111,7 +111,7 @@ rnd conv2 conv1. wp.  skip. progress. admit. admit. admit. admit. admit. (* must
 rewrite H. auto. rewrite H9. 
 case (!result_R.`1). progress. rewrite H11. simplify. auto. progress. rewrite H11. simplify. smt(@W64).
 smt(). smt(@W64). smt().
-wp. call{1} bn_set0_correct. wp. skip. progress.
+wp. call{1} bn_set0_correct. wp. skip. progress. 
 qed.
 
 
@@ -453,8 +453,9 @@ rewrite /W64xN.modulusR. auto.
 rewrite W64x2N.R.bn_mod. auto. 
 rewrite /bnk. 
 apply eq_big_seq. progress. rewrite H1. split.
-smt (mem_range_le). 
-smt (mem_range_gt).
+
+smt (mem_range). 
+smt (mem_range). 
 auto.
 qed.
 
@@ -499,7 +500,13 @@ lemma bn_expand_correct : forall a,
     have ->: mkseq (fun (i0 : int) => r{hr}.[nlimbs + i0]) nlimbs
       = mkseq (fun (i0 : int) => W64.zero) nlimbs.
     apply eq_in_mkseq. progress. rewrite H0. smt(). auto.
-    rewrite mkseq_nseq. 
+    have -> : mkseq (fun (_ : int) => W64.zero) nlimbs = nseq nlimbs W64.zero.   
+    print mkseq_nth.
+     pose s := (nseq nlimbs W64.zero).
+    rewrite (eq_mkseq (fun (x: int) => W64.zero) (nth W64.zero s)). 
+   apply fun_ext.    apply fun_ext. progress. move => x. smt.
+   have ->: nlimbs = size s. rewrite /s. search nseq. rewrite size_nseq. smt.
+apply mkseq_nth. 
     rewrite /bn_seq.
     rewrite foldr_cat.
     have ->: (foldr (fun (w : W64.t) (r0 : int) => to_uint w + W64x2N.M * r0) 0
@@ -936,7 +943,7 @@ auto.
 rewrite to_uintB.  rewrite /(\ule).
 rewrite to_uintM_small. rewrite x.  
 rewrite W64.to_uint_small. auto.
-have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt (divz_eqP). 
+have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt. (* smt (divz_eqP).  *)
 have  :  0 <= to_uint ctr{2} && to_uint ctr{2} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{2}). clear x.
 pose x := to_uint ctr{2} %/ 64 * 64.
@@ -946,7 +953,7 @@ rewrite x.  smt(shr_div_le).
 rewrite to_uintM_small. rewrite x.  
 have ->: to_uint ((of_int 64))%W64 = 64.
 rewrite W64.to_uint_small.  auto. auto.
-have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt (divz_eqP). 
+have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt. (* smt (divz_eqP).  *)
 have  :  0 <= to_uint ctr{2} && to_uint ctr{2} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{2}). clear x.
 pose x := to_uint ctr{2} %/ 64 * 64.
@@ -989,7 +996,7 @@ rewrite to_uintB. rewrite /(\ule).
 have x:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64.
 rewrite shr_div_le. auto. smt(@Ring).
 rewrite W64.to_uint_small. auto.
-have  : to_uint ctr{1} %/ 64 * 64 <= to_uint ctr{1}. smt (divz_eqP).
+have  : to_uint ctr{1} %/ 64 * 64 <= to_uint ctr{1}. (* smt (divz_eqP). *) smt.
 have  :  0 <= to_uint ctr{1} && to_uint ctr{1} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{1}).
 pose xx := to_uint ctr{1} %/ 64 * 64.
@@ -998,7 +1005,8 @@ smt().
 rewrite W64.to_uint_small. auto.
 have ->:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64.
 rewrite shr_div_le. auto. smt(@Ring).
-smt (divz_eqP).
+smt.
+(* smt (divz_eqP). *)
 rewrite shr_div_le.  auto.
 rewrite W64.to_uintM.
 rewrite W64.to_uint_small. auto.

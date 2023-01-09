@@ -48,9 +48,8 @@ Pr[prog(x): res=a] * f(l)
 
 B)
 exists f g, forall x l a,
-Pr[prog(x): leak = l & res=a]
-=
-g(x,a) * f(l)
+Pr[rsample(x): M.leakage = l & res=a]
+= h(g(x,a), f(l))
 
 ====
 

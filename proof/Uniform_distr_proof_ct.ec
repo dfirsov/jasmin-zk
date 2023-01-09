@@ -298,17 +298,19 @@ call (_:true). auto. wp. skip. smt().
 qed.
 
 
-op z a x l : real 
+
+op g a x l : real 
  = if inv (-1) samp_t l <= 0 then 0%r else mu D (predC (RSP ((valR a)))) ^ (inv (-1) samp_t l - 1) *
         (mu1 D ((valR x))).
 
+        
 lemma leakfree &m x a l: (glob M1){m} = [] => valR x < valR a => 0%r < mu D (RSP (valR a)) =>
   Pr[ M1.rsample(a) @ &m : M1.leakages = l  /\ res.`2 = x  ]
-    = z a x l.
+    = g a x l.
       progress.
    rewrite  (qqq a x l &m);auto.
 case (inv (-1) samp_t l <= 0). 
-move => q. rewrite /z. rewrite q.  simplify. 
+move => q. rewrite /g. rewrite q.  simplify. 
   have : Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m :
    inv (-1) samp_t l = res.`1 /\ res.`2 = x] 
     <= Pr[M1.rsample(a) @ &m : res.`1 <= 0 ]. simplify. rewrite Pr[mu_sub]. smt().
