@@ -27,19 +27,23 @@ type R = W64.t Array32.t.
 type R2 = W64.t Array64.t.
 
 op M = 2 ^ (64 * nlimbs).
-op P : int. 
+
 
 op D : int distr.
 
-axiom ppos : P < W64xN.modulusR.
-axiom P_pos : 2 <= P.
+
 
 
 (* Embedding into ring theory *)
 require ZModP.
-clone import ZModP.ZModRing as Zp with
-        op p <= P
+clone import ZModP.ZModField as Zp 
         rename "zmod" as "zp".
+
+
+op generator : zp.
+op P : int = p.  
+axiom ppos : P < W64xN.modulusR.
+axiom P_pos : 2 <= P.
 
 
         
@@ -159,10 +163,13 @@ module ASpecFp = {
   }
   
 }.
-
+require import Distr DInterval. 
+print DInterval.
 (******************************************************************)
 (*                  CONCRETE SPECIFICATIONS                       *)
 (******************************************************************)
+print duniform.
+print range.
 module CSpecFp = {
 
  proc redm(a r k: int): int = {
@@ -203,6 +210,7 @@ module CSpecFp = {
    }
    return (i,x);
  }
+
 
 }.
 
