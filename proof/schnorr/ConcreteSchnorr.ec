@@ -20,8 +20,8 @@ module MyImpl = {
  proc commit(h : zp, w : int) : zp * int = {
    var r, q : int;
    var a : zp;    
-   r <$ duniform (range 0 P); (*       (q,r) <@ rsample(P);*)
-   a <@ ASpecFp.expm(G.g,r); (* a <- (generator ^ r) % P; *)    
+   r <@ ASpecFp.rsample(P);
+   a <@ ASpecFp.expm(G.g,r);
    return (a, r);
   } 
 }.
@@ -35,23 +35,23 @@ lemma commit_same :
       /\  GP.ZModE.Sub.val res.`2{1} = res.`2{2} 
     ].
 proc. 
-inline ASpecFp.expm. wp.  simplify.
+inline *. wp.  simplify. sp.
+
 rnd GP.ZModE.Sub.val (oget \o GP.ZModE.Sub.insub) .
 skip. progress. 
-have -> :  (GP.ZModE.Sub.val ((\o) oget GP.ZModE.Sub.insub rR))
- = rR.  
+have -> :  (GP.ZModE.Sub.val ((\o) oget GP.ZModE.Sub.insub r0R))
+ = r0R.  
 rewrite /(\o).
 rewrite - Core.oget_omap_some. 
-have rint : (0 <= rR && rR < G.order).
+have rint : (0 <= r0R && r0R < G.order).
 have ->: G.order = p. smt. 
 smt (@Distr @DInterval @List). auto. auto.
 smt(GP.ZModE.Sub.insubP).
 rewrite GP.ZModE.Sub.insubT.
 have ->: G.order = p. smt. 
 smt (@Distr @DInterval @List). auto. auto.
-(* smt (@Distr @DInterval). auto. *)
 rewrite duniform1E. 
-have ->: rR \in range 0 P = true. smt(@List @Distr). simplify.
+have ->: r0R \in range 0 P = true. smt(@List @Distr). simplify.
 rewrite FD.dt1E. smt. 
 have : 0 <= GP.ZModE.Sub.val rL < P. smt.
 smt(@Distr @DInterval @List).

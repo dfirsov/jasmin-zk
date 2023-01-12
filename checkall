@@ -7,7 +7,7 @@ ECO=
 
 check() {
   echo checking $1;
-  if easycrypt $ECO -p "CVC4"  -p "Z3" -p "Alt-Ergo"  -I ./proof -I ./proof/eclib -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -timeout $timeout $1;
+  if easycrypt $ECO -p "CVC4"  -p "Z3" -p "Alt-Ergo"  -I ./proof -I ./proof/eclib -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr -timeout $timeout $1;
   then echo passed: $1;
        echo "";
   else echo failed: $1;
@@ -38,6 +38,7 @@ check proof/rejection_sampling/RejectionSamplingModule.ec
 check proof/rejection_sampling/RejectionSamplingProperties.ec
 
 
+
 ## misc
 check proof/BarrettRedInt.ec
 check proof/Ring_ops_extract.ec
@@ -47,6 +48,11 @@ check proof/Ring_ops_proof_ct.ec
 check proof/Ring_ops_spec.ec
 check proof/Uniform_distr_extract_ct.ec
 check proof/Uniform_distr_proof_ct.ec
+
+
+## schnorr
+check proof/schnorr/AbstractSchnorr.ec
+check proof/schnorr/ConcreteSchnorr.ec
 
 
 echo "DONE";

@@ -4,6 +4,18 @@ require import RejectionSamplingModule.
 require import RejectionSamplingCorrectness.
 require import RejectionSamplingIndexed.
 
+(* 
+
+P1 := fun r => 0 <= r < x
+Q1 := fun r => r == x
+
+p = x / 2^n
+q  = 1 / 2^n
+q  / !p = 1/x
+
+
+
+*)
 
 lemma rsP &m P1 Q1 c1 : 
  Impl Q1 P1 => mu d (predC P1) < 1%r =>

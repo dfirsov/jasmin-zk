@@ -1,4 +1,4 @@
-require import Core Int IntDiv Ring IntDiv StdOrder List.
+require import Core Int IntDiv Ring IntDiv StdOrder List Distr .
 
 require import JModel JBigNum.
 
@@ -29,7 +29,11 @@ type R2 = W64.t Array64.t.
 op M = 2 ^ (64 * nlimbs).
 
 
-op D : int distr.
+op D : int distr = duniform (range 0 M).
+axiom D_ll : is_lossless D.
+axiom D_uni : is_uniform D.
+axiom D_sup x : x \in D <=> 0 <= x < M.
+axiom D_mu x : x \in D => mu1 D x = Real.inv M%r.
 
 
 
@@ -135,6 +139,12 @@ module ASpecFp = {
     return r;
   }
 
+  proc rsample(a : int): int = {
+    var r;
+    r <$ duniform (range 0 a);
+    return r;
+  }
+
  
   (* Finite Ring Ops *)
 
@@ -229,10 +239,21 @@ lemma rsample_pr1  a1  &m r :
 byequiv (_: arg{1} = a1 /\ c{2} = 0 /\ P{2} = RSP a1  ==> _) .
 proc. sp.
 while (a{1} = a1 /\ P{2} = RSP a1 /\ i{1} = c{2} /\ b{1} = !b{2} /\ x{1} = x{2} ).
+wp. inline*. wp.  rnd. skip. progress. rewrite /RSP.  
+skip. progress. auto. auto.
+qed.
+
+lemma rsample_pr2  a1  &m PP : 
+  Pr[CSpecFp.rsample(a1) @ &m : PP res]
+  =  Pr[RS.sample(RSP a1, 0) @ &m : PP res].
+byequiv (_: arg{1} = a1 /\ c{2} = 0 /\ P{2} = RSP a1  ==> _) .
+proc. sp.
+while (a{1} = a1 /\ P{2} = RSP a1 /\ i{1} = c{2} /\ b{1} = !b{2} /\ x{1} = x{2} ).
 wp. inline*. wp.  rnd. skip. progress. rewrite /RSP.
 skip. progress. auto. auto.
 qed.
 
+  
 require import Real AllCore.
 
 lemma rsample_pr a1 &m i x : 1 <= i => RSP a1 x =>
@@ -246,6 +267,44 @@ rewrite Pr[mu_eq]. smt(). auto.
 rewrite   (Indexed.prob  &m (RSP a1) (fun z => z = x) _ (i - 1) _).
 progress.  auto. smt(). congr. simplify. smt(@Distr).
 qed.
+
+require import Aux.
+lemma rsample_uni &m x  : 0 <= x =>  RSP P x =>
+    Pr[CSpecFp.rsample(P) @ &m : res.`2 = x ]
+     = 1%r / P%r.
+progress.
+rewrite  (rsample_pr2 P &m (fun (rres : int * int) => rres.`2 = x)). 
+simplify.
+rewrite (Correctness.ph_main  &m (RSP P)  (fun rres => rres = x) ). auto.
+ have -> : mu D (predC (RSP P)) = 1%r - mu D (RSP P).
+rewrite mu_not.  smt. 
+ have q : mu D (RSP P) > 0%r. 
+ apply witness_support.
+  exists 0. smt.
+ smt.
+have -> : mu D (transpose (=) x) = 1%r / M%r. apply  D_mu. 
+have : x < M. smt. smt (D_sup).
+have -> : mu D (predC (RSP P)) = 1%r - mu D ((RSP P)).  
+rewrite mu_not. rewrite /weight.
+rewrite is_losslessP. apply D_ll. auto.
+have -> : mu D (RSP P) = P%r / M%r. rewrite /RSP.
+have -> : mu D (transpose Int.(<) P)
+ = mu D (LessThan P).
+apply mu_eq_support.
+progress. smt (D_sup). 
+rewrite (d_uni_sum D M _ _ _ P _ _). apply D_uni.
+apply D_ll. move => x0. rewrite /LessThan. move => q. 
+smt(D_sup).
+smt. smt. congr.
+rewrite - (D_mu x _). 
+ have : x < M. smt. smt(D_sup). simplify. auto.
+rewrite mu1_uni_ll. apply D_uni. apply D_ll.
+have -> : x \in D = true. 
+ have : x < M. smt. smt(D_sup). simplify. auto.
+smt.
+qed.
+
+
 
 
 
@@ -266,6 +325,53 @@ smt(@Distr).
 qed.
 
 
+lemma rsample_lossless2 a1 &m  : 
+    Pr[CSpecFp.rsample(a1) @ &m :  ! (res.`2 \in D) ]
+     = 0%r.
+byphoare (_: arg = a1 ==> _). hoare.  proc.
+sp. while (x \in D). wp.  inline*. wp.  rnd. skip.
+progress. skip. progress. smt. auto. auto.
+qed.
+
+lemma rsample_lossless3 a1 &m  : 0%r < mu D (RSP a1) =>
+    Pr[CSpecFp.rsample(a1) @ &m : (res.`2 \in D)  ]
+     = 1%r.
+move => ass.
+rewrite - (rsample_lossless a1 &m). 
+auto.
+have -> : Pr[CSpecFp.rsample(a1) @ &m : true]
+ = Pr[CSpecFp.rsample(a1) @ &m : res.`2 \in D]
+  + Pr[CSpecFp.rsample(a1) @ &m : !(res.`2 \in D)].
+rewrite Pr[mu_split (res.`2 \in D)] . auto.
+rewrite rsample_lossless2. auto.
+qed.
+
+
+lemma rsample_lossless4  &m  : 
+    Pr[CSpecFp.rsample(P) @ &m : LessThan P res.`2  ]
+     = 1%r.
+rewrite - (Correctness.rj_lossless &m (RSP P) 0 _ ).  
+ apply witness_support.
+  exists 0. smt.
+rewrite -   (rsample_pr2 P &m (fun (rres : int * int) => RSP P rres.`2)).
+simplify.
+have -> : Pr[CSpecFp.rsample(P) @ &m : RSP P res.`2]
+ = Pr[CSpecFp.rsample(P) @ &m : res.`2 \in D /\ (RSP P res.`2)].
+rewrite Pr[mu_split (res.`2 \in D)] . auto. 
+have ->: Pr[CSpecFp.rsample(P) @ &m : RSP P res.`2 /\ (res.`2 \notin D)]
+ = 0%r. smt. simplify.
+rewrite Pr[mu_eq]. smt. auto.
+rewrite Pr[mu_eq]. 
+progress.  
+rewrite /D.
+apply supp_duniform.
+have : res{hr}.`2 < M. smt.
+smt.
+smt(). smt(D_sup).
+smt(). auto.
+qed.
+
+
 
 equiv mulm_eq:
  CSpecFp.mulm ~ ASpecFp.mulm: 
@@ -274,6 +380,45 @@ equiv mulm_eq:
 proof.  proc. inline*. wp.  skip. progress.
 smt(@Zp).
 qed.
+
+
+equiv rsample_eq:
+ CSpecFp.rsample ~ ASpecFp.rsample: 
+  ={arg} /\ arg{1} = P ==> res{1}.`2 = res{2}.
+proof.  
+bypr res{1}.`2 res{2}. 
+progress.
+progress. rewrite - H.  rewrite  H0.
+case (LessThan P a). move => c1.
+rewrite (rsample_uni &1 a _ _). 
+smt(). smt().
+byphoare (_: arg = P ==> _). proc.
+rnd. skip. progress. 
+rewrite duniform1E. smt. auto. auto.
+move => c2.
+have ->: Pr[CSpecFp.rsample(P) @ &1 : res.`2 = a] = 0%r.
+have ->: 
+  Pr[CSpecFp.rsample(P) @ &1 : res.`2 = a] = 
+  Pr[CSpecFp.rsample(P) @ &1 : (res.`2 = a) /\ ! LessThan  P res.`2].
+rewrite Pr[mu_eq]. auto. auto. 
+have : Pr[CSpecFp.rsample(P) @ &1 : LessThan P res.`2] = 1%r. smt.
+move => q. 
+ have ops : Pr[CSpecFp.rsample(P) @ &1 : ! LessThan P res.`2] = 0%r.
+ have : 1%r = Pr[CSpecFp.rsample(P) @ &1 : LessThan P res.`2]
+     + Pr[CSpecFp.rsample(P) @ &1 : ! (LessThan P res.`2)] . 
+  rewrite - (rsample_lossless P &1). 
+ apply witness_support.
+  exists 0. smt.
+  rewrite Pr[mu_split (LessThan P res.`2)]. auto.
+  smt.
+smt.
+byphoare (_: arg = P ==> _).
+hoare. proc.
+rnd. skip. progress. 
+have : LessThan P r0. smt(@Distr @DInterval @List).
+smt(). auto. auto.
+qed.
+
 
 equiv cminusP_eq:
  ASpecFp.cminusP ~ CSpecFp.dcminusP: 
