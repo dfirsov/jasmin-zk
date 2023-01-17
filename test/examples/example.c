@@ -6,7 +6,7 @@
 
 #include "example.h"
 
-extern void expm(uint64_t *result, uint64_t *base, uint64_t *exp, uint64_t *mod);
+extern void expm_test(uint64_t *result, uint64_t *base, uint64_t *exp, uint64_t *mod);
 
 #define NLIMBS 32
 
@@ -57,8 +57,8 @@ int main(void)
   print("uint64_t exp2[32] = ", "};", exp2);
   print("uint64_t mod[32]  = ", "};", mod);
 
-  expm(result1, base, exp1, mod);
-  expm(result2, result1, exp2, mod);
+  expm_test(result1, base, exp1, mod);
+  expm_test(result2, result1, exp2, mod);
 
   print("uint64_t result1[32] = ", "};", result1);
   print("uint64_t result2[32] = ", "};", result2);

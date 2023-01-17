@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <gmp.h>
 
-void expm(uint64_t *result, uint64_t *base, uint64_t *exp, uint64_t *mod)
+void expm_test(uint64_t *result, uint64_t *base, uint64_t *exp, uint64_t *mod)
 {
   mpz_t m_result, m_base, m_exp, m_mod;
   size_t result_count;
