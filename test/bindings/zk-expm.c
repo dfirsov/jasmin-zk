@@ -34,7 +34,7 @@ void expm_precompute_barrett(uint64_t *barrett, uint64_t *mod)
   // r = floor( 4**k / mod )
   mpz_fdiv_q(m_barrett, m_k, m_mod);
 
-  // export barrett -- will be used as input for the Jasmin implementation)
+  // export barrett -- will be used as input for the jasmin implementation)
   memset(barrett, 0, sizeof(uint64_t)*NLIMBS*2);
   mpz_export(barrett, &barrett_count, -1, sizeof(uint64_t), 0, 0, m_barrett);
 
