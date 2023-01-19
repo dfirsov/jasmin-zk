@@ -2,9 +2,8 @@
    GENERIC CODE (parametric on the number of limbs)
 */
 
-
-param int nlimbs = 32;
-param int dnlimbs = 64;
+require "params.jinc"
+param int dnlimbs = (nlimbs*2);
 
 
 /* performs multi-limb subtraction */

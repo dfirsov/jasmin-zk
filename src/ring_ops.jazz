@@ -220,6 +220,25 @@ export fn __expm(reg u64 rp rr pp ap bp)
 }
 
 
+
+export fn zk_expm(reg u64 result_p base_p exp_p barrett_p mod_p) 
+{ 
+  stack u64[nlimbs] result base exp mod;
+  stack u64[dnlimbs] barrett;
+
+  result_p = result_p;
+  base     = bn_load(base_p);
+  exp      = bn_load(exp_p);
+  mod      = bn_load(mod_p);
+  barrett  = dbn_load(barrett_p);
+
+  result = expm(barrett, mod, base, exp);
+
+  bn_store(result_p, result);
+}
+
+
+
 inline fn toEC()
 {
   stack u64[nlimbs] a b r p;
