@@ -56,8 +56,9 @@ module M(SC:Syscall_t) = {
     x2 <- b.[0];
     (cf, x1) <- subc_64 x1 x2 false;
     a.[0] <- x1;
+    aux <- (32 * 2);
     i <- 1;
-    while (i < 64) {
+    while (i < aux) {
       x1 <- a.[i];
       x2 <- b.[i];
       (cf, x1) <- subc_64 x1 x2 cf;
@@ -90,8 +91,9 @@ module M(SC:Syscall_t) = {
     var i:int;
     var t:W64.t;
     r <- witness;
+    aux <- (32 * 2);
     i <- 0;
-    while (i < 64) {
+    while (i < aux) {
       t <- a.[i];
       r.[i] <- t;
       i <- i + 1;
@@ -106,8 +108,9 @@ module M(SC:Syscall_t) = {
     var r1:W64.t;
     var r2:W64.t;
     
+    aux <- (32 * 2);
     i <- 0;
-    while (i < 64) {
+    while (i < aux) {
       r1 <- a.[i];
       r2 <- b.[i];
       r1 <- (cond ? r2 : r1);
@@ -277,8 +280,9 @@ module M(SC:Syscall_t) = {
     (x1, x2) <- MULX_64 x1 x2;
     r.[1] <- x1;
     r.[0] <- x2;
+    aux <- (32 * 2);
     i <- 1;
-    while (i < 64) {
+    while (i < aux) {
       x1 <- a;
       x2 <- b.[i];
       (x1, x2) <- MULX_64 x1 x2;
@@ -290,9 +294,9 @@ module M(SC:Syscall_t) = {
       r.[i] <- x1;
       i <- i + 1;
     }
-    x1 <- r.[64];
+    x1 <- r.[(32 * 2)];
     (cf, x1) <- ADCX_64 x1 _zero cf;
-    r.[64] <- x1;
+    r.[(32 * 2)] <- x1;
     return (_zero, of_0, cf, r);
   }
   
@@ -309,7 +313,7 @@ module M(SC:Syscall_t) = {
     var lo:W64.t;
     
     kk <- (W64.to_uint k);
-    aux <- (64 - 1);
+    aux <- ((32 * 2) - 1);
     i <- 0;
     while (i < aux) {
       x1 <- a;
@@ -326,19 +330,19 @@ module M(SC:Syscall_t) = {
       i <- i + 1;
     }
     x1 <- a;
-    x2 <- b.[(64 - 1)];
+    x2 <- b.[((32 * 2) - 1)];
     (x1, x2) <- MULX_64 x1 x2;
-    r.[(64 + kk)] <- x1;
+    r.[((32 * 2) + kk)] <- x1;
     lo <- x2;
-    x1 <- r.[((64 + kk) - 1)];
+    x1 <- r.[(((32 * 2) + kk) - 1)];
     (of_0, x1) <- ADOX_64 x1 lo of_0;
-    r.[((64 + kk) - 1)] <- x1;
-    x1 <- r.[(64 + kk)];
+    r.[(((32 * 2) + kk) - 1)] <- x1;
+    x1 <- r.[((32 * 2) + kk)];
     (cf, x1) <- ADCX_64 x1 _zero cf;
-    r.[(64 + kk)] <- x1;
-    x1 <- r.[(64 + kk)];
+    r.[((32 * 2) + kk)] <- x1;
+    x1 <- r.[((32 * 2) + kk)];
     (of_0, x1) <- ADOX_64 x1 _zero of_0;
-    r.[(64 + kk)] <- x1;
+    r.[((32 * 2) + kk)] <- x1;
     return (_zero, of_0, cf, r);
   }
   
@@ -357,8 +361,9 @@ module M(SC:Syscall_t) = {
     r <- witness;
     ai <- a.[0];
     (_zero, of_0, cf, r) <@ dmul1 (ai, b);
+    aux <- (32 * 2);
     i <- 1;
-    while (i < 64) {
+    while (i < aux) {
       ai <- a.[i];
       z <- (W64.of_int i);
       (_zero, of_0, cf, r) <@ dmul1acc (z, ai, b, r, _zero, of_0, cf);
@@ -372,20 +377,20 @@ module M(SC:Syscall_t) = {
     
     var i:int;
     var byte_p:W64.t Array32.t;
-    var q0:W64.t;
-    var q1:W64.t;
-    var z:bool;
-    var byte_q:W64.t Array32.t;
     var cf:bool;
+    var byte_q:W64.t Array32.t;
+    var  _0:bool;
+    var  _1:bool;
+    var  _2:bool;
+    var  _3:bool;
+    var  _4:W64.t;
     byte_p <- witness;
     byte_q <- witness;
-    byte_p <@ bn_set0 (byte_p);
-    q0 <- (W64.of_int 0);
-    q1 <- (W64.of_int 1);
     i <- 0;
-    z <- (q0 = (W64.of_int 0));
+    byte_p <@ bn_set0 (byte_p);
+    ( _0, cf,  _1,  _2,  _3,  _4) <- set0_64 ;
     
-    while (z) {
+    while ((! cf)) {
       aux <@ SC.randombytes_256 ((Array256.init (fun i_0 => get8
                                  (WArray256.init64 (fun i_0 => byte_p.[i_0]))
                                  i_0)));
@@ -394,8 +399,6 @@ module M(SC:Syscall_t) = {
       (WArray256.init8 (fun i_0 => aux.[i_0])) i_0));
       byte_q <@ bn_copy (byte_p);
       (cf, byte_q) <@ bn_subc (byte_q, byte_z);
-      q0 <- (cf ? q1 : q0);
-      z <- (q0 = (W64.of_int 0));
       i <- (i + 1);
     }
     return (i, byte_p);
@@ -478,8 +481,9 @@ module M(SC:Syscall_t) = {
       r.[i] <- x.[i];
       i <- i + 1;
     }
+    aux <- (32 * 2);
     i <- 32;
-    while (i < 64) {
+    while (i < aux) {
       r.[i] <- (W64.of_int 0);
       i <- i + 1;
     }
@@ -509,7 +513,7 @@ module M(SC:Syscall_t) = {
     aux <- k;
     i <- 0;
     while (i < aux) {
-      r.[i] <- x.[(64 + i)];
+      r.[i] <- x.[((32 * 2) + i)];
       i <- i + 1;
     }
     return (r);

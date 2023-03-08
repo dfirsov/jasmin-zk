@@ -8,6 +8,7 @@ op t' (x n k : real) = (floor (x * r n k / 4%r^k))%r.
 op t (x n k : real)  : real = x - (t' x n k) * n.
 
 
+
 lemma r_pos n (k : real): 
    0%r <= n < 2%r^k =>
   r n k >= 0%r. rewrite /r. move => Q. smt.  qed.
@@ -140,8 +141,8 @@ smt(st7). qed.
 require import Int IntDiv.
 import Ring.IntID.
 
-op ri(n k : int) : int = ((4^k  %/ n)).
-op ti' (x n k : int) = ( (x * ri n k %/ 4^k)).
+op ri(n k : int) : int = (4^k  %/ n).
+op ti' (x n k : int) : int = (x * ri n k %/ 4^k).
 op ti (x n k : int)  : int = x - (ti' x n k) * n.
 
 lemma divz_eqP (m d n : int) :

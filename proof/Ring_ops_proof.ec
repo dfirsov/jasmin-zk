@@ -104,15 +104,13 @@ equiv rsample_cspec:
   W64xN.valR byte_z{1} = a{2}
   ==> W64xN.valR res{1}.`2 = res{2}.`2 /\ res{1}.`1 = res{2}.`1.
 proc. wp.
-  while (={i} /\ z{1} = b{2} /\ ImplZZ byte_p{1}  x{2} /\ W64xN.valR  byte_z{1} = a{2} /\  q1{1} = W64.one  
-  /\ (z{1} => q0{1} = W64.zero) /\ (!z{1} => q0{1} = W64.one)    ). wp.
+  while (={i} /\ !cf{1} = b{2} /\ ImplZZ byte_p{1}  x{2} /\ W64xN.valR  byte_z{1} = a{2}). wp.
 call  subc_spec. wp. ecall {1} (bn_copy_correct byte_p{1}).
 wp. inline*. wp. 
-rnd conv2 conv1. wp.  skip. progress. admit. admit. admit. admit. admit. (* must be resolved by conv1 and conv2 properties *)
-rewrite H. auto. rewrite H9. 
-case (!result_R.`1). progress. rewrite H11. simplify. auto. progress. rewrite H11. simplify. smt(@W64).
-smt(). smt(@W64). smt().
-wp. call{1} bn_set0_correct. wp. skip. progress. 
+rnd conv2 conv1. wp.  skip. progress.   admit. admit. admit. admit. admit. (* must be resolved by conv1 and conv2 properties *)
+smt(). smt().  smt().
+wp.  call{1} bn_set0_correct. wp.
+skip. progress. 
 qed.
 
 

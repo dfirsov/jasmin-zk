@@ -83,7 +83,7 @@ qed.
 
 lemma ph_l5  &m P1 Q1 c1 : Impl Q1 P1 =>
   Pr[ RS.sample1(P1,c1) @ &m : Q1 res.`2 ] 
-  =  (mu d (predC P1)) * Pr[ RS.sample(P1,c1) @ &m : Q1 res.`2 ]     + (mu d Q1).
+  =  (mu d (predC P1)) * Pr[ RS.sample(P1,c1) @ &m : Q1 res.`2 ] + (mu d Q1).
 progress.
 rewrite Pr[mu_split RS.flag = true]. 
 rewrite ph_l2. auto.

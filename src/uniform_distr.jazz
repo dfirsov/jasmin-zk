@@ -1,44 +1,35 @@
 require "bn_generic.jazz"
 
-
-
 // sample uniformly at random an element from interval [0..byte_z]
 inline fn rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
 {
   stack u64[nlimbs] byte_q byte_p;
-  reg u64 bit q0 q1;
-  reg bool  z cf;
+  reg bool cf;
   inline int i;
 
-  byte_p = bn_set0(byte_p);
-  q0 = 0;
-  q1 = 1;
   i = 0;
-  
-  z = (q0 == 0);
-  while (z) {
+  byte_p = bn_set0(byte_p);
+
+  _, cf, _, _, _, _ = #set0();
+  while (!cf) {
     byte_p = #randombytes(byte_p);
     byte_q = bn_copy(byte_p);
-    cf , byte_q = bn_subc(byte_q, byte_z);
-    q0 = q1 if cf;
-    z = (q0 == 0);
+    cf, byte_q = bn_subc(byte_q, byte_z);
     i = i + 1;
   }
 
-  return i, byte_p;
+  return (i, byte_p);
 }
 
 
 export fn __rsample(reg u64 zp rp) 
 { 
-  reg u64 rp2;
   stack u64[nlimbs] r z;
 
-  rp2 = rp; // TODO: ask why is it so fragile
+  rp = rp;
 
   z = bn_load(zp);
-  _, r = rsample(z);
-
-  bn_store(rp2, r);
+  r = rsample(z);
+  bn_store(rp, r);
 }
 
