@@ -1,0 +1,163 @@
+require "uniform_distr.jazz"
+require "ring_ops.jazz"
+
+/* constant assigning */
+inline fn bn_set_gg(stack u64[nlimbs] a) -> stack u64[nlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to nlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
+/* constant assigning */
+inline fn bn_set_bf(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to dnlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
+/* equality check */
+inline fn bn_eq(stack u64[nlimbs] a b) -> stack u64 {
+  stack u64 result;
+  reg u64 c1 c2;
+  inline int i;
+  result = 0;
+  for i = 0 to nlimbs {
+    c1 = a[i];
+    c2 = b[i];
+    c1 ^= c2;
+    result |= c1 ;
+  }
+
+  return result;
+}
+
+# prover
+inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
+  stack u64[nlimbs] random_power commitment group_generator;
+  stack u64[dnlimbs] barrett_parameter;
+
+  group_generator = bn_set_gg(group_generator);
+  barrett_parameter = bn_set_bf(barrett_parameter);
+
+  _, random_power = rsample(group_generator);
+  commitment = expm(barrett_parameter,group_generator,group_generator,random_power);  
+  return (commitment, random_power);
+}
+
+inline fn response(stack u64[nlimbs] witness random_power challenge) 
+ -> (stack u64[nlimbs]){
+  stack u64[dnlimbs] barrett_parameter;
+  stack u64[nlimbs] group_generator response product;
+
+  group_generator = bn_set_gg(group_generator);
+  barrett_parameter = bn_set_bf(barrett_parameter);
+
+  witness = bn_breduce_small(witness, barrett_parameter, group_generator);
+  challenge = bn_breduce_small(challenge, barrett_parameter, group_generator);
+
+  product = mulm(barrett_parameter,group_generator, challenge,witness);
+  response = addm(group_generator, random_power, product);
+ 
+  return response;
+}
+
+# verifier
+inline fn challenge() -> stack u64[nlimbs]{
+  stack u64[nlimbs] challenge group_generator;
+
+  group_generator = bn_set_gg(group_generator);
+  
+  _, challenge = rsample(group_generator);
+  return challenge;
+}
+
+
+inline fn verify(stack u64[nlimbs] statement commitment challenge response) 
+ -> (stack u64){
+  stack u64[dnlimbs] barrett_parameter;
+  stack u64[nlimbs] group_generator v1 tmp v2;
+  stack u64 result;
+
+  group_generator = bn_set_gg(group_generator);
+  barrett_parameter = bn_set_bf(barrett_parameter);
+
+  statement = bn_breduce_small(statement, barrett_parameter, group_generator);
+  commitment = bn_breduce_small(commitment, barrett_parameter, group_generator);
+
+  tmp = expm(barrett_parameter,group_generator,statement,challenge);
+  v1 = mulm(barrett_parameter,group_generator,tmp,commitment);
+  v2 = expm(barrett_parameter,group_generator,group_generator,response);
+ 
+  result = bn_eq(v1,v2);
+  return result;
+}
+
+
+
+export fn __commitment(reg u64 commitment_p) 
+{ 
+  reg u64 commitment_p2;
+  stack u64[nlimbs] commitment rp;
+
+  // relax ABI contraints
+  commitment_p2 = commitment_p;
+  commitment, rp = commitment();
+  bn_store(commitment_p2, commitment);
+}
+
+
+
+export fn __response(reg u64 random_power_p challenge_p witness_p response_p) 
+{ 
+  reg u64 response_p2;
+  stack u64[nlimbs] commitment random_power witness challenge response;
+
+
+  random_power = bn_load(random_power_p);
+  challenge = bn_load(challenge_p);
+  witness = bn_load(witness_p);
+
+  // relax ABI contraints
+  response_p2 = response_p;
+  response = response(witness,random_power,challenge);
+  bn_store(response_p2, commitment);
+}
+
+
+export fn __verify(reg u64 statement_p commitment_p challenge_p response_p result_p) 
+{ 
+  reg u64 result_p2;
+  stack u64[nlimbs] statement commitment challenge response;
+  stack u64 result;
+
+
+  statement = bn_load(statement_p);
+  commitment = bn_load(commitment_p);
+  challenge = bn_load(challenge_p);
+  response = bn_load(response_p);
+
+  // relax ABI contraints
+  result_p2 = result_p;
+  result = verify(statement,commitment,challenge,response);
+  [result_p2] = result;
+
+}
+
+export fn __challenge(reg u64 challenge_p) 
+{ 
+  reg u64 challenge_p2;
+  stack u64[nlimbs] challenge;
+
+  // relax ABI contraints
+  challenge_p2 = challenge_p;
+  challenge = challenge();
+  bn_store(challenge_p2, challenge);
+}

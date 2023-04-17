@@ -23,6 +23,7 @@ clone GP.FDistr as FD.
 
 clone GP.ZModE.ZModpField as ZPF.
 
+print GP.
 import G GP GP.ZModE FD.
 
 require (*--*) SigmaProtocol.
@@ -39,6 +40,8 @@ theory SchnorrTypes.
   op R_DL (h : group) (w : exp) = (h = g ^ w).
 end SchnorrTypes.
 export SchnorrTypes.
+
+
 
 (* Instantiate the Sigma scheme with the above types *)
 clone import SigmaProtocol as SP with

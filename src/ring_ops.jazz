@@ -148,6 +148,19 @@ inline fn bn_breduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p)
 }
 
 
+
+inline fn bn_breduce_small(stack u64[nlimbs] a, stack u64[dnlimbs] r, stack u64[nlimbs] p) 
+ -> stack u64[nlimbs]
+{
+  stack u64[dnlimbs] aa;
+  stack u64[nlimbs] res;
+  aa = bn_expand(a);
+  res = bn_breduce(aa,r,p);
+  return res;
+}
+
+
+
 inline fn mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b) 
  -> stack u64[nlimbs]
 {

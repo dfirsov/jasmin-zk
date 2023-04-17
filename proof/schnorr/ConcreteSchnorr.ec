@@ -1,9 +1,15 @@
 require import AllCore Distr DInterval List Int IntDiv.
 require  GroupNew.
 
+require import JModel JBigNum.
+
+require import Array32 Array64 Array128.
+
 require Ring_ops_spec.
 clone import Ring_ops_spec as ROS.
+ (* with type Zp.zp <- W64.t Array32.t. *)
 import Zp.
+
 
 require AbstractSchnorr.
 clone import AbstractSchnorr as SP
@@ -12,31 +18,29 @@ clone import AbstractSchnorr as SP
     op G.( * ) <- Zp.( * ),
     op G.e <- Zp.one,
     op G.inv <- Zp.inv,
-    op G.elems <-Zp.DZmodP.Support.enum.
-   
+    op G.elems <-Zp.DZmodP.Support.enum,
+    type GP.exp <- R,
+    op GP.ZModE.Sub.val <= W64xN.valR.
+
 
 
 module MyImpl = {
- proc commit(h : zp, w : int) : zp * int = {
+ proc commit(h : zp, w : R) : zp * R = {
    var r, q : int;
    var a : zp;    
    r <@ ASpecFp.rsample(P);
    a <@ ASpecFp.expm(G.g,r);
-   return (a, r);
+   return (a, W64xN.R.bn_ofint r);
   } 
 }.
 
 
+
 lemma commit_same : 
-  equiv [  SchnorrPK.commit ~ MyImpl.commit 
-   :   arg.`1{1} = arg.`1{2}
-   /\  GP.ZModE.Sub.val arg.`2{1} = arg.`2{2} 
-     ==> res.`1{1} = res.`1{2}
-      /\  GP.ZModE.Sub.val res.`2{1} = res.`2{2} 
-    ].
+  equiv [ SchnorrPK.commit ~ MyImpl.commit 
+          : ={arg}  ==> ={res} ].
 proc. 
 inline *. wp.  simplify. sp.
-
 rnd GP.ZModE.Sub.val (oget \o GP.ZModE.Sub.insub) .
 skip. progress. 
 have -> :  (GP.ZModE.Sub.val ((\o) oget GP.ZModE.Sub.insub r0R))
@@ -75,4 +79,29 @@ rewrite inzpM.
 rewrite asintK. 
 auto.
 apply prop. smt.
+rewrite /val. 
+rewrite   W64xN.R.bnK.
+auto.
 qed.
+
+module type SProver = {
+ proc commit(h : zp, w : R) : zp * R
+}.
+
+module type PDistinguisher(P:SProver) = {
+  proc run() : bool
+}.
+
+lemma p_indist : forall (D <: PDistinguisher) &m,  
+  Pr[ D(SchnorrPK).run()@&m : res ]
+  =  Pr[ D(MyImpl).run()@&m : res ].
+proof. progress.
+byequiv. 
+proc*.
+call (_:true).
+conseq commit_same. progress.
+smt(). skip. smt(). auto. auto.
+qed.
+
+
+  

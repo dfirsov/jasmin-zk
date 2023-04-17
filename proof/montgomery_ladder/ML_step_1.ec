@@ -189,7 +189,7 @@ smt(mult_valr).
 qed.
 
 lemma exp_prop3 (x : R) : forall (a : int), 0 <= a => forall b,  0 <= b => valR x < P => x ^ (a + b) = x ^ a *** x ^ b.
-apply intind. progress. rewrite exp_prop1.   smt (exp_prop7 exp_prop5 exp_valr).
+apply intind. progress. rewrite exp_prop1.   smt (exp_prop5 exp_prop7 exp_valr).
 progress.
 have ->: (i + 1) = (1 + i). smt().
 have ->: x ^ (1 + i) = x *** x ^ i.
@@ -212,7 +212,7 @@ rewrite exp_prop3'. auto. smt.
 rewrite exp_prop3'. auto. auto.
 rewrite exp_prop3'. auto. auto.
 rewrite H0. auto. auto.
-smt (exp_prop7 exp_prop6).
+smt (exp_prop55 exp_prop6).
 qed.
 
 
