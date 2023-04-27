@@ -38,7 +38,7 @@ inline fn bn_eq(stack u64[nlimbs] a b) -> stack u64 {
   return result;
 }
 
-# provers commitment
+
 inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
   stack u64[nlimbs]  secret_power commitment group_generator;
   stack u64[dnlimbs] barrett_parameter;
@@ -51,7 +51,7 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
   return (commitment, secret_power);
 }
 
-# prover's response
+
 inline fn response(stack u64[nlimbs] witness secret_power challenge) 
  -> (stack u64[nlimbs]){
   stack u64[dnlimbs] barrett_parameter;
@@ -69,7 +69,7 @@ inline fn response(stack u64[nlimbs] witness secret_power challenge)
   return response;
 }
 
-# verifier's challenge
+
 inline fn challenge() -> stack u64[nlimbs]{
   stack u64[nlimbs] challenge group_generator;
 
@@ -79,7 +79,7 @@ inline fn challenge() -> stack u64[nlimbs]{
   return challenge;
 }
 
-# verifier's verify
+
 inline fn verify(stack u64[nlimbs] statement commitment challenge response) 
  -> (stack u64){
   stack u64[dnlimbs] barrett_parameter;
@@ -161,3 +161,5 @@ export fn __challenge(reg u64 challenge_p)
   challenge = challenge();
   bn_store(challenge_p2, challenge);
 }
+
+

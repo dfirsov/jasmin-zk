@@ -22,6 +22,17 @@ inline fn rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
 }
 
 
+// sample uniformly at random an element from interval [0..byte_z]
+inline fn usample(stack u64[nlimbs] byte_z) -> stack u64[nlimbs]
+{
+  stack u64[nlimbs] byte_q byte_p;
+
+  _, byte_p = rsample(byte_z);
+  return byte_p;
+}
+
+
+
 export fn __rsample(reg u64 zp rp) 
 { 
   stack u64[nlimbs] r z;
