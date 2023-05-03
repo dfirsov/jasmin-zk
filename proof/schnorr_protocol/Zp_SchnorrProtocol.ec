@@ -34,6 +34,7 @@ module type ZKVerifierG = {
     bool
 }.
 
+
 module SchnorrProver : ZKProverG = {
   proc commitment() : commitment * secret = {
     var r : secret;
@@ -44,6 +45,7 @@ module SchnorrProver : ZKProverG = {
     return r + c * w;
   }
 }.
+
 
 module SchnorrVerifier : ZKVerifierG = {
   proc challenge() : challenge = {
@@ -88,10 +90,8 @@ op sec_from_sbits : sbits -> secret.
 axiom sec_enc x : x = sec_from_sbits (sec_to_sbits x).
 axiom sec_inj : injective sec_to_sbits.
 
-(* 
-- remove secret from commitment and response
 
- *)
+(* Remove secret from commitment and response *)
 module type ZKMaliciousProverG = {
   proc commitment() : commitment
   proc response(c : challenge) : response
@@ -157,11 +157,10 @@ declare axiom P_commitment_ll : islossless P.commitment.
 declare axiom rewindable_P_plus :
         (exists (f : glob P -> sbits),
          injective f /\
-         (forall &m, Pr[ P.getState() @ &m : (glob P) = ((glob P){m})
+        (forall &m, Pr[ P.getState() @ &m : (glob P) = ((glob P){m})
                                           /\ res = f ((glob P){m} ) ] = 1%r) /\
-         (forall &m b (x: glob P), b = f x =>
-           Pr[P.setState(b) @ &m : glob P = x] = 1%r) /\
-         islossless P.setState).
+        (forall &m b (x: glob P), b = f x =>
+           Pr[P.setState(b) @ &m : glob P = x] = 1%r) /\ islossless P.setState).
 
 
 

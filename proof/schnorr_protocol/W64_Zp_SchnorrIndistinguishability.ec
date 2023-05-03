@@ -50,11 +50,41 @@ axiom pval:  p < modulusR.
 axiom inzpKK: forall (z : int), val (inzp z) = z %% p.
 
 
+
+import ZK_SchnorrBasics.
+module ASpecFp_Schnorr = {
+ proc commit(h : zp, w : R) : zp * int = {
+   var r, q : int;
+   var a : zp;    
+   r <@ ASpecFp.rsample(p-1);
+   a <@ ASpecFp.expm(g,r);
+   return (a,  r);
+  } 
+}.
+
+lemma commit_same1 : 
+  equiv [ JProver(Syscall).commitment ~ ASpecFp_Schnorr.commit 
+          :   true
+  ==> (val res{2}.`1) = (valR res{1}.`1)
+    /\ res{2}.`2 = (valR res{1}.`2) ].
+proc. 
+
+
+lemma commit_same : 
+  equiv [ SchnorrProver.commitment ~ ASpecFp_Schnorr.commit 
+          : true  ==> ={res} ].
+proc. 
+inline *. wp.  simplify. sp.
+rnd.
+skip. progress.  smt(@Distr).  rewrite /(^^). rewrite /(^). rewrite /(^). admit.
+qed.
+
 lemma commitment_eq : 
   equiv [ SchnorrProver.commitment ~ JProver(Syscall).commitment :
   true
   ==> (val res{1}.`1) = (valR res{2}.`1)
     /\ res{1}.`2 = (valR res{2}.`2) ].
+
 admitted.
 
 

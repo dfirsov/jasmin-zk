@@ -175,6 +175,7 @@ wp; skip; smt(Array64.get_setE Array64.set_set_if).
 qed.
 
 
+
 equiv dmul1first_eq:
  M.dmul1 ~ W64x2N.MulOps.mul1:
  a{1}=ak{2} /\ ={b}
@@ -184,9 +185,10 @@ proof.
 proc; simplify.
 wp.
 while ( #pre /\ ={r,i} /\ (a,of_0,cf,_zero){1}=(ak,_of,_cf,W64.zero){2} /\ 
-        1 <= i{2} <= dnlimbs /\ !_of{2}).
+        1 <= i{2} <= 32*2 /\ !_of{2} /\ aux{1} = dnlimbs).
+wp. skip. progress. smt(Array128.get_setE Array128.set_set_if). smt(Array128.get_setE Array128.set_set_if).
+smt(Array128.get_setE Array128.set_set_if). smt(Array128.get_setE Array128.set_set_if). 
  wp; skip => />; smt(Array128.get_setE Array128.set_set_if).
-wp; skip => />; smt (Array128.set_set_if).
 qed.
 
 
@@ -254,10 +256,10 @@ transitivity
 + by move=> /> /#.
 + proc; simplify.
   while ( #pre /\ (i,_zero,of_0,cf,r){1}=(k,W64.zero,_of,_cf,r){2} /\
-          1 <= k{2} <= dnlimbs ).
+          1 <= k{2} <= dnlimbs /\ aux{1} = 64 ).
   wp. call dmul1acc_eq. wp. skip. progress.
 rewrite of_uintK.
-apply modz_small. split. smt(). smt(). smt(). smt(). smt().
+apply modz_small. split. smt(). smt(). smt(). smt(). smt(). 
   by wp; call dmul1first_eq; wp; skip => /> /#.
 + proc.
   transitivity {1}
@@ -289,7 +291,7 @@ transitivity
   while (={i,b} /\ 1 <= i{2} <= dnlimbs /\ 
          (cf, aa){1}=(c, a){2} /\
          (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array64 /\
-         (forall k, i{2} <= k < dnlimbs => a{1}.[k] = aa.[k])%Array64).
+         (forall k, i{2} <= k < dnlimbs => a{1}.[k] = aa.[k])%Array64 /\ aux{1} = 64).
    wp; skip => /> &1 &2 Hi1 _ Hh1 Hh2 Hi2.
    split => *; first smt().
    split => *; first smt().
@@ -330,7 +332,7 @@ lemma dbn_cmov_correct x y z :
 proc.
 while (cond = x /\ b = z /\ i <= dnlimbs 
   /\ (forall j, 0 <= j < i => a.[j] = if cond then z.[j] else y.[j])
-  /\ (forall j, i <= j < dnlimbs => a.[j] = y.[j])) (dnlimbs - i). progress.
+  /\ (forall j, i <= j < dnlimbs => a.[j] = y.[j]) /\ aux = 64) (dnlimbs - i). progress.
 wp.  skip.  progress. smt().   smt(@Array64). smt(@Array64). smt(). wp.  skip. progress. smt(@Array64). smt().
 apply Array64.ext_eq. progress. smt(@Array64). 
 qed.
@@ -382,7 +384,7 @@ lemma dbn_copy_correct x :
 proc.
 while (a = x /\ i <= dnlimbs 
   /\ (forall j, 0 <= j < i => r.[j] = x.[j])
-  ) (dnlimbs - i). progress.
+  /\ aux  = 64 ) (dnlimbs - i). progress.
 wp.  skip.  progress. smt(). smt(@Array64). smt(). wp.  skip. progress. smt(). smt().
 apply Array64.ext_eq. progress. smt(). 
 qed.
@@ -452,7 +454,6 @@ rewrite /W64xN.modulusR. auto.
 rewrite W64x2N.R.bn_mod. auto. 
 rewrite /bnk. 
 apply eq_big_seq. progress. rewrite H1. split.
-
 smt (mem_range). 
 smt (mem_range). 
 auto.
@@ -469,12 +470,12 @@ lemma bn_expand_correct : forall a,
     seq 1 : (a = x /\ i = nlimbs /\ forall i, i < nlimbs => r.[i] = x.[i]%Array32).
     while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[j]%Array32). wp.  skip. progress.
     smt(). smt(@Array32 @Array64). skip. progress.
-    smt().  smt(). smt(@Array64 @Array32). 
+    smt().  smt(). smt(@Array64 @Array32). sp.
     seq 2 : (a = x /\  (forall j, 0 <= j < nlimbs => r.[j]%Array64 = x.[j]%Array32)
          /\ (forall j, nlimbs <= j < 2*nlimbs => r.[j] = W64.zero)).     
     while (a = x /\ nlimbs <= i <= 2*nlimbs 
          /\ (forall j, 0 <= j < nlimbs => r.[j]%Array64 = x.[j]%Array32)
-         /\ (forall j, nlimbs <= j < i => r.[j] = W64.zero) ). wp.  skip. progress.
+         /\ (forall j, nlimbs <= j < i => r.[j] = W64.zero) /\ aux = 64 ). wp.  skip. progress.
     smt(). smt().
     have z : i{hr} <> j. smt(). 
     rewrite - H1. auto.  smt(@Array32 @Array64).

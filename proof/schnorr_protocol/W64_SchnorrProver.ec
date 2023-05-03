@@ -18,6 +18,26 @@ module Syscall : Syscall_t = {
   }
 }.
 
+(* print WArray256.darray. *)
+
+(* print DList.dlist. *)
+(* search DList.dlist. *)
+(* search is_uniform. *)
+(* search WArray256.darray. *)
+(* print WArray256.darray. *)
+(* print WArray256. *)
+
+(* lemma bla: *)
+(*     dmap WArray256.darray *)
+(*     (fun a => Array256.init (fun i => WArray256.get8 a i)) *)
+(*     = *)
+(*     . *)
+
+(* print Array256.init. *)
+(* print WArray256.get8. *)
+(* print WArray256.darray. *)
+(* print DList.dlist. *)
+
 module JProver(SC:Syscall_t) = {
   proc bn_subc (a:W64.t Array32.t, b:W64.t Array32.t) : bool *
                                                         W64.t Array32.t = {
