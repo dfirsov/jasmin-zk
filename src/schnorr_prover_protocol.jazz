@@ -23,6 +23,28 @@ inline fn bn_set_bf(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
 }
 
 
+/* constant assigning */
+inline fn bn_set_eo(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to dnlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
+/* constant assigning */
+inline fn bn_set_go(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to dnlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
 /* equality check */
 inline fn bn_eq(stack u64[nlimbs] a b) -> stack u64 {
   stack u64 result;
@@ -40,14 +62,16 @@ inline fn bn_eq(stack u64[nlimbs] a b) -> stack u64 {
 
 # provers commitment
 inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
-  stack u64[nlimbs]  secret_power commitment group_generator;
+  stack u64[nlimbs]  secret_power commitment group_generator group_order exp_order;
   stack u64[dnlimbs] barrett_parameter;
 
+  exp_order         = bn_set_eo(exp_order);
+  group_order       = bn_set_go(group_order);
   group_generator   = bn_set_gg(group_generator);
   barrett_parameter = bn_set_bf(barrett_parameter);
 
-  secret_power = usample(group_generator);
-  commitment = expm(barrett_parameter,group_generator,group_generator,secret_power);  
+  secret_power = usample(exp_order);
+  commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
   return (commitment, secret_power);
 }
 

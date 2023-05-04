@@ -15,7 +15,6 @@ import W64xN Sub R.
 
 
 module PWrap = {
-  module JProver = JProver(Syscall)
   proc commitment() : commitment * secret = {
     var c,s;
     (c, s)  <@ JProver.commitment();  
@@ -31,7 +30,6 @@ module PWrap = {
 
 
 module VWrap = {
-  module JVerifier = JVerifier(Syscall)
   proc challenge() : challenge = {
     var r;
     r <@ JVerifier.challenge();
@@ -60,14 +58,54 @@ module ASpecFp_Schnorr = {
    a <@ ASpecFp.expm(g,r);
    return (a,  r);
   } 
+
+  proc challenge() : int = {
+   var r;
+   r <@ ASpecFp.rsample(p-1);
+   return r;
+  }
 }.
 
+
+require import W64_SchnorrExtract.
+print M.
+require import Ring_ops_proof.
+
+    
+lemma bn_set_bf_prop : 
+  phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
+admitted.
+
+lemma bn_set_go_prop : 
+  phoare[ M.bn_set_go : true ==> valR res = p  ] = 1%r.
+admitted.
+
+lemma bn_set_eo_prop : 
+  phoare[ M.bn_set_eo : true ==> valR res = p-1  ] = 1%r.
+admitted.
+
+lemma bn_set_gg_prop : 
+  phoare[ M.bn_set_gg : true ==> valR res = val g  ] = 1%r.
+admitted.
+
+    
 lemma commit_same1 : 
-  equiv [ JProver(Syscall).commitment ~ ASpecFp_Schnorr.commit 
+  equiv [ JProver.commitment ~ ASpecFp_Schnorr.commit 
           :   true
   ==> (val res{2}.`1) = (valR res{1}.`1)
     /\ res{2}.`2 = (valR res{1}.`2) ].
 proc. 
+symmetry. call expm_correct.
+symmetry.
+call usample_aspec. sp.
+simplify.
+call{1} bn_set_bf_prop.
+call{1} bn_set_gg_prop.
+call{1} bn_set_go_prop.
+call{1} bn_set_eo_prop.
+skip. move => &1 _ H r q r2 vr.
+smt.
+qed.
 
 
 lemma commit_same : 
@@ -80,26 +118,48 @@ skip. progress.  smt(@Distr).  rewrite /(^^). rewrite /(^). rewrite /(^). admit.
 qed.
 
 lemma commitment_eq : 
-  equiv [ SchnorrProver.commitment ~ JProver(Syscall).commitment :
+  equiv [ SchnorrProver.commitment ~ JProver.commitment :
   true
   ==> (val res{1}.`1) = (valR res{2}.`1)
     /\ res{1}.`2 = (valR res{2}.`2) ].
+transitivity ASpecFp_Schnorr.commit
+  (true ==> ={res})
+  (true
+  ==> (val res{1}.`1) = (valR res{2}.`1)
+    /\ res{1}.`2 = (valR res{2}.`2)). auto. auto.
+apply commit_same.
+symmetry. apply commit_same1.
+qed.
 
-admitted.
 
+
+lemma challenge_same : 
+  equiv [ SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
+          : true  ==> ={res} ].
+proc. inline*. wp. rnd. wp. skip.
+progress.
+qed.
 
 lemma challenge_eq : 
-  equiv [ SchnorrVerifier.challenge ~ JVerifier(Syscall).challenge :
+  equiv [ SchnorrVerifier.challenge ~ JVerifier.challenge :
   true ==> res{1} = (valR res{2}) ].
-admitted.
-
+transitivity ASpecFp_Schnorr.challenge
+  (true ==> ={res})
+  (true
+  ==> (res{1}) = (valR res{2})). auto. auto.
+apply challenge_same.
+proc. 
+symmetry. call usample_aspec.
+call{1} bn_set_eo_prop. wp. skip. progress.
+qed.
 
 lemma response_eq : 
-  equiv [ SchnorrProver.response ~ JProver(Syscall).response :
+  equiv [ SchnorrProver.response ~ JProver.response :
     w{1} %% (p-1)       = (valR (witness0{2}) )       %% (p-1)
     /\ r{1} %% (p-1)    = (valR secret_power{2})     %% (p-1)
-    /\ c{1} %% (p-1)    = (valR challenge{2})        %% (p-1)
+    /\ c{1} %% (p-1)    = (valR challenge_0{2})        %% (p-1)
     ==> res{1}  = (valR res{2}) ].
+proc. simplify.
 admitted.
 
 

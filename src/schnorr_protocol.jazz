@@ -39,15 +39,39 @@ inline fn bn_eq(stack u64[nlimbs] a b) -> stack u64 {
 }
 
 
+/* constant assigning */
+inline fn bn_set_eo(stack u64[nlimbs] a) -> stack u64[nlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to nlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
+/* constant assigning */
+inline fn bn_set_go(stack u64[nlimbs] a) -> stack u64[nlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to nlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
 inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
-  stack u64[nlimbs]  secret_power commitment group_generator;
+  stack u64[nlimbs]  secret_power commitment group_generator group_order exp_order;
   stack u64[dnlimbs] barrett_parameter;
 
+  exp_order         = bn_set_eo(exp_order);
+  group_order       = bn_set_go(group_order);
   group_generator   = bn_set_gg(group_generator);
   barrett_parameter = bn_set_bf(barrett_parameter);
 
-  secret_power = usample(group_generator);
-  commitment = expm(barrett_parameter,group_generator,group_generator,secret_power);  
+  secret_power = usample(exp_order);
+  commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
   return (commitment, secret_power);
 }
 
@@ -71,11 +95,11 @@ inline fn response(stack u64[nlimbs] witness secret_power challenge)
 
 
 inline fn challenge() -> stack u64[nlimbs]{
-  stack u64[nlimbs] challenge group_generator;
+  stack u64[nlimbs] challenge exp_order;
 
-  group_generator = bn_set_gg(group_generator);
-  
-  challenge = usample(group_generator);
+  exp_order = bn_set_eo(exp_order);  
+
+  challenge = usample(exp_order);
   return challenge;
 }
 

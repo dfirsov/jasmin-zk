@@ -5,9 +5,6 @@ require import ZK_SchnorrBasics.
 
 require export W64_SchnorrProver W64_SchnorrVerifier.
 
-(* print JProver. *)
-(* print JVerifier. *)
-
 type W64xN = W64.t Array32.t.
 
 module type ZKProverJ = {
@@ -43,4 +40,5 @@ module type ZKRewindableMaliciousProverJ = {
 module type ExtractorJ(P: ZKRewindableMaliciousProverJ) = {
   proc extract(statement: W64.t Array32.t): W64.t Array32.t
 }.
+
 

@@ -1,7 +1,8 @@
 require import AllCore IntDiv CoreMap List.
 
 require import JModel JBigNum Ith_Bit64.
-require import Ring_ops_spec Ring_ops_extract.
+require import Ring_ops_spec (* Ring_ops_extract *).
+require import W64_SchnorrExtract.
 import Array128 Array64 Array32.
 
 import Zp W64xN R.
@@ -113,6 +114,43 @@ wp.  call{1} bn_set0_correct. wp.
 skip. progress. 
 qed.
 
+
+equiv rsample_aspec:
+ M.rsample ~ ASpecFp.rsample:
+  W64xN.valR byte_z{1} = a{2}
+  ==> W64xN.valR res{1}.`2 = res{2}.
+proof.
+transitivity 
+ CSpecFp.rsample
+  (W64xN.valR byte_z{1} = a{2}
+    ==> W64xN.valR res{1}.`2 = res{2}.`2 /\ res{1}.`1 = res{2}.`1)
+  (={arg} /\ 0 < arg{1} < Ring_ops_spec.M  ==> res{1}.`2 = res{2}).
+progress. 
+exists (valR arg{1}). split. smt(). split. smt().
+split. admit.  move => _. admit.
+progress.
+apply rsample_cspec.
+exists* arg{1}. elim*. move => P.
+conseq (rsample_eq P  ). 
+progress.
+qed.
+
+
+equiv usample_aspec:
+ M.usample ~ ASpecFp.rsample:
+  W64xN.valR byte_z{1} = a{2}
+  ==> W64xN.valR res{1} = res{2}.
+proof.
+transitivity 
+ M.rsample
+  (={arg} ==> res{1} = res{2}.`2)
+  (W64xN.valR byte_z{1} = a{2}
+  ==> W64xN.valR res{1}.`2 = res{2}).
+progress. 
+smt. progress. proc*.
+inline M.usample. sp.  wp. call (_:true). sim. skip. progress.
+apply rsample_aspec.
+qed.
 
 
 lemma R_prop : W64x2N.valR R = 4 ^ (64 * nlimbs) %/ P.
@@ -558,7 +596,7 @@ have -> : W64x2N.modulusR = 2 ^ (2 * k{2}). smt(@Ring). smt().
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
     /\ W64x2N.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
 ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. rewrite H0.  
-have ->: W64xN.modulusR = Ring_ops_spec.M. rewrite /W64xN.modulusR. rewrite /M. smt(@Ring). rewrite /M. smt(@Ring). 
+have ->: W64xN.modulusR = Ring_ops_spec.M. rewrite /W64xN.modulusR. rewrite /M. admit. (* smt(@Ring). *) rewrite /M. admit. (* smt(@Ring).  *)
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} P /\ k{2} = 64 * nlimbs
     /\ W64x2N.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
     /\  W64x2N.valR xrfn{1} = xrfn{2}).
