@@ -21,27 +21,81 @@ qed.
 require import RealExp.
 
 
+equiv addc_spec:
+ M.bn_addc ~ ASpecFp.addn:
+  ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2}
+  ==> res{1}.`1=res{2}.`1 /\ ImplZZ res{1}.`2 res{2}.`2.
+proof.
+transitivity 
+ R.Ops.addcR
+ ( ={a,b} /\ !c{2} ==> ={res} )
+ ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ !c{1}
+   ==> res{1}.`1 = res{2}.`1 /\ ImplZZ res{1}.`2 res{2}.`2 ).
++ by move=> /> &1 &2 H1 H2; exists (a{1},b{1},false).
++ by move=> /> *.
++ proc; simplify.
+  unroll {2} 3; rcondt {2} 3; first by auto.
+  exlim a{1}, b{1} => aa bb.
+  while (={i,b} /\ 1 <= i{2} <= nlimbs /\
+         (cf,aa){1}=(c,a){2} /\
+         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array32 /\
+         (forall k, i{2} <= k < nlimbs => a{1}.[k] = aa.[k])%Array32).
+   wp; skip => /> &1 &2 Hi1 Hi2 H1 H2 Hi.
+   split => *; first smt().
+   split => *; first smt().
+   split.
+    move=> k Hk1 Hk2.
+    pose X := (addc _ _ _)%W64.
+    pose Y := (addc _ _ _)%W64.
+    have ->: X=Y by smt().
+    case: (k = i{2}) => ?.
+     rewrite /hui.
+     by rewrite !set_eqiE /#.
+     rewrite /hui.
+    by rewrite !set_neqiE /#.
+   move=> k Hk1 Hk2. rewrite /hui.
+   by rewrite set_neqiE /#.
+  wp; skip => /> &2.
+  move=> Hc; split => *.
+   split => k *. 
+    by rewrite (_:k=0) 1:/# /hui !set_eqiE /#.
+   by rewrite /hui set_neqiE /#.
+  by apply ext_eq; smt().
++ proc; simplify.
+  transitivity {1}
+   { (c,r) <@ R.Ops.addcR(a,b,c); }
+   ( ={a,b,c} ==> ={c,r} )
+   ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ !c{1} ==> ={c} /\ ImplZZ r{1} r{2} ).
+  + by move=> /> &2 H; exists a{2} b{2} false.
+  + by auto.
+  + by inline*; sim.
+  + ecall {1} (R.addcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> ?.
+    by rewrite bn_carryE 1:/# b2i0 /bn_modulus /=.
+qed.
+
+
+lemma bn_cmov_correct x y z :
+  phoare[ M.bn_cmov :  arg = (x,y,z)  ==> res = if x then z else y ] = 1%r.
+proc.
+while (cond = x /\ b = z /\ i <= nlimbs 
+  /\ (forall j, 0 <= j < i => a.[j]%Array32 = if cond then z.[j] else y.[j])%Array32
+  /\ (forall j, i <= j < nlimbs => a.[j] = y.[j]) )%Array32 (nlimbs - i). progress.
+wp.  skip.  progress. smt().   smt(@Array32). smt(@Array32). smt(). wp.  skip. progress. smt(@Array32). smt().
+apply Array32.ext_eq. progress. smt(@Array32). 
+qed.
+
+
 lemma bn_copy_correct x :
   phoare[ M.bn_copy :  arg = x  ==> res = x ] = 1%r.
 proc.
 while (a = x /\ i <= nlimbs 
-  /\ (forall j, 0 <= j < i => r.[j]%Array32 = x.[j]%Array32)
-  ) (dnlimbs - i). progress.
+  /\ (forall j, 0 <= j < i => r.[j] = x.[j])%Array32
+  ) (nlimbs - i). progress.
 wp.  skip.  progress. smt(). smt(@Array32). smt(). wp.  skip. progress. smt(). smt().
 apply Array32.ext_eq. progress. smt(). 
 qed.
 
 
-lemma bn_set0_correct :
-  phoare[ M.bn_set0 : true  ==> W64xN.valR res = 0 ] = 1%r.
-proc.
-while (i <= nlimbs
-  /\ (forall j, 0 <= j < i => a.[j]%Array32 = W64.zero)) (nlimbs - i). progress.
-wp.  skip.  progress. smt().  smt(@Array32). smt(). wp.  skip. progress. smt(). smt().
-rewrite - zeroRE. congr.
-apply Array32.ext_eq. progress.  rewrite H1. smt().
-rewrite /zeroR. smt(@Array32 @List). 
-qed.
 
 equiv subc_spec:
  M.bn_subc ~ ASpecFp.subn:
@@ -93,6 +147,72 @@ transitivity
   + ecall {1} (W64xN.R.subcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> .
 progress. 
     by rewrite W64xN.R.bn_borrowE 1:/# b2i0 /bn_modulus /=.
+qed.
+
+equiv cminus_spec:
+ M.cminusP ~ ASpecFp.cminus:
+ W64xN.valR p{1} = p{2} /\ W64xN.valR x{1} = a{2} ==> W64xN.valR res{1}  =res{2}.
+proof.
+transitivity CSpecFp.cminus
+ ( W64xN.valR p{1} = p{2} /\ W64xN.valR x{1} = a{2} ==> W64xN.valR res{1}  = res{2} )
+ ( ={a} /\ a{2} < W64xN.modulusR ==> ={res} ).
+  progress. exists (W64xN.valR x{1}, W64xN.valR  p{1}). progress. smt(@W64xN).
++ by auto.
+proc.
+(ecall {1} (bn_cmov_correct cf{1} z{1} x{1})).  simplify.
+conseq (_:  ( (W64xN.valR (if cf{1} then x{1} else z{1}))%W64xN = r{2} )). progress.
+inline ASpecFp.ctseln. wp.   simplify.
+seq 2 0 : ((W64xN.valR p{1})%W64x2N = p{2} /\ (W64xN.valR x{1})%W64x2N = a{2} /\ z{1} = x{1}).
+(ecall {1} (bn_copy_correct x{1})).  wp. skip. progress.
+seq 1 1 : (cf{1} = c{2} /\ W64xN.valR z{1} = x{2}
+  /\ (W64xN.valR p{1})%W64xN = p{2} /\ (W64xN.valR x{1})%W64xN = a{2}).
+call  subc_spec.  skip. progress.
+skip. progress.   smt().
+admit.
+qed.
+
+
+
+
+equiv addm_spec_eq:
+ M.addm ~ ASpecFp.addm:
+    W64xN.valR a{1} = a{2} /\ ImplZZ b{1} b{2} /\  ImplZZ p{1} p{2}
+ /\ 0 <= a{2} < p{2} /\ 0 <= b{2} < p{2} /\ 0 <= 2*p{2} < W64xN.modulusR
+  ==> ImplZZ res{1} res{2}.
+proof.
+transitivity CSpecFp.addm
+ (ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ ImplZZ p{1} p{2} /\ 0 <= a{2} < p{2} /\ 0 <= b{2} < p{2} /\ 0 <= 2*p{2} < W64xN.modulusR ==> ImplZZ res{1} res{2})
+ (={a,b,p} /\ 0 <= a{2} < p{2} /\ 0 <= b{2} < p{2} /\ 0 <= 2*p{2} < W64xN.modulusR ==> res{1}=  res{2}).
+  progress. smt(). smt().
++ proc; simplify.
+  call cminus_spec.
+  call addc_spec.
+  simplify. 
+  skip. progress. 
++ symmetry; conseq addm_eq.  progress. smt(). smt(). smt(). smt(). 
+qed.
+
+
+lemma bn_addm_correct aa bb pp:
+  phoare[ M.addm : a = aa /\ b = bb /\ p = pp /\ 0 <= valR a < valR p /\ 0 <= valR b < valR p /\ 0 <= 2* (valR p) < W64xN.modulusR  ==> (valR aa + valR bb)%% (valR pp) = valR res ] = 1%r.
+proof. bypr. progress.
+ have <- : Pr[ASpecFp.addm(valR a{m}, valR b{m}, valR p{m}) @ &m : (valR a{m} + valR b{m}) %% valR p{m} =  res] = 1%r. 
+  byphoare (_: arg = (valR a{m}, valR b{m}, valR p{m}) ==> _).
+proc. wp. skip. smt(). auto. auto.
+byequiv. conseq addm_spec_eq.
+smt(). smt(). auto. auto.
+qed.
+
+
+lemma bn_set0_correct :
+  phoare[ M.bn_set0 : true  ==> W64xN.valR res = 0 ] = 1%r.
+proc.
+while (i <= nlimbs
+  /\ (forall j, 0 <= j < i => a.[j]%Array32 = W64.zero)) (nlimbs - i). progress.
+wp.  skip.  progress. smt().  smt(@Array32). smt(). wp.  skip. progress. smt(). smt().
+rewrite - zeroRE. congr.
+apply Array32.ext_eq. progress.  rewrite H1. smt().
+rewrite /zeroR. smt(@Array32 @List). 
 qed.
 
 

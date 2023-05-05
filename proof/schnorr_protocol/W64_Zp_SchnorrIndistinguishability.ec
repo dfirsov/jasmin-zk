@@ -153,6 +153,7 @@ symmetry. call usample_aspec.
 call{1} bn_set_eo_prop. wp. skip. progress.
 qed.
 
+
 lemma response_eq : 
   equiv [ SchnorrProver.response ~ JProver.response :
     w{1} %% (p-1)       = (valR (witness0{2}) )       %% (p-1)
@@ -160,7 +161,8 @@ lemma response_eq :
     /\ c{1} %% (p-1)    = (valR challenge_0{2})        %% (p-1)
     ==> res{1}  = (valR res{2}) ].
 proc. simplify.
-admitted.
+ecall {2} (bn_addm_correct group_generator{2} secret_power{2} product{2}). simplify.
+
 
 
 lemma verify_eq : 

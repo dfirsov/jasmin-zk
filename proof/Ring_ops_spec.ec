@@ -133,9 +133,18 @@ module ASpecFp = {
     return r;
   }
 
-  proc cminusP(a : int): int = {
+
+
+  proc cminusP(a: int): int = {
     var r;
     r <- if a < P then a else a-P;
+    return r;
+  }
+  
+
+  proc cminus(a p: int): int = {
+    var r;
+    r <- if a < p then a else a-p;
     return r;
   }
 
@@ -147,6 +156,11 @@ module ASpecFp = {
 
  
   (* Finite Ring Ops *)
+  proc addm(a b p: int): int = {
+    var r;
+    r <- a + b;
+    return r %% p;
+  }
 
   proc copym(a: zp): zp = {
     var r;
@@ -178,7 +192,12 @@ require import Distr DInterval.
 (*                  CONCRETE SPECIFICATIONS                       *)
 (******************************************************************)
 module CSpecFp = {
-
+ proc addm(a b p: int): int = {
+  var c, x, r;
+  (c, x) <@ ASpecFp.addn(a, b);
+  r <@ ASpecFp.cminus(x, p);
+  return r;
+ }
  proc redm(a r k: int): int = {
    var xr, xrf, xrfn, t, b;
    xr    <@ ASpecFp.muln(a,r);
@@ -196,6 +215,14 @@ module CSpecFp = {
   r <@ ASpecFp.ctseln(c, x, a);
   return r;
  }
+
+ proc cminus(a p: int): int = {
+  var c, x, r;
+  (c, x) <@ ASpecFp.subn(a, p);
+  r <@ ASpecFp.ctseln(c, x, a);
+  return r;
+ }
+
 
  proc mulm(a b: int): int = {
   var c, z;
@@ -220,6 +247,22 @@ module CSpecFp = {
 
 
 }.
+
+
+equiv addm_eq:
+ ASpecFp.addm ~ CSpecFp.addm: ={a,b,p} /\ 0 <= a{1} < p{1} /\ 0 <= b{1} < p{1} /\ 0 <= 2*p{1} < W64xN.modulusR ==> res{1}=res{2}.
+proof.
+proc; simplify.
+ inline*. wp. skip.
+progress.
+  have ->: (a{2} +  b{2}) %% W64xN.modulusR = (a{2} +  b{2}).
+   rewrite modz_small. split. smt. move => H5. 
+   have ->: `|W64xN.modulusR| = W64xN.modulusR. smt.
+   smt. done.
+  case: (a{2} + b{2} < p{2}) => H5.
+   rewrite   modz_small. smt(rg_asint). done.
+   smt.
+qed.
 
 
 
