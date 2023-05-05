@@ -25,7 +25,7 @@ module CompletenessJ(P:ZKProverJ,V:ZKVerifierJ) = {
 
 lemma completeness ss ww &m:
  Pr[ CompletenessG(SchnorrProver,SchnorrVerifier).main(inzp (W64xN.valR ss) , (W64xN.valR ww))@&m : res]
- = Pr[CompletenessJ(JProver(Syscall),JVerifier(Syscall)).main(ss,ww)@&m : res].
+ = Pr[CompletenessJ(JProver,JVerifier).main(ss,ww)@&m : res].
 proof.
 byequiv.
 proc.
@@ -38,5 +38,7 @@ smt. smt. rewrite H.
 have v : valR result_R.`1 < p. rewrite - H. smt(@Zp).
 have : valR result_R.`1 %% p = valR result_R.`1. smt (@IntDiv @Zp).
 smt().
+rewrite - H2.
+smt.
 auto. auto.
 qed.

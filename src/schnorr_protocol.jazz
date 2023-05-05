@@ -51,6 +51,17 @@ inline fn bn_set_eo(stack u64[nlimbs] a) -> stack u64[nlimbs] {
 
 
 /* constant assigning */
+inline fn bn_set_eb(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to dnlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
+/* constant assigning */
 inline fn bn_set_go(stack u64[nlimbs] a) -> stack u64[nlimbs] {
   inline int i;
   a[0] = 1;
@@ -76,19 +87,17 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
 }
 
 
-inline fn response(stack u64[nlimbs] witness secret_power challenge) 
+inline fn response(stack u64[nlimbs] witness0 secret_power challenge) 
  -> (stack u64[nlimbs]){
-  stack u64[dnlimbs] barrett_parameter;
-  stack u64[nlimbs] group_generator response product;
+  stack u64[dnlimbs] exp_barrett;
+  stack u64[nlimbs] exp_order response product;
 
-  group_generator   = bn_set_gg(group_generator);
-  barrett_parameter = bn_set_bf(barrett_parameter);
+  exp_order   = bn_set_eo(exp_order);
+  exp_barrett = bn_set_eb(exp_barrett);
+  challenge = bn_breduce_small(challenge, exp_barrett, exp_order);
 
-  //witness   = bn_breduce_small(witness,   barrett_parameter, group_generator);
-  //challenge = bn_breduce_small(challenge, barrett_parameter, group_generator);
-
-  product  = mulm(barrett_parameter, group_generator, challenge, witness);
-  response = addm(group_generator, secret_power, product);
+  product  = mulm(exp_barrett, exp_order, challenge, witness0);
+  response = addm(exp_order, secret_power, product);
  
   return response;
 }
@@ -96,9 +105,7 @@ inline fn response(stack u64[nlimbs] witness secret_power challenge)
 
 inline fn challenge() -> stack u64[nlimbs]{
   stack u64[nlimbs] challenge exp_order;
-
   exp_order = bn_set_eo(exp_order);  
-
   challenge = usample(exp_order);
   return challenge;
 }

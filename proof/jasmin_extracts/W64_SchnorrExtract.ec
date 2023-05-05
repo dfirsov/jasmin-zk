@@ -626,6 +626,18 @@ module M(SC:Syscall_t) = {
     return (res_0);
   }
   
+  proc bn_breduce_small (a:W64.t Array32.t, r:W64.t Array64.t,
+                         p:W64.t Array32.t) : W64.t Array32.t = {
+    
+    var res_0:W64.t Array32.t;
+    var aa:W64.t Array64.t;
+    aa <- witness;
+    res_0 <- witness;
+    aa <@ bn_expand (a);
+    res_0 <@ bn_breduce (aa, r, p);
+    return (res_0);
+  }
+  
   proc mulm (r:W64.t Array64.t, p:W64.t Array32.t, a:W64.t Array32.t,
              b:W64.t Array32.t) : W64.t Array32.t = {
     
@@ -753,6 +765,21 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
+  proc bn_set_eb (a:W64.t Array64.t) : W64.t Array64.t = {
+    var aux: int;
+    
+    var i:int;
+    
+    a.[0] <- (W64.of_int 1);
+    aux <- (32 * 2);
+    i <- 1;
+    while (i < aux) {
+      a.[i] <- (W64.of_int 1);
+      i <- i + 1;
+    }
+    return (a);
+  }
+  
   proc bn_set_go (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux: int;
     
@@ -795,18 +822,18 @@ module M(SC:Syscall_t) = {
                  challenge_0:W64.t Array32.t) : W64.t Array32.t = {
     
     var response_0:W64.t Array32.t;
-    var group_generator:W64.t Array32.t;
-    var barrett_parameter:W64.t Array64.t;
+    var exp_order:W64.t Array32.t;
+    var exp_barrett:W64.t Array64.t;
     var product:W64.t Array32.t;
-    barrett_parameter <- witness;
-    group_generator <- witness;
+    exp_barrett <- witness;
+    exp_order <- witness;
     product <- witness;
     response_0 <- witness;
-    group_generator <@ bn_set_gg (group_generator);
-    barrett_parameter <@ bn_set_bf (barrett_parameter);
-    product <@ mulm (barrett_parameter, group_generator, challenge_0,
-    witness0);
-    response_0 <@ addm (group_generator, secret_power, product);
+    exp_order <@ bn_set_eo (exp_order);
+    exp_barrett <@ bn_set_eb (exp_barrett);
+    challenge_0 <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
+    product <@ mulm (exp_barrett, exp_order, challenge_0, witness0);
+    response_0 <@ addm (exp_order, secret_power, product);
     return (response_0);
   }
   

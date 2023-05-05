@@ -70,7 +70,10 @@ module ASpecFp_Schnorr = {
 require import W64_SchnorrExtract.
 require import Ring_ops_proof.
 
-    
+op Rip : int.
+axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (P-1).
+
+print Ri_def.    
 lemma bn_set_bf_prop : 
   phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
 admitted.
@@ -81,6 +84,10 @@ admitted.
 
 lemma bn_set_eo_prop : 
   phoare[ M.bn_set_eo : true ==> valR res = p-1  ] = 1%r.
+admitted.
+
+lemma bn_set_eb_prop : 
+  phoare[ M.bn_set_eb : true ==> W64x2N.valR res = Rip  ] = 1%r.
 admitted.
 
 lemma bn_set_gg_prop : 
@@ -158,49 +165,71 @@ qed.
 
 
 
-
 lemma response_eq : 
   equiv [ SchnorrProver.response ~ JProver.response :
-    w{1} %% (p-1)       = (valR (witness0{2}) )       %% (p-1)
+    w{1} %% (p-1)       = (valR (witness0{2}) )      %% (p-1)
     /\ r{1} %% (p-1)    = (valR secret_power{2})     %% (p-1)
-    /\ c{1} %% (p-1)    = (valR challenge_0{2})        %% (p-1)
-    ==> res{1}  = (valR res{2}) ].
-proc. simplify.
-ecall {2} (bn_addm_correct group_generator{2} secret_power{2} product{2}). simplify. 
-ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} group_generator{2}). simplify.
-call{2} bn_set_bf_prop'. simplify.
-call{2} bn_set_gg_prop.
+    /\ c{1} %% (p-1)    = (valR challenge_0{2})      %% (p-1)
+    ==> res{1} %% (p-1)  = (valR res{2}) ].
+proc. sp. simplify.
+ecall {2} (bn_addm_correct secret_power{2} product{2} exp_order{2}). simplify. 
+ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
+call{2} bn_set_eb_prop. simplify.
+call{2} bn_set_eo_prop. simplify.
 wp.
 skip. 
-progress.
-admit. 
+progress. rewrite H3. rewrite Rip_def. rewrite ri_un. rewrite /ri. rewrite H2. smt().
+smt. 
+smt(@W64xN).
+smt(@W64xN).
+rewrite H2.  
+admit.
+smt.
+smt.
+smt(@W64xN).
+smt.
+smt(@W64xN).
+rewrite H2. admit.
+smt(@W64xN).
+rewrite H2. admit.
+smt(@W64xN).
+smt.
+smt(@W64xN).
+admit.
+rewrite - H24.
+rewrite - H17.
+rewrite H2.
+admit.
+qed.
+
+
 
 lemma verify_eq : 
-  equiv [ SchnorrVerifier.verify ~ JVerifier(Syscall).verify :
+  equiv [ SchnorrVerifier.verify ~ JVerifier.verify :
        Sub.val(s{1}) = valR statement{2} %% p
-       /\ Sub.val(z{1}) = valR commitment{2} %% p
+       /\ Sub.val(z{1}) = valR commitment_0{2} %% p
        /\ c{1} %% (p-1) = (valR (challenge_0{2})) %% (p-1)
-       /\ t{1} %% (p-1) = (valR response{2})  %% (p-1)
-       ==> res{1} = (res{2} = W64.one)
-].
+       /\ t{1} %% (p-1) = (valR response_0{2})  %% (p-1)
+       ==> res{1} = (res{2} = W64.one) ].
 admitted.
 
 
 lemma response_mod_eq :
-  equiv [ JProver(Syscall).response ~ JProver(Syscall).response :
+  equiv [ JProver.response ~ JProver.response :
     (valR witness{1})         %% (p-1) = (valR witness{2})      %% (p-1)
     /\ (valR secret_power{1}) %% (p-1) = (valR secret_power{2}) %% (p-1)
-    /\ (valR challenge{1})    %% (p-1) = (valR challenge{2}) %% (p-1)
+    /\ (valR challenge_0{1})    %% (p-1) = (valR challenge_0{2}) %% (p-1)
     ==> (valR res{1}) %% (p-1) = (valR res{2}) %% (p-1) ].
 admitted.
 
   
 lemma verify_mod_eq :
-  equiv [ JVerifier(Syscall).verify ~ JVerifier(Syscall).verify :
+  equiv [ JVerifier.verify ~ JVerifier.verify :
        (valR statement{1})   %% p     = (valR statement{2})   %% p
-    /\ (valR commitment{1})  %% p     = (valR commitment{2})  %% p
+    /\ (valR commitment_0{1})  %% p     = (valR commitment_0{2})  %% p
     /\ (valR challenge_0{1}) %% (p-1) = (valR challenge_0{2}) %% (p-1)
-    /\ (valR response{1})    %% (p-1) = (valR response{2})    %% (p-1)
+    /\ (valR response_0{1})    %% (p-1) = (valR response_0{2})    %% (p-1)
     ==> ={res} ].
 admitted.
 
@@ -226,54 +255,54 @@ module type VDistinguisher(V : ZKVerifierG) = {
  int -> zp, includes "cleaning"
 
 *)
-lemma prover_ind:  forall (D <: PDistinguisher) &m i,
- Pr[D(SchnorrProver).distinguish(i)@&m: res]
-  =  Pr[D(PWrap).distinguish(i)@&m: res].
-proof. progress.
-byequiv (_: ={glob D, arg} ==> _).
-proc*.
-call (_:true). simplify.
-proc*. inline PWrap.commitment. wp.
-call commitment_eq. skip. progress.
-smt.
-simplify.
-proc*. simplify. inline PWrap.response. wp.
-call response_eq. wp. simplify. skip. progress.
-rewrite bnk_ofintK. auto. 
-rewrite - bn_modulusE. smt(@Zp pmoval).
-rewrite bnk_ofintK. auto. 
-rewrite - bn_modulusE. smt(@Zp pmoval).
-rewrite bnk_ofintK. auto. 
-rewrite - bn_modulusE. smt(@Zp pmoval).
-skip. progress. auto. auto.
-qed.
+(* lemma prover_ind:  forall (D <: PDistinguisher) &m i, *)
+(*  Pr[D(SchnorrProver).distinguish(i)@&m: res] *)
+(*   =  Pr[D(PWrap).distinguish(i)@&m: res]. *)
+(* proof. progress. *)
+(* byequiv (_: ={glob D, arg} ==> _). *)
+(* proc*. *)
+(* call (_:true). simplify. *)
+(* proc*. inline PWrap.commitment. wp. *)
+(* call commitment_eq. skip. progress. *)
+(* smt. *)
+(* simplify. *)
+(* proc*. simplify. inline PWrap.response. wp. *)
+(* call response_eq. wp. simplify. skip. progress. *)
+(* rewrite bnk_ofintK. auto.  *)
+(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
+(* rewrite bnk_ofintK. auto.  *)
+(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
+(* rewrite bnk_ofintK. auto.  *)
+(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
+(* smt. skip. progress. auto. auto. *)
+(* qed. *)
 
 
-lemma verifier_ind:  forall (D <: VDistinguisher) &m i,
- Pr[D(SchnorrVerifier).distinguish(i)@&m: res]
-  =  Pr[D(VWrap).distinguish(i)@&m: res].
-proof. progress.
-byequiv (_: ={glob D, arg} ==> _).
-proc*.
-call (_:true). simplify.
-proc*. inline VWrap.challenge. wp.
-call challenge_eq. skip. progress.
-simplify.
-proc*. simplify. inline VWrap.verify. wp.
-call verify_eq. wp. simplify. skip. progress.
-rewrite bnk_ofintK. auto. 
-rewrite - bn_modulusE. 
-have v : val s{2} < p. smt(valP).
-smt(@Zp pmoval).
-rewrite bnk_ofintK. auto. 
-have v : val z{2} < p. smt(valP).
-rewrite - bn_modulusE. smt(@Zp pmoval).
-rewrite bnk_ofintK. auto. 
-rewrite - bn_modulusE. smt(@Zp pmoval).
-rewrite bnk_ofintK. auto. 
-rewrite - bn_modulusE. smt(@Zp pmoval).
-skip. progress. auto. auto.
-qed.
+(* lemma verifier_ind:  forall (D <: VDistinguisher) &m i, *)
+(*  Pr[D(SchnorrVerifier).distinguish(i)@&m: res] *)
+(*   =  Pr[D(VWrap).distinguish(i)@&m: res]. *)
+(* proof. progress. *)
+(* byequiv (_: ={glob D, arg} ==> _). *)
+(* proc*. *)
+(* call (_:true). simplify. *)
+(* proc*. inline VWrap.challenge. wp. *)
+(* call challenge_eq. skip. progress. *)
+(* simplify. *)
+(* proc*. simplify. inline VWrap.verify. wp. *)
+(* call verify_eq. wp. simplify. skip. progress. *)
+(* rewrite bnk_ofintK. auto.  *)
+(* rewrite - bn_modulusE.  *)
+(* have v : val s{2} < p. smt(valP). *)
+(* smt(@Zp pmoval). *)
+(* rewrite bnk_ofintK. auto.  *)
+(* have v : val z{2} < p. smt(valP). *)
+(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
+(* rewrite bnk_ofintK. auto.  *)
+(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
+(* rewrite bnk_ofintK. auto.  *)
+(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
+(* skip. progress. auto. auto. *)
+(* qed. *)
 
 end ZKDistinguisherTheory. 
 

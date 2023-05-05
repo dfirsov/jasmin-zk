@@ -88,9 +88,9 @@ declare axiom P_rewindable : exists (f : (glob AWrapE(P)) -> sbits),
 
 lemma extractabilityJ &m s: 
   Pr[ExtractorJ(P).extract(s)@&m: soundness_relation (inzp (valR s)) (valR res) ] >=
-   (Pr[SoundnessJ(P, JVerifier(Syscall)).main(s) @ &m : res] ^ 2
+   (Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res] ^ 2
        - 1%r / (size (range 0 (p - 1)))%r
-           * Pr[SoundnessJ(P, JVerifier(Syscall)).main(s) @ &m : res]).
+           * Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res]).
 proof. rewrite (extractability_same P).
 rewrite (soundness_same s &m P).
 have -> : Pr[SoundnessG(AWrap(P), SchnorrVerifier).run(inzp (valR s)) @ &m : res]

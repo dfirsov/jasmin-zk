@@ -722,14 +722,21 @@ skip.  progress.
 qed.
 
 
+
+op ri_uncompute (p : int) : int.
+axiom ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs).
+
+lemma modulusR_val : 
+W64xN.modulusR =  2 ^ (dnlimbs * nlimbs). rewrite /W64xN.modulusR. smt(@Ring).
+qed.
+
 equiv bnreduce_spec:
  M.bn_breduce ~ ASpecFp.redm:
   valR a{1} = a{2}
   /\ ImplZZ p{1} p{2}
-  /\ valR r{1} = (ri p{2} (64 * nlimbs))  
+  /\ valR r{1} = ri_uncompute p{2} (* (ri p{2} (64 * nlimbs))   *)
   /\ 0 < p{2} < W64xN.modulusR
   /\ 0 <= a{2} < p{2} * p{2}
-  /\ 0 < p{2} < 2 ^ (64 * nlimbs)
   /\ 0 <= valR r{1} ==> valR res{1} = res{2} .
 proof. 
   have redm_simp:
@@ -745,9 +752,9 @@ symmetry. transitivity ASpecFp.redm
   /\ valR r{2} =  (ri p{1} (64 * nlimbs))  
   /\ 0 < p{1} < W64xN.modulusR
   /\ 0 <= a{1} < p{1} * p{1}
-  /\ 0 < p{1} < 2 ^ (64 * nlimbs)
+  /\ 0 < p{1} < W64xN.modulusR
   /\ 0 <= valR r{2} ==> valR res{2} = res{1} %% W64xN.modulusR).
-smt(). 
+smt(ri_un).
 auto. conseq redm_simp. 
 symmetry.
 transitivity CSpecFp.redm
@@ -774,12 +781,34 @@ smt(). smt().
 qed.
 
 
+
+lemma bnreduce_spec_ph aa pp:
+ phoare [ M.bn_breduce :  a = aa /\ p = pp
+  /\ valR r = ri_uncompute (valR p)
+  /\ 0 < valR p < W64xN.modulusR
+  /\ 0 <= valR a < valR p * valR p
+  /\ 0 < valR p < W64xN.modulusR 
+      ==> valR res = valR aa %% valR pp ] = 1%r.
+proof. bypr. progress.
+ have <- : Pr[ASpecFp.redm(valR a{m}, valR p{m}) @ &m : valR a{m} %% valR p{m} = res] = 1%r. 
+  byphoare (_: arg = (valR a{m}, valR p{m}) ==> _).
+proc. wp. skip. smt(). auto. auto.
+byequiv. conseq bnreduce_spec.  
+progress. 
+smt(@W64x2N). smt(). auto. auto.
+qed.
+
+lemma bnreduce_small_spec_ph aa pp:
+ phoare [ M.bn_breduce_small :  a = aa /\ p = pp
+  /\ valR r = ri_uncompute (valR p)
+  /\ 0 < valR p < W64xN.modulusR
+  /\ 0 <= valR a < valR p * valR p
+  /\ 0 < valR p < W64xN.modulusR 
+      ==> valR res = valR aa %% valR pp ] = 1%r.
+admitted.
+
 lemma q (a b p : int) : 0 <= a < p => 0 <= b < p => a * b < p * p.
 smt(@Int). qed.
-
-
-op ri_uncompute : int.
-axiom ri_un p : ri_uncompute = ri (valR p)%W64xN (dnlimbs * nlimbs).
 
 
 equiv mulm_cspec:
@@ -790,7 +819,7 @@ equiv mulm_cspec:
   /\ valR a{1} < p{2}
   /\ valR b{1} < p{2}
   /\ ImplZZ p{1} p{2}
-  /\ valR r{1} = ri_uncompute
+  /\ valR r{1} = ri_uncompute p{2}
    ==> valR res{1} =  res{2} .
 proc. 
 call bnreduce_spec.
@@ -802,15 +831,15 @@ smt(@W64xN @W64x2N).
    split.  simplify. smt().
 split. simplify. smt.
 split.  smt (P_pos bnk_cmp).
-split.  smt (P_pos bnk_cmp).
-split.  split. smt .
-have -> :  2 ^ (dnlimbs * nlimbs) = W64xN.modulusR. rewrite /W64xN.modulusR. smt(@Ring).
-smt. smt(W64x2N.R.bnk_cmp).
+split.  smt (P_pos bnk_cmp). simplify. smt(@W64x2N).
+(* split.  split. smt . *)
+(* have -> :  2 ^ (dnlimbs * nlimbs) = W64xN.modulusR. rewrite /W64xN.modulusR. smt(@Ring). *)
+(* smt. smt(W64x2N.R.bnk_cmp). *)
 qed.
 
 
 lemma bn_mulm_correct aa bb pp:
-  phoare[ M.mulm : a = aa /\ b = bb /\ p = pp /\ 0 <= valR a < valR p /\ valR r = ri_uncompute /\ 0 <= valR b < valR p (* /\ 0 <= 2* (valR p) < W64xN.modulusR *)  ==> (valR aa * valR bb)%% (valR pp) = valR res ] = 1%r.
+  phoare[ M.mulm : a = aa /\ b = bb /\ p = pp /\ 0 <= valR a < valR p /\ valR r = ri_uncompute (valR p) /\ 0 <= valR b < valR p (* /\ 0 <= 2* (valR p) < W64xN.modulusR *)  ==> (valR aa * valR bb)%% (valR pp) = valR res ] = 1%r.
 proof. bypr. progress.
  have <- : Pr[CSpecFp.mulm(valR a{m}, valR b{m}, valR p{m}) @ &m : (valR a{m} * valR b{m}) %% valR p{m} =  res] = 1%r. 
   byphoare (_: arg = (valR a{m}, valR b{m}, valR p{m}) ==> _).
@@ -835,7 +864,7 @@ transitivity CSpecFp.mulm
   /\ valR a{1} < p{2}
   /\ valR b{1} < p{2}
   /\ ImplZZ p{1} p{2}
-  /\ valR r{1} = ri_uncompute
+  /\ valR r{1} = ri_uncompute p{2}
    ==> valR res{1} =  res{2} )
  (a{1} = asint a{2} /\ b{1} = asint b{2} /\ p{1} =  p{2}  ==> res{1} = asint res{2}).
 move => &1 &2 H1.

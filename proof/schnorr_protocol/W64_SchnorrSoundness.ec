@@ -34,7 +34,7 @@ module  AWrap(A:ZKMaliciousProverJ) : ZKMaliciousProverG = {
 
 
 lemma soundness_same (s : W64xN) &m : forall (A <: ZKMaliciousProverJ),
-   Pr[ SoundnessJ(A,JVerifier(Syscall)).main(s)@&m : res]
+   Pr[ SoundnessJ(A,JVerifier).main(s)@&m : res]
    = Pr[ SoundnessG(AWrap(A),SchnorrVerifier).run(inzp (W64xN.valR s))@&m : res].
 move => A. byequiv. proc.
 symmetry. call verify_eq.
