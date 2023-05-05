@@ -101,9 +101,9 @@ module ASpecFp = {
     return r;
   }
   
-  proc redm(a: int): int = {
+  proc redm(a p: int): int = {
     var r;
-    r <- a %% P;
+    r <- a %% p;
    return r;
   }
  
@@ -198,14 +198,14 @@ module CSpecFp = {
   r <@ ASpecFp.cminus(x, p);
   return r;
  }
- proc redm(a r k: int): int = {
+ proc redm(a r k p: int): int = {
    var xr, xrf, xrfn, t, b;
    xr    <@ ASpecFp.muln(a,r);
    xrf   <@ ASpecFp.div2(xr, 2*k);
    xrf   <- xrf %% 2^k;
-   xrfn  <@ ASpecFp.muln(xrf, P);
+   xrfn  <@ ASpecFp.muln(xrf, p);
    (b,t) <@ ASpecFp.dsubn(a, xrfn);
-   t     <@ ASpecFp.cminusP(t);
+   t     <@ ASpecFp.cminus(t,p);
    return t;
  }
 
@@ -224,10 +224,19 @@ module CSpecFp = {
  }
 
 
- proc mulm(a b: int): int = {
+ proc dcminus(a p: int): int = {
+  var c, x, r;
+  (c, x) <@ ASpecFp.dsubn(a, p);
+  r <@ ASpecFp.ctseln(c, x, a);
+  return r;
+ }
+
+
+
+ proc mulm(a b p: int): int = {
   var c, z;
   c <@ ASpecFp.muln(a,b);
-  z <@ ASpecFp.redm(c);
+  z <@ ASpecFp.redm(c,p);
   return z;
  }
 
@@ -244,7 +253,6 @@ module CSpecFp = {
    }
    return (i,x);
  }
-
 
 }.
 
@@ -403,7 +411,7 @@ have -> : Pr[CSpecFp.rsample(P) @ &m : RSP P res.`2]
  = Pr[CSpecFp.rsample(P) @ &m : res.`2 \in D /\ (RSP P res.`2)].
 rewrite Pr[mu_split (res.`2 \in D)] . auto. 
 have ->: Pr[CSpecFp.rsample(P) @ &m : RSP P res.`2 /\ (res.`2 \notin D)]
- = 0%r. smt. simplify.
+ = 0%r. timeout 15. smt. simplify.
 rewrite Pr[mu_eq]. smt. auto.
 rewrite Pr[mu_eq]. 
 progress.  
@@ -461,7 +469,7 @@ qed.
 
 equiv mulm_eq:
  CSpecFp.mulm ~ ASpecFp.mulm: 
-  a{1} = asint a{2} /\ b{1} = asint b{2}  
+  a{1} = asint a{2} /\ b{1} = asint b{2} /\ p{1} = P
     ==> res{1} = asint res{2}.
 proof.  proc. inline*. wp.  skip. progress.
 smt(@Zp).
@@ -485,68 +493,69 @@ require import BarrettRedInt.
 require import Real RealExp.
 
 (* parameter for the Barrett reduction  *)
-op Ri : int  = 4 ^ (64 * nlimbs) %/ P.
+op Ri : int.
+axiom Ri_def : Ri = 4 ^ (64 * nlimbs) %/ P.
 
 equiv redm_eq:
- ASpecFp.redm ~ CSpecFp.redm: ={a} /\ r{2} = (4 ^ k{2} %/ P) 
-  /\ 0 < P < W64xN.modulusR
-  /\ 0 <= a{2} < P * P
-  /\ 0 < P < 2 ^ k{2} 
+ ASpecFp.redm ~ CSpecFp.redm: ={a, p} /\ r{2} = (4 ^ k{2} %/ p{2}) 
+  /\ 0 < p{2} < W64xN.modulusR
+  /\ 0 <= a{2} < p{2} * p{2}
+  /\ 0 < p{2} < 2 ^ k{2} 
   /\ 0 <= k{2} ==> ={res}.
 proc. inline*. wp. skip. progress.
-rewrite -  (barrett_reduction_correct a{2} P k{2} ). auto. auto.  auto. 
+rewrite -  (barrett_reduction_correct a{2} p{2} k{2} ). auto. auto.  auto. 
 rewrite /barrett_reduction. simplify. rewrite /ti. rewrite /ti'. rewrite /ri.
 have ->: 2 ^ (2 * k{2}) = 4 ^ k{2}. smt(@Real).
-have <-:  a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2} * P
- = (a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  %%  2 ^ k{2} * P) %% W64x2N.modulusR.
+have <-:  a{2} - a{2} * (4 ^ k{2} %/ p{2}) %/ 4 ^ k{2} * p{2}
+ = (a{2} - a{2} * (4 ^ k{2} %/ p{2}) %/ 4 ^ k{2}  %%  2 ^ k{2} * p{2}) %% W64x2N.modulusR.
 rewrite modz_small.
- have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
+ have ->: a{2} * (4 ^ k{2} %/ p{2}) %/ 4 ^ k{2}  = ti' a{2} p{2} k{2}. 
   rewrite /ti. rewrite /ti'. rewrite /ri. auto.
-have -> : ti' a{2} P k{2} %% 2 ^ k{2} = ti' a{2} P k{2}. 
+have -> : ti' a{2} p{2} k{2} %% 2 ^ k{2} = ti' a{2} p{2} k{2}. 
 rewrite modz_small. rewrite /ti'. split. 
 apply divz_ge0. 
 smt(exprn_ege1).
 rewrite /ri. 
-  have : 0 <= (4 ^ k{2} %/ P). apply divz_ge0.  smt(P_pos). smt(exprn_ege1). smt().
+  have : 0 <= (4 ^ k{2} %/ p{2}). apply divz_ge0.  smt(). smt(exprn_ege1). smt().
   have ->: `|2 ^ k{2}| = 2 ^ k{2}. smt().
-  have : (ti' a{2} P k{2})%r < (2 ^ k{2})%r.
+  have : (ti' a{2} p{2} k{2})%r < (2 ^ k{2})%r.
    rewrite - same_t'. auto. auto.
-  have qq :  a{2}%r - 2%r * P%r < (t' a{2}%r P%r k{2}%r) * P%r <= a{2}%r. 
+  have qq :  a{2}%r - 2%r * p{2}%r < (t' a{2}%r p{2}%r k{2}%r) * p{2}%r <= a{2}%r. 
    apply st6. smt(). split. smt().  move => ?. rewrite  exp_lemma1. auto. auto. smt(@Real).
   smt(). smt(). auto.
-have -> : a{2} - a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2} * P
- = ti a{2} P k{2}. rewrite /ti. rewrite /ti'. rewrite /ri. auto.
+have -> : a{2} - a{2} * (4 ^ k{2} %/ p{2}) %/ 4 ^ k{2} * p{2}
+ = ti a{2} p{2} k{2}. rewrite /ti. rewrite /ti'. rewrite /ri. auto.
 split. 
-   have : 0%r <= (ti a{2} P k{2})%r < 2%r * P%r.
+   have : 0%r <= (ti a{2} p{2} k{2})%r < 2%r * p{2}%r.
    rewrite - same_t. auto. auto.
-     apply (st8 a{2}%r P%r k{2}%r _ _). split.  smt(). smt(). smt(exp_lemma1).
+     apply (st8 a{2}%r p{2}%r k{2}%r _ _). split.  smt(). smt(). smt(exp_lemma1).
   progress. smt(). 
 move => _.
 have ->: `|W64xN.modulusR2| = W64xN.modulusR2. rewrite /W64xN.modulusR2. smt(@Ring).
-   have : 0%r <= (ti a{2} P k{2})%r < 2%r * P%r.
+   have : 0%r <= (ti a{2} p{2} k{2})%r < 2%r * p{2}%r.
    rewrite - same_t. auto. auto. 
-     apply (st8 a{2}%r P%r k{2}%r _ _). split. smt(). smt().
+     apply (st8 a{2}%r p{2}%r k{2}%r _ _). split. smt(). smt().
 split. smt(). move => ?. smt(exp_lemma1).
   progress. 
-   have : 2 * P < W64xN.modulusR2. rewrite /W64xN.modulusR2. 
+   have : 2 * p{2} < W64xN.modulusR2. rewrite /W64xN.modulusR2. 
    have : W64x2N.M ^ (nlimbs) <= W64x2N.M ^ (2 * nlimbs).
    apply ler_weexpn2l. smt(). smt().
-   have : P <= W64x2N.M ^ ( nlimbs) .    
-    have ->: W64x2N.M ^ nlimbs = W64xN.modulusR. rewrite /W64xN.modulusR. auto. smt(ppos).
+   have : p{2} <= W64x2N.M ^ nlimbs.
+    have ->: W64x2N.M ^ nlimbs = W64xN.modulusR. rewrite /W64xN.modulusR. auto. smt().
 smt(). smt().
- have ->: a{2} * (4 ^ k{2} %/ P) %/ 4 ^ k{2}  = ti' a{2} P k{2}. 
+ have ->: a{2} * (4 ^ k{2} %/ p{2}) %/ 4 ^ k{2}  = ti' a{2} p{2} k{2}. 
   rewrite /ti. rewrite /ti'. rewrite /ri. auto.
-have -> : ti' a{2} P k{2} %% 2 ^ k{2} = ti' a{2} P k{2}. 
+have -> : ti' a{2} p{2} k{2} %% 2 ^ k{2} = ti' a{2} p{2} k{2}. 
 rewrite modz_small. rewrite /ti'. split. 
-  have : 0 <= ri P k{2} %/ 4 ^ k{2}. apply divz_ge0. smt(exprn_ege1). rewrite /ri.
-  apply divz_ge0.  smt(P_pos). smt(exprn_ege1). smt(). 
+  have : 0 <= ri p{2} k{2} %/ 4 ^ k{2}. apply divz_ge0. smt(exprn_ege1). rewrite /ri.
+  apply divz_ge0.  smt(). smt(exprn_ege1). smt(). 
   have ->: `|2 ^ k{2}| = 2 ^ k{2}. smt().
-  have : (ti' a{2} P k{2})%r < (2 ^ k{2})%r.
+  have : (ti' a{2} p{2} k{2})%r < (2 ^ k{2})%r.
    rewrite - same_t'. auto. auto.
-  have qq :  a{2}%r - 2%r * P%r < (t' a{2}%r P%r k{2}%r) * P%r <= a{2}%r.
+  have qq :  a{2}%r - 2%r * p{2}%r < (t' a{2}%r p{2}%r k{2}%r) * p{2}%r <= a{2}%r.
    apply st6. smt().  split. smt(). move => ?. smt(exp_lemma1).
   smt().
   smt(). auto.
-auto.
+smt().
 auto.
 qed.

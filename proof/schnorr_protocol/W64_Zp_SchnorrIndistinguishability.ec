@@ -68,7 +68,6 @@ module ASpecFp_Schnorr = {
 
 
 require import W64_SchnorrExtract.
-print M.
 require import Ring_ops_proof.
 
     
@@ -103,8 +102,12 @@ call{1} bn_set_bf_prop.
 call{1} bn_set_gg_prop.
 call{1} bn_set_go_prop.
 call{1} bn_set_eo_prop.
-skip. move => &1 _ H r q r2 vr.
-smt.
+skip. move => &1 _ H r q r2 vr rr iz rp vri.
+split. smt.
+move => h1. move => rL rR. move => rzrlrr. 
+split. 
+split.  smt. split. smt. split.  smt. split.  smt. rewrite /R. rewrite - vri. smt(@W64x2N @R2).
+move => qo. move => rl rrr ai. smt.
 qed.
 
 
@@ -154,6 +157,8 @@ call{1} bn_set_eo_prop. wp. skip. progress.
 qed.
 
 
+
+
 lemma response_eq : 
   equiv [ SchnorrProver.response ~ JProver.response :
     w{1} %% (p-1)       = (valR (witness0{2}) )       %% (p-1)
@@ -161,9 +166,14 @@ lemma response_eq :
     /\ c{1} %% (p-1)    = (valR challenge_0{2})        %% (p-1)
     ==> res{1}  = (valR res{2}) ].
 proc. simplify.
-ecall {2} (bn_addm_correct group_generator{2} secret_power{2} product{2}). simplify.
-
-
+ecall {2} (bn_addm_correct group_generator{2} secret_power{2} product{2}). simplify. 
+ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} group_generator{2}). simplify.
+call{2} bn_set_bf_prop'. simplify.
+call{2} bn_set_gg_prop.
+wp.
+skip. 
+progress.
+admit. 
 
 lemma verify_eq : 
   equiv [ SchnorrVerifier.verify ~ JVerifier(Syscall).verify :
