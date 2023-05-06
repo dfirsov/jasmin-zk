@@ -104,6 +104,59 @@ lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@Zp). qed.
 lemma zp_mul (z1 z2 : zp) : val (z1 * z2) = (val z1 * val z2) %% p. smt(@Zp). qed.
 axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
 
+lemma commit_same1 : 
+  equiv [ JProver.commitment ~ ASpecFp_Schnorr.commit 
+          :   true
+  ==> (val res{2}.`1) = (valR res{1}.`1)
+    /\ res{2}.`2 = (valR res{1}.`2) ].
+proc. 
+symmetry. call expm_correct.
+symmetry.
+call usample_aspec. sp.
+simplify.
+call{1} bn_set_bf_prop.
+call{1} bn_set_gg_prop.
+call{1} bn_set_go_prop.
+call{1} bn_set_eo_prop.
+skip. move => &1 _ H r q r2 vr rr iz rp vri.
+split. smt.
+move => h1. move => rL rR. move => rzrlrr. 
+split. 
+split.  smt. split. smt. split.  smt. split.  smt. rewrite /R. rewrite - vri. smt(@W64x2N @R2).
+move => qo. move => rl rrr ai. smt.
+qed.
+
+
+lemma commit_same : 
+  equiv [ SchnorrProver.commitment ~ ASpecFp_Schnorr.commit 
+          : true  ==> ={res} ].
+proc. 
+inline *. wp.  simplify. sp.
+rnd.
+skip. progress.  smt(@Distr).  
+rewrite - zp_eq.
+rewrite exps.
+rewrite /(^).
+rewrite inzpKK. congr. congr.
+rewrite /asint. auto.
+qed.
+
+lemma commitment_eq : 
+  equiv [ SchnorrProver.commitment ~ JProver.commitment :
+  true
+  ==> (val res{1}.`1) = (valR res{2}.`1)
+    /\ res{1}.`2 = (valR res{2}.`2) ].
+proc*.
+
+transitivity ASpecFp_Schnorr.commit
+  (true ==> ={res})
+  (true
+  ==> (val res{1}.`1) = (valR res{2}.`1)
+    /\ res{1}.`2 = (valR res{2}.`2)). auto. auto.
+apply commit_same.
+symmetry. apply commit_same1.
+qed.
+
 
 lemma verify_eq : 
   equiv [ SchnorrVerifier.verify ~ JVerifier.verify :
@@ -183,52 +236,7 @@ rewrite - exps.
 rewrite /P. rewrite - exps. smt(exp_pow). 
 qed.
      
-lemma commit_same1 : 
-  equiv [ JProver.commitment ~ ASpecFp_Schnorr.commit 
-          :   true
-  ==> (val res{2}.`1) = (valR res{1}.`1)
-    /\ res{2}.`2 = (valR res{1}.`2) ].
-proc. 
-symmetry. call expm_correct.
-symmetry.
-call usample_aspec. sp.
-simplify.
-call{1} bn_set_bf_prop.
-call{1} bn_set_gg_prop.
-call{1} bn_set_go_prop.
-call{1} bn_set_eo_prop.
-skip. move => &1 _ H r q r2 vr rr iz rp vri.
-split. smt.
-move => h1. move => rL rR. move => rzrlrr. 
-split. 
-split.  smt. split. smt. split.  smt. split.  smt. rewrite /R. rewrite - vri. smt(@W64x2N @R2).
-move => qo. move => rl rrr ai. smt.
-qed.
 
-
-lemma commit_same : 
-  equiv [ SchnorrProver.commitment ~ ASpecFp_Schnorr.commit 
-          : true  ==> ={res} ].
-proc. 
-inline *. wp.  simplify. sp.
-rnd.
-skip. progress.  smt(@Distr).  
-admit.
-qed.
-
-lemma commitment_eq : 
-  equiv [ SchnorrProver.commitment ~ JProver.commitment :
-  true
-  ==> (val res{1}.`1) = (valR res{2}.`1)
-    /\ res{1}.`2 = (valR res{2}.`2) ].
-transitivity ASpecFp_Schnorr.commit
-  (true ==> ={res})
-  (true
-  ==> (val res{1}.`1) = (valR res{2}.`1)
-    /\ res{1}.`2 = (valR res{2}.`2)). auto. auto.
-apply commit_same.
-symmetry. apply commit_same1.
-qed.
 
 
 
