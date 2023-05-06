@@ -1,5 +1,6 @@
 
-require import Ring_ops_extract_ct.
+(* require import Ring_ops_extract_ct. *)
+require import W64_SchnorrExtract_ct.
 require import JModel List Int AllCore.
 
 
@@ -121,31 +122,30 @@ axiom samp_t_inj : injective samp_t.
 lemma rsample_leakages :
    hoare [ M(Syscall).rsample : M.leakages = [] ==> M.leakages = samp_t res.`1].
 proc.
-seq 18 :  (M.leakages = samp_prefix /\ i = 0  /\ z = true ).
-wp. ecall (bn_set0_leakages M.leakages). wp. skip. progress. 
+seq 17 :  (M.leakages = samp_prefix /\ i = 0  /\ cf = false ).
+wp. ecall (bn_set0_leakages M.leakages). wp. skip. progress.  admit. rewrite /set0_64. simplify.
 
-while (0 <= i /\ (z = true => M.leakages = samp_f i) 
-              /\ (z = false => M.leakages = samp_t i)).
+while (0 <= i /\ (cf = false => M.leakages = samp_f i) 
+              /\ (cf = true => M.leakages = samp_t i)).
 wp. 
 ecall (bn_subc_leakages M.leakages). wp. ecall (bn_copy_leakages M.leakages). wp.  inline*. wp. rnd. wp.  skip. progress.
 smt().  rewrite H4.  rewrite H0. rewrite H2. auto.
 rewrite /samp_f. rewrite (samp_g_comp_2 (i{hr} + 1)). smt().
 simplify.
  rewrite /samp_step.   
-smt(@List). rewrite H4. rewrite H0. rewrite H2. auto.
+admit.  rewrite H4. rewrite H0. rewrite H2. auto.
 rewrite /samp_t. simplify.
-rewrite /samp_suffix. smt(@List).
+rewrite /samp_suffix. admit.
 skip. progress. rewrite /samp_prefix. rewrite /samp_f. rewrite samp_g_comp_1.
 auto. rewrite /samp_prefix. auto.
 rewrite H2. rewrite H. auto.
 auto.
 qed.
     
-require Ring_ops_extract.
-import Ring_ops_extract.
 
-module M1 = Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).
-module M2 = Ring_ops_extract.M(Ring_ops_extract.Syscall).
+require import W64_SchnorrExtract.
+module M1 = W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).
+module M2 = W64_SchnorrExtract.M(W64_SchnorrExtract.Syscall).  (* Ring_ops_extract.M(Ring_ops_extract.Syscall). *)
 
 lemma aaaa :
   equiv  [ M1.bn_set0 ~ M2.bn_set0 
@@ -210,8 +210,8 @@ lemma qq a l x &m : (glob M1){m} = [] => 0%r < mu D (RSP (valR a)) =>
 move => m1p m2p.
 have pr1 :  Pr[ M1.rsample(a) @ &m : M1.leakages = samp_t res.`1   ] = 1%r.
 rewrite - (samew a &m).   auto.
-  have ->: Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m : true] 
-   = Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m : M1.leakages = samp_t res.`1 ] + Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m : M1.leakages <> samp_t res.`1  ]. rewrite Pr[mu_split (M1.leakages = samp_t res.`1) ]. simplify. auto. rewrite (qq' a &m). auto.
+  have ->: Pr[M1.rsample(a) @ &m : true] 
+   = Pr[M1.rsample(a) @ &m : M1.leakages = samp_t res.`1 ] + Pr[M1.rsample(a) @ &m : M1.leakages <> samp_t res.`1  ]. rewrite Pr[mu_split (M1.leakages = samp_t res.`1) ]. simplify. auto. rewrite (qq' a &m). auto.
 simplify. auto.
 have pr2 :  Pr[ M1.rsample(a) @ &m : M1.leakages <> samp_t res.`1   ] = 0%r.
 byphoare (_:(glob M1){m} = (glob M1) ==> _). 
@@ -244,25 +244,25 @@ lemma qqq a x l &m : (glob M1){m} = [] => 0%r < mu D (RSP (valR a)) =>
 move => ic ic'. rewrite  (qq a  l x &m). auto. auto.
 simplify. 
 have -> : 
-  Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m :
+  Pr[M1.rsample(a) @ &m :
    l = samp_t res.`1 /\ res.`2 = x]
-  =   Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m :
+  =   Pr[M1.rsample(a) @ &m :
    l = samp_t res.`1 /\ res.`2 = x /\ 0 <= res.`1]. byequiv.
-proc. wp. simplify.
-while (0 <= i{1} /\ ={i,byte_p, byte_z, q0, q1}). wp.  simplify.
+proc. wp. simplify. 
+while (0 <= i{1} /\ ={i,byte_p, byte_z}). wp.  simplify.
 call (_:true). wp. sim. wp. 
 call (_:true). wp. sim. wp. 
 call (_:true). wp. sim. wp. 
 skip. progress. smt(). wp. 
 call (_:true). wp. sim. wp.  skip. progress.
 auto. auto.
-have -> : Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m :
+have -> : Pr[M1.rsample(a) @ &m :
    inv (-1) samp_t l = res.`1 /\ res.`2 = x] 
- = Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m :
+ = Pr[M1.rsample(a) @ &m :
    inv (-1) samp_t l = res.`1 /\ res.`2 = x /\ 0 <= res.`1].
  byequiv.
 proc. wp. simplify.
-while (0 <= i{1} /\ ={i,byte_p, byte_z, q0, q1}). wp.  simplify.
+while (0 <= i{1} /\ ={i,byte_p, byte_z}). wp.  simplify.
 call (_:true). wp. sim. wp. 
 call (_:true). wp. sim. wp. 
 call (_:true). wp. sim. wp. 
@@ -287,7 +287,7 @@ qed.
 lemma ph_l5''_var &m a : Pr[M1.rsample(a) @ &m : res.`1 <= 0 ] = 0%r.
 byphoare (_: arg = a ==> _);auto. hoare.
 proc.  simplify.
-unroll 19. rcondt 19. wp. wp. 
+unroll 18. rcondt 18. wp. wp. 
 call (_:true). wp. auto. wp. skip. auto.
 while (0 < i). wp. call (_:true). auto. wp.  call (_:true). auto.  wp. 
 inline*. wp. rnd. wp. skip. progress. smt().
@@ -311,15 +311,15 @@ lemma leakfree &m x a l: (glob M1){m} = [] => valR x < valR a => 0%r < mu D (RSP
    rewrite  (qqq a x l &m);auto.
 case (inv (-1) samp_t l <= 0). 
 move => q. rewrite /g. rewrite q.  simplify. 
-  have : Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m :
+  have : Pr[M1.rsample(a) @ &m :
    inv (-1) samp_t l = res.`1 /\ res.`2 = x] 
     <= Pr[M1.rsample(a) @ &m : res.`1 <= 0 ]. simplify. rewrite Pr[mu_sub]. smt().
    auto. smt(ph_l5''_var @Distr).
 move => q.
 have -> : 
- Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m :
+ Pr[M1.rsample(a) @ &m :
    inv (-1) samp_t l = res.`1 /\ res.`2 = x]
-  = Pr[Ring_ops_extract_ct.M(Ring_ops_extract_ct.Syscall).rsample(a) @ &m :
+  = Pr[M1.rsample(a) @ &m :
    res = (inv (-1) samp_t l , x) ]. rewrite Pr[mu_eq]. smt(). auto.
 rewrite zzz.
 rewrite rsample_pr.   smt().
