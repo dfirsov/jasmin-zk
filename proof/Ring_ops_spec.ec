@@ -44,10 +44,24 @@ clone import ZModP.ZModField as Zp
         rename "zmod" as "zp".
 
 
+op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n.
+
+op Rip : int.
+op g : zp.                       (* generator *)
+axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
+axiom pmoval:  p - 1 < W64xN.modulusR.
+axiom pval:  p < W64xN.modulusR.
+axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
+axiom p_val_prop2 : 2*p < W64xN.modulusR. 
+axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
+axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p.
+
+        
+
 (* op generator : zp. *)
-op P : int = p.  
-axiom ppos : P < W64xN.modulusR.
-axiom P_pos : 2 <= P.
+(* op P : int = p.   *)
+(* axiom ppos : P < W64xN.modulusR. *)
+axiom P_pos : 2 <= p.
 
 
         
@@ -58,8 +72,8 @@ abbrev ImplZZ2 x y = W64xN.valR2 x = y.
 abbrev ImplFp x y = W64xN.valR x = asint y.
 
 
-op pR: R.
-axiom pRE: W64xN.valR pR = P.
+(* op pR: R. *)
+(* axiom pRE: W64xN.valR pR = p. *)
 
 op zeroR : R = W64xN.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
 
@@ -137,7 +151,7 @@ module ASpecFp = {
 
   proc cminusP(a: int): int = {
     var r;
-    r <- if a < P then a else a-P;
+    r <- if a < p then a else a-p;
     return r;
   }
   
@@ -211,7 +225,7 @@ module CSpecFp = {
 
  proc dcminusP(a: int): int = {
   var c, x, r;
-  (c, x) <@ ASpecFp.dsubn(a, P);
+  (c, x) <@ ASpecFp.dsubn(a, p);
   r <@ ASpecFp.ctseln(c, x, a);
   return r;
  }
@@ -397,7 +411,7 @@ rewrite rsample_lossless2. auto.
 qed.
 
 axiom M_pos : 2 < M.
-axiom M_P : P < M.
+axiom M_P : p < M.
 lemma rsample_lossless4 P &m  : 0 < P < M =>
     Pr[CSpecFp.rsample(P) @ &m : LessThan P res.`2  ]
      = 1%r.
@@ -469,7 +483,7 @@ qed.
 
 equiv mulm_eq:
  CSpecFp.mulm ~ ASpecFp.mulm: 
-  a{1} = asint a{2} /\ b{1} = asint b{2} /\ p{1} = P
+  a{1} = asint a{2} /\ b{1} = asint b{2} /\ p{1} = p
     ==> res{1} = asint res{2}.
 proof.  proc. inline*. wp.  skip. progress.
 smt(@Zp).
@@ -482,7 +496,7 @@ equiv cminusP_eq:
 proof.
 proc; inline*; wp; skip => &1 &2.
 move => [q1  q2].
-case (a{2} < P). auto. move => qq. smt(). rewrite q1. move => qq. rewrite qq.
+case (a{2} < p). auto. move => qq. smt(). rewrite q1. move => qq. rewrite qq.
 rewrite modz_small. split.  smt().
 move => ?. have ->: `|W64x2N.modulusR| = W64x2N.modulusR. rewrite /W64x2N.modulusR. smt(@Ring).
 smt(P_pos). auto.
@@ -494,7 +508,7 @@ require import Real RealExp.
 
 (* parameter for the Barrett reduction  *)
 op Ri : int.
-axiom Ri_def : Ri = 4 ^ (64 * nlimbs) %/ P.
+axiom Ri_def : Ri = 4 ^ (64 * nlimbs) %/ p.
 
 equiv redm_eq:
  ASpecFp.redm ~ CSpecFp.redm: ={a, p} /\ r{2} = (4 ^ k{2} %/ p{2}) 

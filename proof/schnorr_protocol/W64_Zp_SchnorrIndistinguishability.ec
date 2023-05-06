@@ -136,7 +136,6 @@ smt.
 smt(@W64xN).
 smt.
 smt().
-smt().
 rewrite /R. smt.
 smt(@W64xN).
 smt().
@@ -242,7 +241,6 @@ smt (modzDmr modzDml).
 rewrite  H19 H2. rewrite - H0.
 rewrite  H11 H2. rewrite - H1.
 rewrite  H27 H2. rewrite - H.
-search edivz.
 rewrite modzMml.
 rewrite modzMmr. done.
 qed.

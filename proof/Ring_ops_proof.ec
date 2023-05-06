@@ -21,19 +21,6 @@ qed.
 
 require import RealExp.
 
-op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n.
-
-op Rip : int.
-op g : zp.                       (* generator *)
-axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (P-1).
-axiom pmoval:  p - 1 < modulusR.
-axiom pval:  p < modulusR.
-axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
-axiom p_val_prop2 : 2*p < W64xN.modulusR. 
-axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
-axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p.
-
-
 
 axiom bn_set_bf_prop : 
   phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
@@ -884,8 +871,8 @@ equiv mulm_spec:
  M.mulm ~ ASpecFp.mulm:
   valR a{1} = asint a{2}
   /\ valR b{1} = asint b{2}
-  /\ valR p{1} = P
-  /\ valR r{1} = (4 ^ (64 * nlimbs) %/ P) 
+  /\ valR p{1} = p
+  /\ valR r{1} = (4 ^ (64 * nlimbs) %/ p) 
    ==> valR res{1} = asint res{2} .
 transitivity CSpecFp.mulm
  (valR a{1} = a{2}
@@ -915,13 +902,13 @@ require MontgomeryLadder.
 
 
 clone import MontgomeryLadder as Exp with type R  <- W64xN.R.t,
-                                                 op P <- P,
+                                                 op P <- p,
                                                  op Rsize <- 64*nlimbs,
                                                  op valR <- W64xN.valR,
                                                  op of_int <- bn_ofint,
                                                  op idR <- bn_ofint 1,
                                                  op ( ** ) <- Int.( * ),
-                                                 op ( *** ) <=  fun a b => bn_ofint ((valR%W64xN a * valR%W64xN b) %% P)
+                                                 op ( *** ) <=  fun a b => bn_ofint ((valR%W64xN a * valR%W64xN b) %% p)
 proof*.
 realize Rsize_max. smt(). qed.
 realize Rsize_pos. smt(). qed.
@@ -929,7 +916,7 @@ realize valr_pos. smt (@W64xN). qed.
 realize iii.  rewrite /Rbits. 
 progress. rewrite  size_int2bs. auto. qed.
 realize valr_ofint.  progress.
-rewrite bn_ofintK. apply modz_small. split. auto. smt(ppos).
+rewrite bn_ofintK. apply modz_small. split. auto. smt.
 qed.
 realize P_pos. smt(P_pos). qed.
 realize ofint_valr. smt(@W64xN). qed.
@@ -963,8 +950,8 @@ realize exp_prop7. progress.
 have -> : valR a * valR b = valR b * valR a. smt(@Int). auto.
 qed.
 realize exp_prop6. progress.
-have ->: (valR (bn_ofint ((valR a * valR b) %% P)) * valR c) %% P
-  = ((valR a * valR ((bn_ofint ((valR b * valR c) %% P)))) %% P). 
+have ->: (valR (bn_ofint ((valR a * valR b) %% p)) * valR c) %% p
+  = ((valR a * valR ((bn_ofint ((valR b * valR c) %% p)))) %% p). 
 rewrite valr_ofint. 
 split. rewrite modz_ge0. smt(P_pos).
 smt(ltz_pmod P_pos).
@@ -1090,21 +1077,21 @@ qed.
 
 
 
-lemma R_prop : W64x2N.valR R = 4 ^ (64 * nlimbs) %/ P.
+lemma R_prop : W64x2N.valR R = 4 ^ (64 * nlimbs) %/ p.
 rewrite /R.
 have q1: 0 <= Ri. rewrite Ri_def.
 rewrite divz_ge0. smt(P_pos). smt(@Ring).
 have q2: Ri < W64x2N.modulusR .
   have ->: W64x2N.modulusR = (2^ (64 * dnlimbs)). rewrite /W64x2N.modulusR. smt(@Ring).
-  have -> : Ri = (ri P (64 * nlimbs)). rewrite /Ri. rewrite /ri. rewrite Ri_def. smt().
-  have : (ri P (64 * nlimbs))%r <= ((4 ^ (64*nlimbs))%r / P%r).  rewrite - same_ri. smt(P_pos). smt().
+  have -> : Ri = (ri p (64 * nlimbs)). rewrite /Ri. rewrite /ri. rewrite Ri_def. smt().
+  have : (ri p (64 * nlimbs))%r <= ((4 ^ (64*nlimbs))%r / p%r).  rewrite - same_ri. smt(P_pos). smt().
   rewrite /r.  rewrite - exp_lemma1. smt(). smt(). smt(floor_bound).
   have -> : (4 ^ (64 * nlimbs))%r = ((2 * 2) ^ (64 * nlimbs))%r. smt().
   have -> : ((2 * 2) ^ (64 * nlimbs))%r = ((2 ^ (2 * 64 * nlimbs)))%r. smt(@Ring).
   have->: (2 ^ (2 * 64 * nlimbs))%r = (2 ^ (64 * dnlimbs))%r. smt(@RealExp @Ring).
-  pose x := ri P (64 * nlimbs).
+  pose x := ri p (64 * nlimbs).
   move => q.
-  have : x%r < 2%r ^ (64 * dnlimbs)%r. apply (kok x%r (2%r ^ (64 * dnlimbs)%r) P%r).
+  have : x%r < 2%r ^ (64 * dnlimbs)%r. apply (kok x%r (2%r ^ (64 * dnlimbs)%r) p%r).
   have ->: x = Ri. rewrite /x Ri_def /ri. smt().
    smt(@RealExp). smt(@RealExp). smt(P_pos). rewrite exp_lemma1. smt(). smt(). apply q.
     have ->: 2%r ^ (64 * dnlimbs)%r = (2 ^ (64 * dnlimbs))%r.
@@ -1118,13 +1105,13 @@ qed.
 
 lemma okl : 
   equiv[ MultM.opr ~ Exp.Spec.mul :
-            a{1} = a{2} /\ b{1} = b{2} /\  valR p{1} = P /\ valR a{1} < P /\ valR b{1} < P ==>
-            ={res} /\ valR res{1} < P].
+            a{1} = a{2} /\ b{1} = b{2} /\  valR p{1} = p /\ valR a{1} < p /\ valR b{1} < p ==>
+            ={res} /\ valR res{1} < p].
 symmetry.
 transitivity ASpecFp.mulm 
   (ImplFp arg{1}.`1  arg{2}.`1 /\ ImplFp arg{1}.`2  arg{2}.`2 ==> ImplFp res{1} res{2} )
-  (ImplFp a{2} a{1} /\ ImplFp b{2} b{1} /\  valR p{2} = P /\ valR a{2} < P /\ valR b{2} < P ==>
-            ImplFp res{2} res{1} /\ valR res{2} < P).
+  (ImplFp a{2} a{1} /\ ImplFp b{2} b{1} /\  valR p{2} = p /\ valR a{2} < p /\ valR b{2} < p ==>
+            ImplFp res{2} res{1} /\ valR res{2} < p).
     progress. 
   exists (inzp (valR a{1}), inzp (valR b{1}) )%W64xN. progress.
 rewrite inzpK. rewrite modz_small. smt(bnk_cmp). smt(@Zp).
@@ -1145,7 +1132,7 @@ symmetry.
 transitivity M.mulm 
   (={p,a,b} /\ r{2} = R ==> ={res})
   (ImplFp a{1} a{2} /\
-  ImplFp b{1} b{2} /\ ImplZZ p{1} P /\ valR a{1} < P /\ valR b{1} < P /\ r{1} = R ==> ImplFp res{1} res{2} /\ valR res{1} < P).
+  ImplFp b{1} b{2} /\ ImplZZ p{1} p /\ valR a{1} < p /\ valR b{1} < p /\ r{1} = R ==> ImplFp res{1} res{2} /\ valR res{1} < p).
 progress. exists (R,p{1},a{1},b{1}). progress. auto.
 conseq okll. auto.
 conseq mulm_spec. progress. rewrite H4. apply R_prop.
@@ -1307,9 +1294,9 @@ qed.
 
 lemma expm_real_spec : 
       equiv[ Exp.M1.iterop_spec ~ Exp.M7(MultM).iterop :
-            ImplZZ m{2} P /\
+            ImplZZ m{2} p /\
             ={x} /\
-            bs2int n{1} = valR n{2} /\ size n{1} = 64*nlimbs /\ valR x{1} < P ==>
+            bs2int n{1} = valR n{2} /\ size n{1} = 64*nlimbs /\ valR x{1} < p ==>
             ={res}].
 apply (Exp.iterop_real_speac MultM _ _ _). 
 transitivity M.swapr
@@ -1337,14 +1324,14 @@ conseq okl. smt(). auto. auto.
 qed.
 
 
-lemma to_uintP: forall (x y : R), valR (x *** y) = (valR x * valR y) %% P.
+lemma to_uintP: forall (x y : R), valR (x *** y) = (valR x * valR y) %% p.
 progress. rewrite /( *** ). simplify. 
 rewrite valr_ofint. split. apply modz_ge0. smt(P_pos).
 smt(ltz_pmod P_pos). auto.
 qed.
 
 
-lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : W64xN.R.t), valR%W64xN b < P =>
+lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : W64xN.R.t), valR%W64xN b < p =>
   ImplFp b a =>
   ImplFp ((^) b n) (inzp (asint a ^ n)).
 apply intind. progress.
@@ -1364,7 +1351,7 @@ have ->:  inzp (asint a * (asint a ^ i)) = (inzp (asint a)) * (inzp (asint a ^ i
 smt(@Zp).
 rewrite - H2. 
 have ->: asint (inzp (valR%W64xN b) * inzp (valR%W64xN b ^ i))
-  = (asint (inzp (valR%W64xN b)) * (asint  (inzp (valR%W64xN b ^ i)))) %% P.
+  = (asint (inzp (valR%W64xN b)) * (asint  (inzp (valR%W64xN b ^ i)))) %% p.
 simplify. smt(@Zp).
 have ih :  ImplFp (b ^ i)  (inzp (valR%W64xN b ^ i)).
 simplify. smt(@Zp).
@@ -1377,7 +1364,7 @@ qed.
 
 lemma left_end :
  equiv[ ASpecFp.expm ~ Exp.M1.iterop_spec  :
-    ImplFp x{2} a{1} /\  bs2int n{2}  =  b{1} /\ valR%W64xN x{2} < P ==> ImplFp res{2} res{1}]. 
+    ImplFp x{2} a{1} /\  bs2int n{2}  =  b{1} /\ valR%W64xN x{2} < p ==> ImplFp res{2} res{1}]. 
 proc.
 wp.  skip.  progress.
 rewrite  (kk (bs2int n{2}) _ a{1}). smt(@BS2Int). auto. auto. smt(@Zp).
@@ -1418,18 +1405,18 @@ qed.
 
 lemma expm_correct : 
       equiv[ ASpecFp.expm ~ M.expm :
-             ImplZZ m{2} P /\
+             ImplZZ m{2} p /\
              asint a{1} = valR x{2} /\
              b{1} = valR n{2}  /\ 
-             valR x{2} < P /\ 
+             valR x{2} < p /\ 
              r{2} = R
              ==> asint res{1} = valR{2}%W64xN res{2}]. 
 simplify.
 transitivity Exp.M1.iterop_spec
-  (ImplFp x{2} a{1} /\  bs2int n{2} = b{1} /\ size n{2} = 64 * nlimbs  /\ valR%W64xN x{2} < P ==> ImplFp res{2} res{1})
-  (ImplZZ m{2} P /\
+  (ImplFp x{2} a{1} /\  bs2int n{2} = b{1} /\ size n{2} = 64 * nlimbs  /\ valR%W64xN x{2} < p ==> ImplFp res{2} res{1})
+  (ImplZZ m{2} p /\
              x{1} =  x{2} /\
-            bs2int n{1} = valR n{2} /\ size n{1} = 64 * nlimbs /\ valR x{2} < P /\ r{2} = R ==>
+            bs2int n{1} = valR n{2} /\ size n{1} = 64 * nlimbs /\ valR x{2} < p /\ r{2} = R ==>
             res{1} =  res{2}).
 progress.
 exists (x{2}, int2bs (64*nlimbs) (b{1})).
@@ -1451,10 +1438,10 @@ conseq left_end.  smt().
 symmetry.
 transitivity M7(MultM).iterop
  (r{1} = R /\ ={m,x,n}  ==> ={res})
- (p{2} = P /\ size n{2} = 64*nlimbs /\
+ (p{2} = p /\ size n{2} = 64*nlimbs /\
              x{1} =  x{2} /\
-                         ImplZZ m{1} P /\
-             valR n{1} = bs2int  n{2}  /\ valR x{2} < P  ==>
+                         ImplZZ m{1} p /\
+             valR n{1} = bs2int  n{2}  /\ valR x{2} < p  ==>
             res{1} =  res{2}).
 progress.
 exists (m{1}, x{1}, n{1}). progress. smt(). smt(@BS2Int).
@@ -1472,11 +1459,11 @@ qed.
 
 lemma bn_expm_correct rr mm xx nn:
   phoare[ M.expm : r = rr /\ m = mm /\ x = xx /\ n = nn /\ 
-                   ImplZZ m P /\
-                   valR x < P /\ 
-                   r = R ==> (valR res) = ((valR xx) ^ (valR nn)) %% P ] = 1%r.
+                   ImplZZ m p /\
+                   valR x < p /\ 
+                   r = R ==> (valR res) = ((valR xx) ^ (valR nn)) %% p ] = 1%r.
 bypr. progress.
-have <- : Pr[ASpecFp.expm(inzp (valR x{m}), valR n{m}) @ &m : asint res =  ((valR x{m}) ^ (valR n{m})) %% P ] = 1%r. 
+have <- : Pr[ASpecFp.expm(inzp (valR x{m}), valR n{m}) @ &m : asint res =  ((valR x{m}) ^ (valR n{m})) %% p ] = 1%r. 
   byphoare (_: arg = (inzp (valR x{m}), valR n{m}) ==> _).
 proc. inline*. wp. skip. progress.
 rewrite inzpK.  
