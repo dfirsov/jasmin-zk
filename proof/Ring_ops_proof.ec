@@ -87,6 +87,18 @@ transitivity
 qed.
 
 
+lemma addc_ph x y:
+  phoare[ M.bn_addc :  arg = (x, y)  ==> (valR res.`2) = (valR x + valR y) %% W64xN.modulusR ] = 1%r.
+bypr. progress.
+ have <- : Pr[ASpecFp.addn(valR a{m}, valR b{m} ) @ &m : (valR a{m} + valR b{m}) %% W64xN.modulusR = res.`2] = 1%r. 
+  byphoare (_: arg = (valR a{m}, valR b{m}) ==> _).
+proc. wp. skip. progress. auto. auto.
+byequiv. conseq addc_spec.  
+progress.  smt(). auto. auto.
+qed.
+
+    
+
 lemma bn_cmov_correct x y z :
   phoare[ M.bn_cmov :  arg = (x,y,z)  ==> res = if x then z else y ] = 1%r.
 proc.
@@ -168,24 +180,31 @@ qed.
 
 equiv cminus_spec:
  M.cminusP ~ ASpecFp.cminus:
- W64xN.valR p{1} = p{2} /\ W64xN.valR x{1} = a{2} ==> W64xN.valR res{1}  =res{2}.
+ W64xN.valR p{1} = p{2} /\ W64xN.valR x{1} = a{2} /\ 0 <= p{2}  ==> W64xN.valR res{1}  =res{2}.
 proof.
 transitivity CSpecFp.cminus
- ( W64xN.valR p{1} = p{2} /\ W64xN.valR x{1} = a{2} ==> W64xN.valR res{1}  = res{2} )
- ( ={a} /\ a{2} < W64xN.modulusR ==> ={res} ).
-  progress. exists (W64xN.valR x{1}, W64xN.valR  p{1}). progress. smt(@W64xN).
-+ by auto.
+ ( W64xN.valR p{1} = p{2} /\ W64xN.valR x{1} = a{2} /\ 0 <= p{2}  ==> W64xN.valR res{1}  = res{2} )
+ ( ={a,p} /\ a{2} < W64xN.modulusR /\ 0 <= p{2} ==> ={res} ).
+  progress. exists (W64xN.valR x{1}, W64xN.valR  p{1}). progress. smt(@W64xN). smt(@W64xN).
+auto.
 proc.
 (ecall {1} (bn_cmov_correct cf{1} z{1} x{1})).  simplify.
 conseq (_:  ( (W64xN.valR (if cf{1} then x{1} else z{1}))%W64xN = r{2} )). progress.
 inline ASpecFp.ctseln. wp.   simplify.
-seq 2 0 : ((W64xN.valR p{1})%W64x2N = p{2} /\ (W64xN.valR x{1})%W64x2N = a{2} /\ z{1} = x{1}).
+seq 2 0 : ((W64xN.valR p{1})%W64x2N = p{2} /\ (W64xN.valR x{1})%W64x2N = a{2} /\ z{1} = x{1} /\ 0 <= p{2}  ).
 (ecall {1} (bn_copy_correct x{1})).  wp. skip. progress.
 seq 1 1 : (cf{1} = c{2} /\ W64xN.valR z{1} = x{2}
-  /\ (W64xN.valR p{1})%W64xN = p{2} /\ (W64xN.valR x{1})%W64xN = a{2}).
+  /\ (W64xN.valR p{1})%W64xN = p{2} /\ (W64xN.valR x{1})%W64xN = a{2}  /\ 0 <= p{2}).
 call  subc_spec.  skip. progress.
 skip. progress.   smt().
-admit.
+proc. inline*. wp.  skip.  progress.
+case (a{2} < p{2} = true). move => q. rewrite q. simplify. auto.
+move => q. 
+have -> : a{2} < p{2} = false. smt(). simplify.
+have : p{2} <= a{2}. smt().
+move => qq.
+have qqq : a{2} - p{2} < modulusR. smt(@Int).
+smt(@Int).
 qed.
 
 
@@ -198,14 +217,14 @@ equiv addm_spec_eq:
   ==> ImplZZ res{1} res{2}.
 proof.
 transitivity CSpecFp.addm
- (ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ ImplZZ p{1} p{2} /\ 0 <= a{2} < p{2} /\ 0 <= b{2} < p{2} /\ 0 <= 2*p{2} < W64xN.modulusR ==> ImplZZ res{1} res{2})
+ (ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ ImplZZ p{1} p{2} /\ 0 <= a{2} < p{2} /\ 0 <= b{2} < p{2} /\ 0 <= 2*p{2} < W64xN.modulusR ==> ImplZZ res{1} res{2} )
  (={a,b,p} /\ 0 <= a{2} < p{2} /\ 0 <= b{2} < p{2} /\ 0 <= 2*p{2} < W64xN.modulusR ==> res{1}=  res{2}).
   progress. smt(). smt().
 + proc; simplify.
   call cminus_spec.
-  call addc_spec.
-  simplify. 
-  skip. progress. 
+  exists* a{1}. elim*. move => a_L.
+  exists* b{1}. elim*. move => b_L.
+  call {1} (addc_ph a_L b_L). inline*. wp. skip. progress. smt(@W64xN).  
 + symmetry; conseq addm_eq.  progress. smt(). smt(). smt(). smt(). 
 qed.
 
