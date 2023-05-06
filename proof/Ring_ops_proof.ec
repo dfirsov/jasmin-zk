@@ -21,6 +21,8 @@ qed.
 
 require import RealExp.
 
+
+
 equiv addc_spec:
  M.bn_addc ~ ASpecFp.addn:
   ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2}
@@ -84,6 +86,10 @@ wp.  skip.  progress. smt().   smt(@Array32). smt(@Array32). smt(). wp.  skip. p
 apply Array32.ext_eq. progress. smt(@Array32). 
 qed.
 
+
+lemma bn_eq_correct x1 x2 :
+  phoare[ M.bn_eq :  arg = (x1,x2) ==> (res = W64.one) = (valR x1 = valR x2)  ] = 1%r.
+admitted.
 
 lemma bn_copy_correct x :
   phoare[ M.bn_copy :  arg = x  ==> res = x ] = 1%r.
@@ -1384,6 +1390,8 @@ progress.
 qed.
 
 
+
+
 lemma expm_correct : 
       equiv[ ASpecFp.expm ~ M.expm :
              ImplZZ m{2} P /\
@@ -1435,4 +1443,27 @@ conseq expm_real_spec. progress.
 smt().
 smt().
 progress.
+qed.
+
+
+lemma bn_expm_correct rr mm xx nn:
+  phoare[ M.expm : r = rr /\ m = mm /\ x = xx /\ n = nn /\ 
+                   ImplZZ m P /\
+                   valR x < P /\ 
+                   r = R ==> (valR res) = ((valR xx) ^ (valR nn)) %% P ] = 1%r.
+bypr. progress.
+have <- : Pr[ASpecFp.expm(inzp (valR x{m}), valR n{m}) @ &m : asint res =  ((valR x{m}) ^ (valR n{m})) %% P ] = 1%r. 
+  byphoare (_: arg = (inzp (valR x{m}), valR n{m}) ==> _).
+proc. inline*. wp. skip. progress.
+rewrite inzpK.  
+have -> :  asint (inzp (valR x{m}))  =  (valR x{m} ).  
+rewrite inzpK.
+smt (@W64xN). auto.
+auto. auto.
+byequiv.
+symmetry. conseq expm_correct.    
+progress. 
+rewrite inzpK.
+smt (@W64xN). 
+smt(). auto. auto.
 qed.

@@ -517,7 +517,7 @@ module M(SC:Syscall_t) = {
     z <- witness;
     z <@ bn_copy (x);
     (cf, z) <@ bn_subc (z, p);
-    x <@ bn_cmov (cf, x, z);
+    x <@ bn_cmov (cf, z, x);
     return (x);
   }
   
@@ -855,22 +855,35 @@ module M(SC:Syscall_t) = {
   W64.t = {
     
     var result:W64.t;
+    var exp_order:W64.t Array32.t;
+    var exp_barrett:W64.t Array64.t;
+    var group_order:W64.t Array32.t;
+    var group_barrett:W64.t Array64.t;
     var group_generator:W64.t Array32.t;
-    var barrett_parameter:W64.t Array64.t;
     var tmp:W64.t Array32.t;
     var v1:W64.t Array32.t;
     var v2:W64.t Array32.t;
-    barrett_parameter <- witness;
+    exp_barrett <- witness;
+    exp_order <- witness;
+    group_barrett <- witness;
     group_generator <- witness;
+    group_order <- witness;
     tmp <- witness;
     v1 <- witness;
     v2 <- witness;
+    exp_order <@ bn_set_eo (exp_order);
+    exp_barrett <@ bn_set_eb (exp_barrett);
+    group_order <@ bn_set_go (group_order);
+    group_barrett <@ bn_set_bf (group_barrett);
     group_generator <@ bn_set_gg (group_generator);
-    barrett_parameter <@ bn_set_bf (barrett_parameter);
-    tmp <@ expm (barrett_parameter, group_generator, statement, challenge_0);
-    v1 <@ mulm (barrett_parameter, group_generator, tmp, commitment_0);
-    v2 <@ expm (barrett_parameter, group_generator, group_generator,
-    response_0);
+    statement <@ bn_breduce_small (statement, group_barrett, group_order);
+    commitment_0 <@ bn_breduce_small (commitment_0, group_barrett,
+    group_order);
+    challenge_0 <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
+    response_0 <@ bn_breduce_small (response_0, exp_barrett, exp_order);
+    tmp <@ expm (group_barrett, group_order, statement, challenge_0);
+    v1 <@ mulm (group_barrett, group_order, commitment_0, tmp);
+    v2 <@ expm (group_barrett, group_order, group_generator, response_0);
     result <@ bn_eq (v1, v2);
     return (result);
   }

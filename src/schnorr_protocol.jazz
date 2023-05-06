@@ -116,19 +116,24 @@ inline fn challenge() -> stack u64[nlimbs]{
 
 inline fn verify(stack u64[nlimbs] statement commitment challenge response) 
  -> (stack u64){
-  stack u64[dnlimbs] barrett_parameter;
-  stack u64[nlimbs]  group_generator v1 tmp v2;
+  stack u64[dnlimbs] exp_barrett group_barrett;
+  stack u64[nlimbs]  tmp v1 v2 exp_order group_order group_generator;
   stack u64 result;
 
+  exp_order         = bn_set_eo(exp_order);
+  exp_barrett       = bn_set_eb(exp_barrett);
+  group_order       = bn_set_go(group_order);
+  group_barrett     = bn_set_bf(group_barrett);
   group_generator   = bn_set_gg(group_generator);
-  barrett_parameter = bn_set_bf(barrett_parameter);
 
-  statement  = bn_breduce_small(statement,  barrett_parameter, group_generator);
-  commitment = bn_breduce_small(commitment, barrett_parameter, group_generator);
+  statement  = bn_breduce_small(statement,  group_barrett, group_order);
+  commitment = bn_breduce_small(commitment, group_barrett, group_order);
+  challenge  = bn_breduce_small(challenge,  exp_barrett,   exp_order);
+  response   = bn_breduce_small(response,   exp_barrett,   exp_order);
   
-  tmp = expm(barrett_parameter, group_generator, statement, challenge);
-  v1  = mulm(barrett_parameter, group_generator, tmp, commitment);
-  v2  = expm(barrett_parameter, group_generator, group_generator, response);
+  tmp = expm(group_barrett, group_order, statement, challenge);
+  v1  = mulm(group_barrett, group_order, commitment, tmp);
+  v2  = expm(group_barrett, group_order, group_generator, response);
   result = bn_eq(v1,v2);
   
   return result;

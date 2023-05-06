@@ -95,6 +95,94 @@ lemma bn_set_gg_prop :
 admitted.
 
     
+
+axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
+axiom p_val_prop2 : 2*p < W64xN.modulusR. 
+
+axiom exps s c : val (s ^^ c) = ((val s) ^ c) %% p.
+lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@Zp). qed.
+lemma zp_mul (z1 z2 : zp) : val (z1 * z2) = (val z1 * val z2) %% p. smt(@Zp). qed.
+axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
+
+
+lemma verify_eq : 
+  equiv [ SchnorrVerifier.verify ~ JVerifier.verify :
+       Sub.val(s{1}) = valR statement{2} %% p
+       /\ Sub.val(z{1}) = valR commitment_0{2} %% p
+       /\ c{1} %% (p-1) = (valR (challenge_0{2})) %% (p-1)
+       /\ t{1} %% (p-1) = (valR response_0{2})  %% (p-1)
+       ==> res{1} = (res{2} = W64.one) ].
+proc. sp. simplify.
+ecall {2} (bn_eq_correct v1{2} v2{2}). simplify. 
+ecall {2} (bn_expm_correct group_barrett{2} group_order{2} group_generator{2} response_0{2}). simplify. 
+ecall {2} (bn_mulm_correct commitment_0{2} tmp{2} group_order{2}). simplify.
+ecall {2} (bn_expm_correct group_barrett{2} group_order{2} statement{2} challenge_0{2}). simplify. 
+ecall {2} (bnreduce_small_spec_ph response_0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph commitment_0{2} group_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph statement{2} group_order{2}). simplify.
+call{2} bn_set_gg_prop.
+call{2} bn_set_bf_prop.
+call{2} bn_set_go_prop.
+call{2} bn_set_eb_prop.
+call{2} bn_set_eo_prop.
+simplify.
+skip. progress.
+rewrite ri_un. rewrite H6. rewrite Ri_def. rewrite /ri. smt().
+rewrite H5. smt(P_pos).
+smt(@W64xN).
+smt(@W64xN).
+rewrite H5. 
+smt.                            (* use p_val_prop1 *)
+smt(P_pos).
+smt(@W64xN).
+smt(@W64xN).
+rewrite H5. 
+smt.
+rewrite ri_un. rewrite H4. rewrite Rip_def. rewrite /ri. rewrite H3.
+smt(). 
+smt(P_pos).
+smt.
+smt(@W64xN).
+smt.
+smt(P_pos).
+smt.
+smt(@W64xN).
+smt.
+smt().
+smt().
+rewrite /R. smt.
+smt(@W64xN).
+smt().
+smt(@W64xN).
+smt().
+smt(@Zp).
+rewrite H52. rewrite - H48. rewrite H51.
+rewrite H39.
+rewrite H3. rewrite - H2.
+rewrite H7.
+rewrite H23.
+rewrite H42.
+rewrite H15.
+rewrite H5.
+rewrite - H.
+rewrite - H0.
+rewrite H31.
+rewrite H3.
+rewrite - H1.
+rewrite - (zp_eq (z{1} * s{1} ^^ c{1}) (g ^^ t{1})).
+rewrite (exps g t{1}).
+rewrite (zp_mul).
+congr.
+congr.
+congr.
+congr.
+rewrite /P.
+rewrite - exps. smt(exp_pow). 
+rewrite - exps.
+rewrite /P. rewrite - exps. smt(exp_pow). 
+qed.
+     
 lemma commit_same1 : 
   equiv [ JProver.commitment ~ ASpecFp_Schnorr.commit 
           :   true
@@ -124,7 +212,8 @@ lemma commit_same :
 proc. 
 inline *. wp.  simplify. sp.
 rnd.
-skip. progress.  smt(@Distr).  rewrite /(^^). rewrite /(^). rewrite /(^). admit.
+skip. progress.  smt(@Distr).  
+admit.
 qed.
 
 lemma commitment_eq : 
@@ -164,8 +253,7 @@ call{1} bn_set_eo_prop. wp. skip. progress.
 qed.
 
 
-axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
-axiom p_val_prop2 : 2*p < W64xN.modulusR. 
+
 
 lemma response_eq : 
   equiv [ SchnorrProver.response ~ JProver.response :
@@ -218,15 +306,6 @@ rewrite modzMml.
 rewrite modzMmr. done.
 qed.
 
-
-
-lemma verify_eq : 
-  equiv [ SchnorrVerifier.verify ~ JVerifier.verify :
-       Sub.val(s{1}) = valR statement{2} %% p
-       /\ Sub.val(z{1}) = valR commitment_0{2} %% p
-       /\ c{1} %% (p-1) = (valR (challenge_0{2})) %% (p-1)
-       /\ t{1} %% (p-1) = (valR response_0{2})  %% (p-1)
-       ==> res{1} = (res{2} = W64.one) ].
 
 
 
