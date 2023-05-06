@@ -517,7 +517,7 @@ module M(SC:Syscall_t) = {
     z <- witness;
     z <@ bn_copy (x);
     (cf, z) <@ bn_subc (z, p);
-    x <@ bn_cmov (cf, z, x);
+    x <@ bn_cmov (cf, x, z);
     return (x);
   }
   
@@ -832,6 +832,8 @@ module M(SC:Syscall_t) = {
     exp_order <@ bn_set_eo (exp_order);
     exp_barrett <@ bn_set_eb (exp_barrett);
     challenge_0 <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
+    secret_power <@ bn_breduce_small (secret_power, exp_barrett, exp_order);
+    witness0 <@ bn_breduce_small (witness0, exp_barrett, exp_order);
     product <@ mulm (exp_barrett, exp_order, challenge_0, witness0);
     response_0 <@ addm (exp_order, secret_power, product);
     return (response_0);

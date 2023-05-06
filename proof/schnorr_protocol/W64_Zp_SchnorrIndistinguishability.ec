@@ -164,6 +164,8 @@ call{1} bn_set_eo_prop. wp. skip. progress.
 qed.
 
 
+axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
+axiom p_val_prop2 : 2*p < W64xN.modulusR. 
 
 lemma response_eq : 
   equiv [ SchnorrProver.response ~ JProver.response :
@@ -174,6 +176,8 @@ lemma response_eq :
 proc. sp. simplify.
 ecall {2} (bn_addm_correct secret_power{2} product{2} exp_order{2}). simplify. 
 ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph witness0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph secret_power{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
 call{2} bn_set_eb_prop. simplify.
 call{2} bn_set_eo_prop. simplify.
@@ -183,24 +187,35 @@ progress. rewrite H3. rewrite Rip_def. rewrite ri_un. rewrite /ri. rewrite H2. s
 smt. 
 smt(@W64xN).
 smt(@W64xN).
-rewrite H2.  
-admit.
+rewrite H2.   smt (p_val_prop1).
 smt.
 smt.
 smt(@W64xN).
 smt.
 smt(@W64xN).
-rewrite H2. admit.
+rewrite H2. smt (p_val_prop1).
 smt(@W64xN).
-rewrite H2. admit.
+rewrite H2. smt.
 smt(@W64xN).
 smt.
 smt(@W64xN).
-admit.
-rewrite - H24.
-rewrite - H17.
-rewrite H2.
-admit.
+rewrite H2. smt.
+smt(@W64xN).
+rewrite H2. smt.
+smt(@W64xN).
+rewrite H2. smt (p_val_prop2).
+rewrite - H40.
+rewrite - H33.
+rewrite H2. 
+have -> : (r{1} + c{1} * w{1}) %% (p - 1)
+  = (r{1} %% (p - 1) + (c{1} * w{1}) %% (p - 1) ) %% (p - 1).
+smt (modzDmr modzDml).
+rewrite  H19 H2. rewrite - H0.
+rewrite  H11 H2. rewrite - H1.
+rewrite  H27 H2. rewrite - H.
+search edivz.
+rewrite modzMml.
+rewrite modzMmr. done.
 qed.
 
 
@@ -212,97 +227,9 @@ lemma verify_eq :
        /\ c{1} %% (p-1) = (valR (challenge_0{2})) %% (p-1)
        /\ t{1} %% (p-1) = (valR response_0{2})  %% (p-1)
        ==> res{1} = (res{2} = W64.one) ].
-admitted.
-
-
-lemma response_mod_eq :
-  equiv [ JProver.response ~ JProver.response :
-    (valR witness{1})         %% (p-1) = (valR witness{2})      %% (p-1)
-    /\ (valR secret_power{1}) %% (p-1) = (valR secret_power{2}) %% (p-1)
-    /\ (valR challenge_0{1})    %% (p-1) = (valR challenge_0{2}) %% (p-1)
-    ==> (valR res{1}) %% (p-1) = (valR res{2}) %% (p-1) ].
-admitted.
-
-  
-lemma verify_mod_eq :
-  equiv [ JVerifier.verify ~ JVerifier.verify :
-       (valR statement{1})   %% p     = (valR statement{2})   %% p
-    /\ (valR commitment_0{1})  %% p     = (valR commitment_0{2})  %% p
-    /\ (valR challenge_0{1}) %% (p-1) = (valR challenge_0{2}) %% (p-1)
-    /\ (valR response_0{1})    %% (p-1) = (valR response_0{2})    %% (p-1)
-    ==> ={res} ].
-admitted.
-
-
-theory ZKDistinguisherTheory.
-
-type zkin.
-module type PDistinguisher(P : ZKProverG) = {
-  proc distinguish(i : zkin) : bool
-}.
-
-module type VDistinguisher(V : ZKVerifierG) = {
-  proc distinguish(i : zkin) : bool
-}.
 
 
 
-(*
- W64 -> zp
- W64 -> int
-
- int -> W64, includes "cleaning"
- int -> zp, includes "cleaning"
-
-*)
-(* lemma prover_ind:  forall (D <: PDistinguisher) &m i, *)
-(*  Pr[D(SchnorrProver).distinguish(i)@&m: res] *)
-(*   =  Pr[D(PWrap).distinguish(i)@&m: res]. *)
-(* proof. progress. *)
-(* byequiv (_: ={glob D, arg} ==> _). *)
-(* proc*. *)
-(* call (_:true). simplify. *)
-(* proc*. inline PWrap.commitment. wp. *)
-(* call commitment_eq. skip. progress. *)
-(* smt. *)
-(* simplify. *)
-(* proc*. simplify. inline PWrap.response. wp. *)
-(* call response_eq. wp. simplify. skip. progress. *)
-(* rewrite bnk_ofintK. auto.  *)
-(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
-(* rewrite bnk_ofintK. auto.  *)
-(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
-(* rewrite bnk_ofintK. auto.  *)
-(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
-(* smt. skip. progress. auto. auto. *)
-(* qed. *)
 
 
-(* lemma verifier_ind:  forall (D <: VDistinguisher) &m i, *)
-(*  Pr[D(SchnorrVerifier).distinguish(i)@&m: res] *)
-(*   =  Pr[D(VWrap).distinguish(i)@&m: res]. *)
-(* proof. progress. *)
-(* byequiv (_: ={glob D, arg} ==> _). *)
-(* proc*. *)
-(* call (_:true). simplify. *)
-(* proc*. inline VWrap.challenge. wp. *)
-(* call challenge_eq. skip. progress. *)
-(* simplify. *)
-(* proc*. simplify. inline VWrap.verify. wp. *)
-(* call verify_eq. wp. simplify. skip. progress. *)
-(* rewrite bnk_ofintK. auto.  *)
-(* rewrite - bn_modulusE.  *)
-(* have v : val s{2} < p. smt(valP). *)
-(* smt(@Zp pmoval). *)
-(* rewrite bnk_ofintK. auto.  *)
-(* have v : val z{2} < p. smt(valP). *)
-(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
-(* rewrite bnk_ofintK. auto.  *)
-(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
-(* rewrite bnk_ofintK. auto.  *)
-(* rewrite - bn_modulusE. smt(@Zp pmoval). *)
-(* skip. progress. auto. auto. *)
-(* qed. *)
-
-end ZKDistinguisherTheory. 
 

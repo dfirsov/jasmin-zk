@@ -90,11 +90,14 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
 inline fn response(stack u64[nlimbs] witness0 secret_power challenge) 
  -> (stack u64[nlimbs]){
   stack u64[dnlimbs] exp_barrett;
-  stack u64[nlimbs] exp_order response product;
+  stack u64[nlimbs]  exp_order response product;
 
   exp_order   = bn_set_eo(exp_order);
   exp_barrett = bn_set_eb(exp_barrett);
-  challenge = bn_breduce_small(challenge, exp_barrett, exp_order);
+
+  challenge    = bn_breduce_small(challenge, exp_barrett, exp_order);
+  secret_power = bn_breduce_small(secret_power, exp_barrett, exp_order);
+  witness0     = bn_breduce_small(witness0, exp_barrett, exp_order);
 
   product  = mulm(exp_barrett, exp_order, challenge, witness0);
   response = addm(exp_order, secret_power, product);
@@ -120,8 +123,8 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
   group_generator   = bn_set_gg(group_generator);
   barrett_parameter = bn_set_bf(barrett_parameter);
 
-  //statement  = bn_breduce_small(statement,  barrett_parameter, group_generator);
-  //commitment = bn_breduce_small(commitment, barrett_parameter, group_generator);
+  statement  = bn_breduce_small(statement,  barrett_parameter, group_generator);
+  commitment = bn_breduce_small(commitment, barrett_parameter, group_generator);
   
   tmp = expm(barrett_parameter, group_generator, statement, challenge);
   v1  = mulm(barrett_parameter, group_generator, tmp, commitment);
