@@ -26,14 +26,15 @@ clone import BigNum as W64x2N with
 type R = W64.t Array32.t.
 type R2 = W64.t Array64.t.
 
-op M : int.  (* = 2 ^ (64 * nlimbs). *)
+op M : int = W64xN.modulusR.
 
 
 op D : int distr = duniform (range 0 M).
-axiom D_ll : is_lossless D.
-axiom D_uni : is_uniform D.
-axiom D_sup x : x \in D <=> 0 <= x < M.
-axiom D_mu x : x \in D => mu1 D x = Real.inv M%r.
+lemma D_ll : is_lossless D. apply duniform_ll.  
+ have q : 0 < Top.M . smt. smt(@List). qed.
+lemma D_uni : is_uniform D. smt(@Distr). qed.
+lemma D_sup x : x \in D <=> 0 <= x < M. smt(@Distr). qed.
+lemma D_mu x : x \in D => mu1 D x = Real.inv M%r. smt(@Distr). qed.
 
 
 
@@ -46,6 +47,7 @@ clone import ZModP.ZModField as Zp
 
 op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n.
 
+op Ri : int.
 op Rip : int.
 op g : zp.                       (* generator *)
 axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
@@ -55,14 +57,10 @@ axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1).
 axiom p_val_prop2 : 2*p < W64xN.modulusR. 
 axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
 axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p.
-
-        
-
-(* op generator : zp. *)
-(* op P : int = p.   *)
-(* axiom ppos : P < W64xN.modulusR. *)
 axiom P_pos : 2 <= p.
-
+axiom M_pos : 2 < M.
+axiom M_P : p < M.
+axiom Ri_def : Ri = 4 ^ (64 * nlimbs) %/ p.
 
         
 (** "Implements" relation *)
@@ -71,9 +69,6 @@ abbrev ImplZZ x y = W64xN.valR x = y.
 abbrev ImplZZ2 x y = W64xN.valR2 x = y.
 abbrev ImplFp x y = W64xN.valR x = asint y.
 
-
-(* op pR: R. *)
-(* axiom pRE: W64xN.valR pR = p. *)
 
 op zeroR : R = W64xN.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
 
@@ -410,8 +405,7 @@ rewrite Pr[mu_split (res.`2 \in D)] . auto.
 rewrite rsample_lossless2. auto.
 qed.
 
-axiom M_pos : 2 < M.
-axiom M_P : p < M.
+
 lemma rsample_lossless4 P &m  : 0 < P < M =>
     Pr[CSpecFp.rsample(P) @ &m : LessThan P res.`2  ]
      = 1%r.
@@ -507,8 +501,6 @@ require import BarrettRedInt.
 require import Real RealExp.
 
 (* parameter for the Barrett reduction  *)
-op Ri : int.
-axiom Ri_def : Ri = 4 ^ (64 * nlimbs) %/ p.
 
 equiv redm_eq:
  ASpecFp.redm ~ CSpecFp.redm: ={a, p} /\ r{2} = (4 ^ k{2} %/ p{2}) 
