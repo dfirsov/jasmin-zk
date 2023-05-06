@@ -11,45 +11,17 @@ require import Ring_ops_spec.
 import Zp DZmodP.
 import W64xN Sub R. 
 
-
-
-
-module PWrap = {
-  proc commitment() : commitment * secret = {
-    var c,s;
-    (c, s)  <@ JProver.commitment();  
-    return (inzp (W64xN.valR c), W64xN.valR s);
-  }
-
-  proc response(w: witness, r:secret, c: challenge) : response = {
-    var resp;
-    resp <@ JProver.response(W64xN.R.bn_ofint (w %% (p-1)), W64xN.R.bn_ofint (r %% (p-1)), W64xN.R.bn_ofint (c %% (p-1)));
-    return (W64xN.valR resp);
-  }  
-}.
-
-
-module VWrap = {
-  proc challenge() : challenge = {
-    var r;
-    r <@ JVerifier.challenge();
-    return (W64xN.valR r);
-  }
-  proc verify(s: statement, z: commitment, c: challenge, t: response) : bool = {
-    var b;
-    b <@ JVerifier.verify(W64xN.R.bn_ofint (Sub.val s), W64xN.R.bn_ofint (Sub.val z), W64xN.R.bn_ofint (c %% (p-1)), W64xN.R.bn_ofint (t %% (p-1)));
-   return (b = W64.one);
-  }  
-}.
-
-
-axiom pmoval:  p - 1 < modulusR.
-axiom pval:  p < modulusR.
-axiom inzpKK: forall (z : int), val (inzp z) = z %% p.
-
-
-
 import ZK_SchnorrBasics.
+require import W64_SchnorrExtract.
+require import Ring_ops_proof.
+
+
+
+lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@Zp). qed.
+lemma zp_mul (z1 z2 : zp) : val (z1 * z2) = (val z1 * val z2) %% p. smt(@Zp). qed.
+lemma inzpKK: forall (z : int), val (inzp z) = z %% p. smt(@Zp). qed.
+
+  
 module ASpecFp_Schnorr = {
  proc commit(h : zp, w : R) : zp * int = {
    var r, q : int;
@@ -66,43 +38,6 @@ module ASpecFp_Schnorr = {
   }
 }.
 
-
-require import W64_SchnorrExtract.
-require import Ring_ops_proof.
-
-op Rip : int.
-axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (P-1).
-
-print Ri_def.    
-lemma bn_set_bf_prop : 
-  phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
-admitted.
-
-lemma bn_set_go_prop : 
-  phoare[ M.bn_set_go : true ==> valR res = p  ] = 1%r.
-admitted.
-
-lemma bn_set_eo_prop : 
-  phoare[ M.bn_set_eo : true ==> valR res = p-1  ] = 1%r.
-admitted.
-
-lemma bn_set_eb_prop : 
-  phoare[ M.bn_set_eb : true ==> W64x2N.valR res = Rip  ] = 1%r.
-admitted.
-
-lemma bn_set_gg_prop : 
-  phoare[ M.bn_set_gg : true ==> valR res = val g  ] = 1%r.
-admitted.
-
-    
-
-axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
-axiom p_val_prop2 : 2*p < W64xN.modulusR. 
-
-axiom exps s c : val (s ^^ c) = ((val s) ^ c) %% p.
-lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@Zp). qed.
-lemma zp_mul (z1 z2 : zp) : val (z1 * z2) = (val z1 * val z2) %% p. smt(@Zp). qed.
-axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
 
 lemma commit_same1 : 
   equiv [ JProver.commitment ~ ASpecFp_Schnorr.commit 
@@ -146,8 +81,6 @@ lemma commitment_eq :
   true
   ==> (val res{1}.`1) = (valR res{2}.`1)
     /\ res{1}.`2 = (valR res{2}.`2) ].
-proc*.
-
 transitivity ASpecFp_Schnorr.commit
   (true ==> ={res})
   (true

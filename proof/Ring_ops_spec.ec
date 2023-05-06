@@ -44,7 +44,7 @@ clone import ZModP.ZModField as Zp
         rename "zmod" as "zp".
 
 
-op generator : zp.
+(* op generator : zp. *)
 op P : int = p.  
 axiom ppos : P < W64xN.modulusR.
 axiom P_pos : 2 <= P.

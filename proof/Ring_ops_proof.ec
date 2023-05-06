@@ -21,6 +21,30 @@ qed.
 
 require import RealExp.
 
+op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n.
+
+op Rip : int.
+op g : zp.                       (* generator *)
+axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (P-1).
+axiom pmoval:  p - 1 < modulusR.
+axiom pval:  p < modulusR.
+axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
+axiom p_val_prop2 : 2*p < W64xN.modulusR. 
+axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
+axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p.
+
+
+
+axiom bn_set_bf_prop : 
+  phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
+axiom bn_set_go_prop : 
+  phoare[ M.bn_set_go : true ==> valR res = p  ] = 1%r.
+axiom bn_set_eo_prop : 
+  phoare[ M.bn_set_eo : true ==> valR res = p-1  ] = 1%r.
+axiom bn_set_eb_prop : 
+  phoare[ M.bn_set_eb : true ==> W64x2N.valR res = Rip  ] = 1%r.
+axiom bn_set_gg_prop : 
+  phoare[ M.bn_set_gg : true ==> valR res = Sub.val g  ] = 1%r.
 
 
 equiv addc_spec:

@@ -8,6 +8,7 @@ require import StdOrder.
 
 (* Embedding into ring theory *)
 require import Ring_ops_spec.
+require import Ring_ops_proof.
 (* require ZModP. *)
 (* clone import ZModP.ZModField as Zp *)
 (*         rename "zmod" as "zp". *)
@@ -15,8 +16,7 @@ require import Ring_ops_spec.
 import Zp DZmodP.
 import ZModpRing.
 
-op (^^) (x : zp)(n : int) : zp = exp x n.
-op g : zp.
+(* op g : zp. *)
 import Ring.IntID IntOrder.
 
 

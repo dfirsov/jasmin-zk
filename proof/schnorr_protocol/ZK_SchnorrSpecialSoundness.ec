@@ -8,7 +8,7 @@ require import StdOrder.
 
 
 require import ZK_SchnorrBasics.
-require import Ring_ops_spec.
+require import Ring_ops_spec Ring_ops_proof.
 import Zp DZmodP.
 
 import Ring.IntID IntOrder.

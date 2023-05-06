@@ -3,7 +3,7 @@ require import AllCore DBool Bool List Distr.
 
 
 require import ZK_SchnorrBasics.
-require import Ring_ops_spec.
+require import Ring_ops_spec Ring_ops_proof.
 
 import Zp DZmodP.
 import ZModpRing.

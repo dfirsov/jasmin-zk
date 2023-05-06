@@ -11,7 +11,7 @@ require import ZK_SchnorrSpecialSoundness.
 require import ZK_SchnorrExtractability.
 
 
-require import Ring_ops_spec.
+require import Ring_ops_proof Ring_ops_spec.
 import Zp.
 
 type statement = zp.
