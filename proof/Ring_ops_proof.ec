@@ -33,6 +33,8 @@ axiom bn_set_eb_prop :
 axiom bn_set_gg_prop : 
   phoare[ M.bn_set_gg : true ==> valR res = Sub.val g  ] = 1%r.
 
+op ri_uncompute (p : int) : int.
+axiom ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs).
 
 equiv addc_spec:
  M.bn_addc ~ ASpecFp.addn:
@@ -111,8 +113,24 @@ qed.
 
 
 lemma bn_eq_correct x1 x2 :
-  phoare[ M.bn_eq :  arg = (x1,x2) ==> (res = W64.one) = (valR x1 = valR x2)  ] = 1%r.
-admitted.
+  phoare[ M.bn_eq :  arg = (x1,x2) ==> (res = W64.zero) = (valR x1 = valR x2)  ] = 1%r.
+proc. sp.
+while (i <= nlimbs /\ ((result = W64.zero) <=> (forall j, 0 <= j < i => a.[j] = b.[j])%Array32)) (nlimbs - i). progress.
+wp.  skip.  progress. smt(). smt(@W64xN).
+smt(@W64xN).
+smt().
+skip. 
+progress.
+smt().
+smt().
+case (result0 = W64.zero). move => c1.
+rewrite (Array32.ext_eq a{hr} b{hr} ). 
+have qq : i0 = nlimbs. smt().
+smt(). auto.
+elim H1. move => H11 H12.
+smt(@Array32 @W64xN).
+qed.
+
 
 lemma bn_copy_correct x :
   phoare[ M.bn_copy :  arg = x  ==> res = x ] = 1%r.
@@ -785,8 +803,7 @@ qed.
 
 
 
-op ri_uncompute (p : int) : int.
-axiom ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs).
+
 
 lemma modulusR_val : 
 W64xN.modulusR =  2 ^ (dnlimbs * nlimbs). rewrite /W64xN.modulusR. smt(@Ring).
