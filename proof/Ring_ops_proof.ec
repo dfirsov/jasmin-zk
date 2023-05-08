@@ -708,6 +708,20 @@ hoare. simplify. conseq (bn_expand_correct arg{m}). auto. auto. auto.
 qed.
 
 
+lemma bn_expand_ho : forall a,
+      hoare[ M.bn_expand : arg = a  ==> W64x2N.valR res =  W64xN.valR a ].
+move => a. bypr. progress.
+have q : 1%r = Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : true]. 
+byphoare (_: arg = arg{m} ==> _). proc*. call (bn_expand_correct ( arg{m})). auto. auto. auto.
+have z :  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : true] = Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   valR res <> valR arg{m}] +  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   valR res = valR arg{m}].
+rewrite Pr[mu_split (valR res <> valR arg{m})]. simplify. auto.
+have w :  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : valR res = valR arg{m}] = 1%r.
+byphoare (_: arg = arg{m} ==> _). conseq (bn_expand_correct ( arg{m})).  auto. auto.
+rewrite Pr[mu_split valR res = valR arg{m}]. simplify. smt(@Distr).
+qed.
+
 
 equiv breduce_cspec:
  M.bn_breduce ~ CSpecFp.redm:
@@ -849,17 +863,37 @@ progress.
 smt(@W64x2N). smt(). auto. auto.
 qed.
 
-lemma bnreduce_small_spec_ph aa pp:
- phoare [ M.bn_breduce_small :  a = aa /\ p = pp
+
+
+lemma bnreduce_small_spec_ph aaa ppp:
+ phoare [ M.bn_breduce_small :  a = aaa /\ p = ppp
   /\ valR r = ri_uncompute (valR p)
   /\ 0 < valR p < W64xN.modulusR
   /\ 0 <= valR a < valR p * valR p
   /\ 0 < valR p < W64xN.modulusR 
-      ==> valR res = valR aa %% valR pp ] = 1%r.
-admitted.
+      ==> valR res = valR aaa %% valR ppp ] = 1%r.
+proc. 
+simplify.
+seq 3 : (  a = aaa /\
+  p = ppp /\
+  valR r = (ri_uncompute (valR p)) /\
+  (0 < valR p && valR p < W64xN.modulusR) /\
+  (0 <= valR a && valR a < valR p * valR p) /\
+  0 < valR p && valR p < W64xN.modulusR /\ 
+  valR aa = valR a) 1%r.  
+call (_:true). 
+while (i <= 2*nlimbs /\ aux = 2*nlimbs) .  wp.  skip. smt().
+wp. while (i <= 32) .  wp.  skip. smt(). wp. skip. progress. 
+wp.  skip. auto.
+call (bn_expand_correct aaa).  wp. skip. progress.
+exists* aa. elim*. move => aa0.
+call (bnreduce_spec_ph aa0 ppp). skip. progress. smt(@W64xN). smt().
+smt(). 
+hoare. simplify. call (bn_expand_ho aaa). wp.  skip. progress. auto.
+qed.
 
-lemma q (a b p : int) : 0 <= a < p => 0 <= b < p => a * b < p * p.
-smt(@Int). qed.
+
+
 
 
 equiv mulm_cspec:
