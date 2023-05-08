@@ -56,7 +56,7 @@ inline fn cminusP (stack u64[nlimbs] p x)
 
   z = bn_copy(x);
   cf, z = bn_subc(z, p);
-  x = bn_cmov(cf, x, z);
+  x = bn_cmov(cf, z, x);
   return x;
 }
 

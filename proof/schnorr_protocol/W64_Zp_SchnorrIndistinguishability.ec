@@ -190,6 +190,7 @@ apply challenge_same.
 proc. 
 symmetry. call usample_aspec.
 call{1} bn_set_eo_prop. wp. skip. progress.
+smt.
 qed.
 
 
@@ -244,10 +245,3 @@ rewrite  H27 H2. rewrite - H.
 rewrite modzMml.
 rewrite modzMmr. done.
 qed.
-
-
-
-
-
-
-

@@ -273,7 +273,7 @@ qed.
 
 equiv rsample_aspec:
  M.rsample ~ ASpecFp.rsample:
-  W64xN.valR byte_z{1} = a{2}
+  W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
   ==> W64xN.valR res{1}.`2 = res{2}.
 proof.
 transitivity 
@@ -283,7 +283,9 @@ transitivity
   (={arg} /\ 0 < arg{1} < Ring_ops_spec.M  ==> res{1}.`2 = res{2}).
 progress. 
 exists (valR arg{1}). split. smt(). split. smt().
-split. admit.  move => _. admit.
+split. 
+auto.
+move => _. smt(@W64xN).
 progress.
 apply rsample_cspec.
 exists* arg{1}. elim*. move => P.
@@ -294,16 +296,16 @@ qed.
 
 equiv usample_aspec:
  M.usample ~ ASpecFp.rsample:
-  W64xN.valR byte_z{1} = a{2}
+  W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
   ==> W64xN.valR res{1} = res{2}.
 proof.
 transitivity 
  M.rsample
   (={arg} ==> res{1} = res{2}.`2)
-  (W64xN.valR byte_z{1} = a{2}
+  (W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
   ==> W64xN.valR res{1}.`2 = res{2}).
 progress. 
-smt. progress. proc*.
+smt(). progress. proc*.
 inline M.usample. sp.  wp. call (_:true). sim. skip. progress.
 apply rsample_aspec.
 qed.
@@ -558,24 +560,31 @@ qed.
 
 equiv dcminusP_spec:
  M.dcminusP ~ ASpecFp.cminus:
- W64x2N.valR p{1} = p{2} /\ W64x2N.valR x{1} = a{2} ==> W64x2N.valR res{1}  =res{2}.
+ W64x2N.valR p{1} = p{2} /\ W64x2N.valR x{1} = a{2} /\ 0 < p{2} ==> W64x2N.valR res{1}  =res{2}.
 proof.
 transitivity CSpecFp.dcminus
- ( W64x2N.valR p{1} = p{2} /\ W64x2N.valR x{1} = a{2} ==> W64x2N.valR res{1}  = res{2} )
- ( ={a,p} /\ a{2} < W64x2N.modulusR ==> ={res} ).
-  progress. exists (W64x2N.valR x{1}, W64x2N.valR p{1}). progress. smt(@W64x2N).
+ ( W64x2N.valR p{1} = p{2} /\ W64x2N.valR x{1} = a{2} /\ 0 < p{2} ==> W64x2N.valR res{1}  = res{2} )
+ ( ={a,p} /\ a{2} < W64x2N.modulusR /\ 0 < p{2} ==> ={res} ).
+  progress. exists (W64x2N.valR x{1}, W64x2N.valR p{1}). progress. smt(@W64x2N). smt(@W64x2N).
 + by auto. 
 proc. 
 (ecall {1} (dbn_cmov_correct cf{1} z{1} x{1})).  simplify.
 conseq (_:  ( (W64x2N.valR (if cf{1} then x{1} else z{1}))%W64x2N = r{2} )). progress.
 inline ASpecFp.ctseln. wp.   simplify.
-seq 2 0 : ((W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ z{1} = x{1}).
+seq 2 0 : ((W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ z{1} = x{1} /\ 0 < p{2}).
 (ecall {1} (dbn_copy_correct x{1})).  wp. skip. progress.
 seq 1 1 : (cf{1} = c{2} /\ W64x2N.valR z{1} = x{2} 
-  /\ (W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2}).
+  /\ (W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ 0 < p{2}).
 call  dsubc_spec.  skip. progress.
 skip. progress.   smt().
-admit.
+proc. inline*. wp.  skip.  progress.
+case (a{2} < p{2} = true). move => q. rewrite q. simplify. auto.
+move => q. 
+have -> : a{2} < p{2} = false. smt(). simplify.
+have : p{2} <= a{2}. smt().
+move => qq.
+have qqq : a{2} - p{2} < W64x2N.modulusR. smt(@Int).
+smt(@Int).
 qed.
 
 
@@ -706,47 +715,50 @@ equiv breduce_cspec:
  /\  W64x2N.valR r{1} = r{2} 
  /\  W64xN.valR p{1} = p{2}
  /\  k{2} = 64 * nlimbs
+ /\  0 < p{2}
    ==>  (W64xN.valR res{1}) = res{2}  %% W64xN.modulusR.
 proof. proc.
 sp.
 simplify.
-seq 0 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs). 
+seq 0 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}). 
 skip. auto.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} (* /\ xr{2} = a{2} * r{2} *)).
 call dmuln_spec. skip. progress.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ W64x2N.valR xrf{1} = xrf{2} ).
 ecall {1} (bn_div2_correct xr{1}). inline*. wp.  skip. move => &1 &2 z. split. auto. move => _.
 move => r zz. split. smt(). split. smt(). split. smt(). split. smt(). split. smt(). rewrite zz.
 have -> : W64x2N.modulusR = 2 ^ (2 * k{2}). smt(@Ring). smt().
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
-ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. rewrite H.  
-have ->: W64xN.modulusR = Ring_ops_spec.M. rewrite /W64xN.modulusR. rewrite /M. admit. (* smt(@Ring). *) rewrite /M. admit. (* smt(@Ring).  *)
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs
+ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. rewrite H0.  
+have ->: W64xN.modulusR = Ring_ops_spec.M. rewrite /W64xN.modulusR. rewrite /M.
+rewrite /W64xN.modulusR. auto. rewrite /M.
+rewrite /W64xN.modulusR. smt(@Ring).
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
     /\  W64x2N.valR xrfn{1} = xrfn{2}).
 ecall  (muln_spec xrfd{1} p{1}). skip. progress.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
     /\ W64x2N.valR xrfn{1} = xrfn{2}
     /\ W64x2N.valR t{1} = t{2}).
 call dsubc_spec. skip. progress.
-seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs
+seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
     /\ W64x2N.valR xrfn{1} = xrfn{2}
     /\ W64x2N.valR t{1} = t{2}
     /\ W64x2N.valR pp{1} = W64xN.valR p{1}).
 ecall {1} (bn_expand_correct p{1}). skip. progress.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs
+seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
     /\ W64x2N.valR xrfn{1} = xrfn{2}
     /\ W64x2N.valR t{1} = t{2}
     /\ W64x2N.valR pp{1} = W64xN.valR p{1}
     /\ W64x2N.valR t{1} = t{2} ).
 call dcminusP_spec. skip. progress.
-seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs
+seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
     /\ W64x2N.valR xrfn{1} = xrfn{2}
     /\ W64x2N.valR t{1} = t{2}
@@ -776,13 +788,15 @@ equiv bnreduce_spec:
   /\ 0 <= valR r{1} ==> valR res{1} = res{2} .
 proof. 
   have redm_simp:
- equiv [ ASpecFp.redm ~ ASpecFp.redm: ={arg} ==> res{1} = res{2} %% W64xN.modulusR ].
+ equiv [ ASpecFp.redm ~ ASpecFp.redm: ={arg} /\ 0 < p{2} < W64xN.modulusR  ==> res{1} = res{2} %% W64xN.modulusR ].
  proc. wp.  skip. progress. 
-rewrite (pmod_small (a{2} %% p{2})) . split.  apply modz_ge0. admit. (* smt(P_pos modz_ge0). *) move => q.
-admit. (* smt(ltz_pmod P_pos ppos) *)
+rewrite (pmod_small (a{2} %% p{2})) . split.  apply modz_ge0. 
+smt().
+move => q.
+smt(ltz_pmod P_pos).
 auto.
 symmetry. transitivity ASpecFp.redm
- (={arg} ==> res{1} = res{2} %% W64xN.modulusR)
+ (={arg} /\ 0 < p{2} && p{2} < W64xN.modulusR ==> res{1} = res{2} %% W64xN.modulusR)
  (valR a{2} = a{1}
   /\ ImplZZ p{2} p{1}
   /\ valR r{2} =  (ri p{1} (64 * nlimbs))  
@@ -797,7 +811,8 @@ transitivity CSpecFp.redm
  (W64x2N.valR a{1} = a{2} 
  /\  W64x2N.valR r{1} = r{2} 
  /\  W64xN.valR p{1} = p{2}
- /\  k{2} = 64 * nlimbs
+ /\  k{2} = 64 * nlimbs 
+ /\ 0 < p{2}
    ==>  (W64xN.valR res{1}) = res{2}  %% W64xN.modulusR)
  (={a,p} /\ r{1} = (ri p{2} k{1}) 
   /\ 0 < p{2} < W64xN.modulusR
