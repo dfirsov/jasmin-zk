@@ -510,6 +510,31 @@ module M(SC:Syscall_t) = {
     return (x, y);
   }
   
+  proc bn_eq (a:W64.t Array32.t, b:W64.t Array32.t) : W64.t = {
+    var aux: int;
+    
+    var output:W64.t;
+    var result:W64.t;
+    var i:int;
+    var c1:W64.t;
+    var c2:W64.t;
+    var reseq:bool;
+    
+    result <- (W64.of_int 0);
+    i <- 0;
+    while (i < 32) {
+      c1 <- a.[i];
+      c2 <- b.[i];
+      c1 <- (c1 `^` c2);
+      result <- (result `|` c1);
+      i <- i + 1;
+    }
+    reseq <- (result = (W64.of_int 0));
+    output <- (W64.of_int 0);
+    output <- (reseq ? (W64.of_int 1) : output);
+    return (output);
+  }
+  
   proc cminusP (p:W64.t Array32.t, x:W64.t Array32.t) : W64.t Array32.t = {
     
     var z:W64.t Array32.t;
@@ -729,26 +754,6 @@ module M(SC:Syscall_t) = {
       i <- i + 1;
     }
     return (a);
-  }
-  
-  proc bn_eq (a:W64.t Array32.t, b:W64.t Array32.t) : W64.t = {
-    var aux: int;
-    
-    var result:W64.t;
-    var i:int;
-    var c1:W64.t;
-    var c2:W64.t;
-    
-    result <- (W64.of_int 0);
-    i <- 0;
-    while (i < 32) {
-      c1 <- a.[i];
-      c2 <- b.[i];
-      c1 <- (c1 `^` c2);
-      result <- (result `|` c1);
-      i <- i + 1;
-    }
-    return (result);
   }
   
   proc bn_set_eo (a:W64.t Array32.t) : W64.t Array32.t = {

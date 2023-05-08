@@ -18,7 +18,7 @@ module CompletenessJ(P:ZKProverJ,V:ZKVerifierJ) = {
     c <@ V.challenge();
     t <@ P.response(w,r,c);
     v <@ V.verify(s,z,c,t);
-    return (v = W64.one);
+    return (v <> W64.zero);
   }
 }.
 
@@ -39,6 +39,7 @@ have v : valR result_R.`1 < p. rewrite - H. smt(@Zp).
 have : valR result_R.`1 %% p = valR result_R.`1. smt (@IntDiv @Zp).
 smt().
 rewrite - H2.
+smt.
 smt.
 auto. auto.
 qed.

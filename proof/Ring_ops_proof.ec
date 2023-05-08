@@ -113,8 +113,8 @@ qed.
 
 
 lemma bn_eq_correct x1 x2 :
-  phoare[ M.bn_eq :  arg = (x1,x2) ==> (res = W64.zero) = (valR x1 = valR x2)  ] = 1%r.
-proc. sp.
+  phoare[ M.bn_eq :  arg = (x1,x2) ==> (res = W64.one) = (valR x1 = valR x2)  /\ (res = W64.zero \/ res = W64.one) ] = 1%r.
+proc. sp. wp.
 while (i <= nlimbs /\ ((result = W64.zero) <=> (forall j, 0 <= j < i => a.[j] = b.[j])%Array32)) (nlimbs - i). progress.
 wp.  skip.  progress. smt(). smt(@W64xN).
 smt(@W64xN).
@@ -123,12 +123,17 @@ skip.
 progress.
 smt().
 smt().
-case (result0 = W64.zero). move => c1.
+case (result0 = W64.zero). simplify.
+move => c1.
 rewrite (Array32.ext_eq a{hr} b{hr} ). 
 have qq : i0 = nlimbs. smt().
+rewrite - qq.
 smt(). auto.
 elim H1. move => H11 H12.
+simplify.
+have ->: (W64.zero = W64.one) = false. smt(@W64).
 smt(@Array32 @W64xN).
+smt().
 qed.
 
 

@@ -97,7 +97,7 @@ lemma verify_eq :
        /\ Sub.val(z{1}) = valR commitment_0{2} %% p
        /\ c{1} %% (p-1) = (valR (challenge_0{2})) %% (p-1)
        /\ t{1} %% (p-1) = (valR response_0{2})  %% (p-1)
-       ==> res{1} = (res{2} = W64.one) ].
+       ==> (res{1} = (res{2} = W64.one)) /\ (res{2} = W64.zero \/ res{2} = W64.one) ].
 proc. sp. simplify.
 ecall {2} (bn_eq_correct v1{2} v2{2}). simplify. 
 ecall {2} (bn_expm_correct group_barrett{2} group_order{2} group_generator{2} response_0{2}). simplify. 

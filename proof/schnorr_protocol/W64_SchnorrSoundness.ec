@@ -15,7 +15,7 @@ module SoundnessJ(P:ZKMaliciousProverJ, V:ZKVerifierJ) = {
     c <@ V.challenge();
     t <@ P.response(c);
     v <@ V.verify(s,z,c,t);
-    return (v = W64.one);
+    return (v <> W64.zero);
   }
 }.
 
@@ -44,5 +44,5 @@ wp.
 call challenge_eq.
 inline AWrap(A).commitment.
 wp. call (_:true). simplify. skip.
-progress. smt. smt. smt. smt. auto. 
+progress. smt. smt. smt. smt. auto. auto.
 qed.
