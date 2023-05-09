@@ -216,17 +216,10 @@ apply darray_ll.
 qed.
 
 
-
-module Syscall = {
-  proc randombytes_256(a:W8.t Array256.t) : W8.t Array256.t = {
-    a <$ dmap WArray256.darray
-         (fun a => Array256.init (fun i => WArray256.get8 a i));
-    return a;
-  }
-}.
+require import W64_SchnorrExtract.
 
 
-require import Ring_ops_spec Ring_ops_proof.
+require import Ring_ops_spec.
 
 module SampleLoc = {
   proc jsmD() = {
@@ -342,3 +335,164 @@ have rval : 0 <= W64xN.valR rL  < M. smt(@W64xN).
 smt.
 smt(@W64xN).
 qed.    
+
+
+module WW = {
+  proc rsample(byte_z : W64.t Array32.t) : int * W64.t Array32.t = {
+    var aux : W8.t Array256.t;
+    var i : int;
+    var byte_p : W64.t Array32.t;
+    var cf : bool;
+    var byte_q : W64.t Array32.t;
+    var _0 : bool;
+    var _1 : bool;
+    var _2 : bool;
+    var _3 : bool;
+    var _4 : W64.t;
+    
+    byte_p <- witness;
+    byte_q <- witness;
+    i <- 0;
+    byte_p <@ M(Syscall).bn_set0(byte_p);
+    (_0, cf, _1, _2, _3, _4) <- set0_64;
+    while (!cf){
+      byte_p <@ SampleLoc.sample((init
+                              (fun (i_0 : int) =>
+                                 get8
+                                   (init64
+                                      (fun (i_0_0 : int) => byte_p.[i_0_0]))
+                                   i_0))%Array256);
+      byte_q <@ M(Syscall).bn_copy(byte_p);
+      (cf, byte_q) <@ M(Syscall).bn_subc(byte_q, byte_z);
+      i <- i + 1;
+    }   
+    return (i, byte_p);
+  }
+
+  proc rsample0(byte_z : W64.t Array32.t) : int * W64.t Array32.t = {
+    var aux : W8.t Array256.t;
+    var i : int;
+    var byte_p : W64.t Array32.t;
+    var cf : bool;
+    var byte_q : W64.t Array32.t;
+    var _0 : bool;
+    var _1 : bool;
+    var _2 : bool;
+    var _3 : bool;
+    var _4 : W64.t;
+    
+    byte_p <- witness;
+    byte_q <- witness;
+    i <- 0;
+    byte_p <@ M(Syscall).bn_set0(byte_p);
+    (_0, cf, _1, _2, _3, _4) <- set0_64;
+    while (!cf){
+      byte_p <@ SampleLoc.jsmD();
+      byte_q <@ M(Syscall).bn_copy(byte_p);
+      (cf, byte_q) <@ M(Syscall).bn_subc(byte_q, byte_z);
+      i <- i + 1;
+    }   
+    return (i, byte_p);
+  }
+
+  proc rsample2(a : int) : int * int = {
+    var x : int;
+    var b : bool;
+    var i : int;
+    var z : int;
+    
+    x <- 0;
+    b <- true;
+    i <- 0;
+    while (b){
+      x <@ SampleLoc.sampleInt();
+      (b, z) <@ ASpecFp.subn(x, a);
+      b <- !b;
+      i <- i + 1;
+    }
+    
+    return (i, x);
+  }
+
+}.
+
+require import Ring_ops_proof.
+equiv rsample_cspec:
+ M.rsample ~ CSpecFp.rsample:
+  W64xN.valR byte_z{1} = a{2}
+  ==> W64xN.valR res{1}.`2 = res{2}.`2 /\ res{1}.`1 = res{2}.`1.
+  transitivity WW.rsample
+   (={arg} ==> ={res})
+   (  W64xN.valR byte_z{1} = a{2}
+  ==> W64xN.valR res{1}.`2 = res{2}.`2 /\ res{1}.`1 = res{2}.`1).
+smt(). smt().
+proc.  inline SampleLoc.sample. wp. sp. 
+while (={i,cf,byte_p,byte_q,byte_z}). sim. wp. call (_:true).
+sim. wp. skip. progress.
+wp.  call (_:true). sim. skip. progress.
+symmetry.
+transitivity 
+   WW.rsample2
+   (={arg} ==> ={res})
+   (ImplZZ arg{2} arg{1} ==> ImplZZ res{2}.`2 res{1}.`2 /\ res{2}.`1 = res{1}.`1).
+smt(). smt().
+proc. inline SampleLoc.sampleInt. sim.
+symmetry.
+transitivity 
+   WW.rsample0
+   (={arg} ==> ={res})
+   (ImplZZ arg{1} arg{2} ==> ImplZZ res{1}.`2 res{2}.`2 /\ res{2}.`1 = res{1}.`1).
+smt(). smt().
+proc. 
+while (={i,cf,byte_p,byte_q,byte_z}). sim. wp. 
+call lemma1. skip. auto.
+wp. call (_:true). sim. wp. skip. auto.
+proc. wp.
+  while (={i} /\ !cf{1} = b{2} /\ ImplZZ byte_p{1}  x{2} /\ W64xN.valR  byte_z{1} = a{2}). wp.
+call  subc_spec. wp. ecall {1} (bn_copy_correct byte_p{1}).
+wp. 
+call lemma2. skip. progress. smt(). smt(). smt().
+wp. 
+call {1} (bn_set0_correct). wp. skip. progress.
+qed.
+
+
+
+equiv rsample_aspec:
+ M.rsample ~ ASpecFp.rsample:
+  W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
+  ==> W64xN.valR res{1}.`2 = res{2}.
+proof.
+transitivity 
+ CSpecFp.rsample
+  (W64xN.valR byte_z{1} = a{2}
+    ==> W64xN.valR res{1}.`2 = res{2}.`2 /\ res{1}.`1 = res{2}.`1)
+  (={arg} /\ 0 < arg{1} < Ring_ops_spec.M  ==> res{1}.`2 = res{2}).
+progress. 
+exists (W64xN.valR arg{1}). split. smt(). split. smt().
+split. 
+auto.
+move => _. smt(@W64xN).
+progress.
+apply rsample_cspec.
+exists* arg{1}. elim*. move => P.
+conseq (rsample_eq P  ). 
+progress.
+qed.
+
+
+equiv usample_aspec:
+ M.usample ~ ASpecFp.rsample:
+  W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
+  ==> W64xN.valR res{1} = res{2}.
+proof.
+transitivity 
+ M.rsample
+  (={arg} ==> res{1} = res{2}.`2)
+  (W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
+  ==> W64xN.valR res{1}.`2 = res{2}).
+progress. 
+smt(). progress. proc*.
+inline M.usample. sp.  wp. call (_:true). sim. skip. progress.
+apply rsample_aspec.
+qed.
