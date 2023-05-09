@@ -38,7 +38,7 @@ module ASpecFp_Schnorr = {
   }
 }.
 
-
+require import DistrAux.
 lemma commit_same1 : 
   equiv [ JProver.commitment ~ ASpecFp_Schnorr.commit 
           :   true
@@ -155,8 +155,8 @@ rewrite - H0.
 rewrite H31.
 rewrite H3.
 rewrite - H1.
-rewrite - (zp_eq (z{1} * s{1} ^^ c{1}) (g ^^ t{1})).
-rewrite (exps g t{1}).
+rewrite - (zp_eq (z{1} * s{1} ^^ c{1}) (Ring_ops_spec.g ^^ t{1})).
+rewrite (exps Ring_ops_spec.g t{1}).
 rewrite (zp_mul).
 congr.
 congr.

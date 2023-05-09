@@ -47,20 +47,31 @@ clone import ZModP.ZModField as Zp
 
 op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n.
 
+lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
+smt(@Int). qed.
+
+(* constants to make typechecking faster *)
 op Ri : int.
+axiom Ri_def : Ri = 4 ^ (64 * nlimbs) %/ p.
 op Rip : int.
-op g : zp.                       (* generator *)
 axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
-axiom pmoval:  p - 1 < W64xN.modulusR.
-axiom pval:  p < W64xN.modulusR.
+
+(* cyclic group generator *)
+op g : zp.   
+
+axiom P_pos : 2 <= p.
+axiom M_P : p < M.
+
+lemma pmoval:  p - 1 < W64xN.modulusR. by smt(@Int M_P). qed.
+
 axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
 axiom p_val_prop2 : 2*p < W64xN.modulusR. 
+
+
+
 axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
 axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p.
-axiom P_pos : 2 <= p.
-axiom M_pos : 2 < M.
-axiom M_P : p < M.
-axiom Ri_def : Ri = 4 ^ (64 * nlimbs) %/ p.
+
 
         
 (** "Implements" relation *)

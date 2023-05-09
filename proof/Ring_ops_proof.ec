@@ -7,11 +7,10 @@ import Array128 Array64 Array32.
 
 import Zp W64xN R.
 import StdBigop Bigint BIA.
-
-op R : W64.t Array64.t = R2.bn_ofint Ri.
-(* op R : W64.t Array64.t. *)
 require import BarrettRedInt.
 
+
+op R : W64.t Array64.t = R2.bn_ofint Ri.
 module M = M(Syscall).
 
 lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
