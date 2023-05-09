@@ -278,7 +278,10 @@ qed.
 (* TODO: properties about conversion  *)
 op conv1 :    int -> W8.t Array256.Array256.t.
 op conv2 :    W8.t Array256.Array256.t -> int.
+
 require import WArray256 Array256.
+
+print Array32.get64.
 equiv rsample_cspec:
  M.rsample ~ CSpecFp.rsample:
   W64xN.valR byte_z{1} = a{2}
@@ -286,8 +289,44 @@ equiv rsample_cspec:
 proc. wp.
   while (={i} /\ !cf{1} = b{2} /\ ImplZZ byte_p{1}  x{2} /\ W64xN.valR  byte_z{1} = a{2}). wp.
 call  subc_spec. wp. ecall {1} (bn_copy_correct byte_p{1}).
-wp. inline*. wp. 
-rnd conv2 conv1. wp.  skip. progress.   admit. admit. admit. admit. admit. (* must be resolved by conv1 and conv2 properties *)
+wp. inline*. wp.
+
+rnd conv2 conv1.  wp. skip. progress.   
+
+admit. admit. admit. admit. 
+(* search Array32.init. *)
+(* print Array32.init. *)
+(* search of_list. *)
+(* rewrite /get64_direct. *)
+(* print init. *)
+(* search Array32.init. *)
+(* print Array32.init. *)
+(* rewrite - (Array32.init_set byte_q{1}). *)
+(* simplify. *)
+(* search Array32.init. *)
+(* print  pack8E. *)
+(* rewrite /pack8_t.  *)
+(* search Array32.init. *)
+(* pose f := (fun (i_0 : int) => get64 (init8 ("_.[_]" aL)) i_0). *)
+(* print Array32.init_set. *)
+(* rewrite /get64_direct. *)
+(* print pack8_t. *)
+(* print W8u8.Pack.init. *)
+(* search W8u8.Pack.init. *)
+(* print  W8u8.Pack.init_of_list. *)
+(* print W8u8.Pack.of_listE. *)
+(* rewrite /init8.  *)
+(* rewrite /init. *)
+(* search init. *)
+(* search bits2w. *)
+(* print W256.init_bits2w. *)
+(* search Array32.init. *)
+(* search bnk. *)
+(* rewrite bn2seq. *)
+(* search to_list. *)
+(* rewrite /to_list. simplify. *)
+(* rewrite /mkseq. *)
+admit. (* must be resolved by conv1 and conv2 properties *)
 smt(). smt().  smt().
 wp.  call{1} bn_set0_correct. wp.
 skip. progress. 

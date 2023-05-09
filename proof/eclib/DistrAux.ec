@@ -204,8 +204,141 @@ qed.
 
 lemma jsmdD_fu : is_full jsmD .
 rewrite /jsmD.
-search is_full.
 apply dmap_fu.
 smt (h_surj).
 apply darray_fu.
 qed.
+
+lemma jsmdD_ll: is_lossless jsmD.
+rewrite /jsmD.
+apply dmap_ll.
+apply darray_ll.
+qed.
+
+
+
+module Syscall = {
+  proc randombytes_256(a:W8.t Array256.t) : W8.t Array256.t = {
+    a <$ dmap WArray256.darray
+         (fun a => Array256.init (fun i => WArray256.get8 a i));
+    return a;
+  }
+}.
+
+
+require import Ring_ops_spec Ring_ops_proof.
+
+module SampleLoc = {
+  proc jsmD() = {
+    var r;
+    r <$ jsmD;
+    return r;
+  }
+
+  proc sampleInt() = {
+    var r;
+    r <$ D;
+    return r;
+  }
+
+  proc sample(a:W8.t Array256.t) : W64.t Array32.t = {
+     a <@ Syscall.randombytes_256 (a);
+     return (Array32.init (fun i_0 => get64
+               (WArray256.init8 (fun i_0 => a.[i_0])) i_0));
+  }
+}.
+
+
+
+lemma lemma1 : 
+  equiv [SampleLoc.sample ~ SampleLoc.jsmD : true ==> ={res}].
+bypr res{1} res{2}.
+auto.
+progress.
+have -> : Pr[SampleLoc.sample(arg{1}) @ &1 : res = a]
+ = mu1 jsmD a.
+byphoare. proc. inline*.
+wp. rnd. wp. skip.  progress.
+rewrite /jsmD.
+rewrite h_eq.
+have ->: (dmap darray (g \o f)) 
+ =  dmap (dmap darray f) g.
+smt(dmap_comp).
+rewrite (dmapE (dmap darray f)). 
+rewrite /pred1 /g /(\o). simplify. rewrite /f. simplify. auto. auto.
+auto.
+byphoare. proc. rnd. skip. auto. auto. auto.
+qed.
+
+
+require import Finite List.
+
+
+lemma qqq (l : 'a list) (f : 'a -> 'b) : injective f => size l = size (map f l).
+smt.
+qed.
+
+
+lemma qq (l1 l2 : 'a list) : uniq l1 => uniq l2 
+ => (forall x, x \in l1 <=>  x \in l2) => size l1 = size l2. smt.
+qed.
+
+
+lemma ioo (x : 'b) (f : 'a -> 'b) (l : 'a list) : 
+ x \in map f l <=> exists z, z \in l /\ x = f z.
+smt(@List).
+qed.
+
+lemma jsmd_supp : size (to_seq (support jsmD)) = size (to_seq (support D)).
+ have ->: size (to_seq (support jsmD)) = size (map W64xN.valR (to_seq (support jsmD))). 
+rewrite size_map. auto.
+ have ->: size (map W64xN.valR (to_seq (support jsmD))) = size (to_seq (support D)). 
+apply qq.  
+search uniq map.
+rewrite map_inj_in_uniq. progress. clear H H0. smt.
+smt.
+smt.
+progress. 
+have : exists z, z \in (to_seq (support jsmD)) /\ W64xN.valR z = x. smt(@List).
+progress. 
+have mf : 0 <= (W64xN.valR z) < M. smt(@W64xN). 
+rewrite /D.
+have mf2 : W64xN.valR z \in (range 0 Ring_ops_spec.M). smt(@List).
+have mf3 : W64xN.valR z \in duniform (range 0 Ring_ops_spec.M). smt(@Distr).
+smt(@Distr @Finite).
+rewrite ioo.
+exists (W64xN.R.bn_ofint x). split. 
+have mf3 :   (W64xN.R.bn_ofint x)\in jsmD.
+apply (jsmdD_fu (W64xN.R.bn_ofint x)). 
+smt.
+rewrite W64xN.R.bn_ofintK.
+have mf2 :  x \in D. smt.
+have mf3 : 0 <= x < M. smt.
+smt(@W64xN).
+auto.
+qed.
+
+
+lemma lemma2 : 
+  equiv [SampleLoc.jsmD ~ SampleLoc.sampleInt : true ==> W64xN.valR res{1} = res{2} ].
+proc. 
+rnd W64xN.valR W64xN.R.bn_ofint.
+skip. progress.
+rewrite W64xN.R.bn_ofintK. 
+have rval : 0 <= rR  < M. smt(@Distr @List).
+smt(@Int).
+have rval : 0 <= rR  < M. smt(@Distr @List).
+have ->: mu1 D rR = 1%r / M%r.
+rewrite /D. smt(@Distr @List).
+rewrite mu1_uni. apply jsmdD_uni.
+have -> : (W64xN.R.bn_ofint rR)%W64xN.R \in jsmD = true.
+smt(jsmdD_fu).  
+simplify.
+have ->: weight jsmD = 1%r. 
+smt(jsmdD_ll @Distr).
+rewrite jsmd_supp.
+smt.
+have rval : 0 <= W64xN.valR rL  < M. smt(@W64xN).
+smt.
+smt(@W64xN).
+qed.    
