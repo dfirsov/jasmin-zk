@@ -1,6 +1,5 @@
 require import AllCore IntDiv CoreMap List.
-
-require import JModel.
+from Jasmin require import JModel.
 require import BitEncoding.
 import BS2Int.
 
@@ -212,7 +211,7 @@ rewrite exp_prop3'. auto. smt.
 rewrite exp_prop3'. auto. auto.
 rewrite exp_prop3'. auto. auto.
 rewrite H0. auto. auto.
-smt (exp_prop55 exp_prop6).
+smt .
 qed.
 
 

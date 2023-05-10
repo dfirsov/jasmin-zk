@@ -1,6 +1,6 @@
 require import AllCore IntDiv CoreMap List.
 
-require import JModel.
+from Jasmin require import JModel.
 require import BitEncoding.
 import BS2Int.
 

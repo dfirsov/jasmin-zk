@@ -1,6 +1,7 @@
 require import AllCore IntDiv CoreMap List.
 
-require import JModel JBigNum Ith_Bit64.
+from Jasmin require import JModel JBigNum.
+require import Ith_Bit64.
 require import Ring_ops_spec (* Ring_ops_extract *).
 require import W64_SchnorrExtract.
 import Array128 Array64 Array32.
@@ -274,7 +275,7 @@ rewrite /zeroR. smt(@Array32 @List).
 qed.
 
 
-require import WArray256 Array256.
+from Jasmin require import WArray256 Array256.
 
 
 equiv mul1first_eq:
@@ -711,10 +712,10 @@ move => r zz. split. smt(). split. smt(). split. smt(). split. smt(). split. smt
 have -> : W64x2N.modulusR = 2 ^ (2 * k{2}). smt(@Ring). smt().
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\  valR xrfd{1} =  xrf{2}   ).
-ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. rewrite H0.  
-have ->: W64xN.modulusR = Ring_ops_spec.M. rewrite /W64xN.modulusR. rewrite /M.
-rewrite /W64xN.modulusR. auto. rewrite /M.
-rewrite /W64xN.modulusR. smt(@Ring).
+ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. (* rewrite H0.   *)
+(* have ->: W64xN.modulusR = Ring_ops_spec.M. rewrite /W64xN.modulusR. rewrite /M. *)
+(* rewrite /W64xN.modulusR. auto. rewrite /M. *)
+(* rewrite /W64xN.modulusR. smt(@Ring). *)
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
     /\  W64x2N.valR xrfn{1} = xrfn{2}).
@@ -1308,8 +1309,8 @@ rewrite flatten_nil.
 rewrite cats0.
 do? rewrite bs2int_cat.
 simplify.
-have ->:  18446744073709551616 ^ 0 = 1. smt(@Ring).
-simplify.
+(* have ->:  18446744073709551616 ^ 0 = 1. smt(@Ring). *)
+(* simplify. *)
 smt(@Ring).
 have ->: 64*nlimbs = size (flatten (map W64.w2bits ((to_list kk{1}))%Array32)).
 rewrite /to_list.
@@ -1368,7 +1369,7 @@ lemma kk :  forall (n : int), 0 <= n => forall (a : zp) (b : W64xN.R.t), valR%W6
   ImplFp ((^) b n) (inzp (asint a ^ n)).
 apply intind. progress.
 rewrite exp_prop1.
-have -> : (asint a ^ 0) = 1. smt(@Ring).
+(* have -> : (asint a ^ 0) = 1. smt(@Ring). *)
 rewrite /asint.
 have -> : (Sub.val (inzp 1))%Sub = 1. smt(@Zp).
 rewrite valr_ofint. split. auto. smt(P_pos). auto.
@@ -1455,7 +1456,7 @@ exists (x{2}, int2bs (64*nlimbs) (b{1})).
 progress. smt().
 rewrite int2bsK. auto. split.  smt(@W64xN). 
 have ->: 2^ (64*nlimbs) =  W64x2N.M ^ nlimbs . smt(@Ring).
-  
+ 
 have qq:  0 <= b{1} &&  b{1} < W64x2N.M ^ nlimbs.  rewrite H1. apply bnk_cmp.
 elim qq. auto.
 auto.

@@ -1,8 +1,8 @@
 require import AllCore IntDiv CoreMap List Distr.
-require import JModel.
+from Jasmin require import JModel.
 
-require import Array32  Array256.
-require import WArray256  .
+from Jasmin require import Array32  Array256.
+from Jasmin require import WArray256  .
 
 
 require import W64_SchnorrExtract.
@@ -150,7 +150,7 @@ simplify.
 rewrite /injective. progress.
 apply WArray256.ext_eq.
 progress.
-smt.
+smt(@Array256).
 qed.
 
 axiom h_surj : surjective h.    (* types are finite and of the same cardinality *)
@@ -294,7 +294,7 @@ smt.
 progress. 
 have : exists z, z \in (to_seq (support jsmD)) /\ W64xN.valR z = x. smt(@List).
 progress. 
-have mf : 0 <= (W64xN.valR z) < M. smt(@W64xN). 
+have mf : 0 <= (W64xN.valR z) < Ring_ops_spec.M. smt(@W64xN). 
 rewrite /D.
 have mf2 : W64xN.valR z \in (range 0 Ring_ops_spec.M). smt(@List).
 have mf3 : W64xN.valR z \in duniform (range 0 Ring_ops_spec.M). smt(@Distr).
@@ -306,7 +306,7 @@ apply (jsmdD_fu (W64xN.R.bn_ofint x)).
 smt.
 rewrite W64xN.R.bn_ofintK.
 have mf2 :  x \in D. smt.
-have mf3 : 0 <= x < M. smt.
+have mf3 : 0 <= x < Ring_ops_spec.M. smt.
 smt(@W64xN).
 auto.
 qed.
@@ -318,10 +318,10 @@ proc.
 rnd W64xN.valR W64xN.R.bn_ofint.
 skip. progress.
 rewrite W64xN.R.bn_ofintK. 
-have rval : 0 <= rR  < M. smt(@Distr @List).
+have rval : 0 <= rR  < Ring_ops_spec.M. smt(@Distr @List).
 smt(@Int).
-have rval : 0 <= rR  < M. smt(@Distr @List).
-have ->: mu1 D rR = 1%r / M%r.
+have rval : 0 <= rR  < Ring_ops_spec.M. smt(@Distr @List).
+have ->: mu1 D rR = 1%r / Ring_ops_spec.M%r.
 rewrite /D. smt(@Distr @List).
 rewrite mu1_uni. apply jsmdD_uni.
 have -> : (W64xN.R.bn_ofint rR)%W64xN.R \in jsmD = true.
@@ -331,7 +331,7 @@ have ->: weight jsmD = 1%r.
 smt(jsmdD_ll @Distr).
 rewrite jsmd_supp.
 smt.
-have rval : 0 <= W64xN.valR rL  < M. smt(@W64xN).
+have rval : 0 <= W64xN.valR rL  < Ring_ops_spec.M. smt(@W64xN).
 smt.
 smt(@W64xN).
 qed.    
@@ -360,7 +360,7 @@ module WW = {
                               (fun (i_0 : int) =>
                                  get8
                                    (init64
-                                      (fun (i_0_0 : int) => byte_p.[i_0_0]))
+                                      (fun (i_0_0 : int) => byte_p.[i_0_0])%Array32)
                                    i_0))%Array256);
       byte_q <@ M(Syscall).bn_copy(byte_p);
       (cf, byte_q) <@ M(Syscall).bn_subc(byte_q, byte_z);

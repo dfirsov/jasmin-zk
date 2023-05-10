@@ -1,5 +1,5 @@
 require import Int Real Distr.
-require import JModel JBigNum Array32 Array64 Array128.
+from Jasmin require import JModel JBigNum Array32 Array64 Array128.
 require import Ring_ops_proof ZK_SchnorrBasics.
 
 

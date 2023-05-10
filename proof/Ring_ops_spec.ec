@@ -1,13 +1,17 @@
 require import Core Int IntDiv Ring IntDiv StdOrder List Distr .
 
-require import JModel JBigNum.
+from Jasmin require import JBigNum.
+from Jasmin require import Array32 Array64 Array128.
 
-require import Array32 Array64 Array128.
+from Jasmin require import JModel.
+
+
 
 import Ring.IntID IntOrder.
 
 abbrev nlimbs = 32.
 abbrev dnlimbs = 64.
+
 
 clone import BigNum as W64xN with
  op nlimbs <- nlimbs,

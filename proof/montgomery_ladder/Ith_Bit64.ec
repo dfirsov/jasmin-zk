@@ -1,6 +1,6 @@
 require import AllCore IntDiv CoreMap List.
 
-require import JModel.
+from Jasmin require import JModel.
 (* require import JBigNum. *)
 (* require import Fp_w64x4_extract_mulm. *)
 

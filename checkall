@@ -7,7 +7,7 @@ ECO=
 
 check() {
   echo checking $1;
-  if easycrypt $ECO -p "CVC4"  -p "Z3" -p "Alt-Ergo"  -I ./proof -I ./proof/eclib -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr -timeout $timeout $1;
+  if easycrypt $ECO -p "CVC4"  -p "Z3" -p "Alt-Ergo"  -I ./proof -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr -I ./proof/jasmin_extracts   -I /home/aneto/Desktop/zk/easycrypt-zk-code/generic -I /home/aneto/Desktop/zk/easycrypt-zk-code/misc -I /home/aneto/Desktop/zk/easycrypt-zk-code/rewinding -timeout $timeout $1;
   then echo passed: $1;
        echo "";
   else echo failed: $1;
@@ -41,18 +41,24 @@ check proof/rejection_sampling/RejectionSamplingProperties.ec
 
 ## misc
 check proof/BarrettRedInt.ec
-check proof/Ring_ops_extract.ec
-check proof/Ring_ops_extract_ct.ec
-check proof/Ring_ops_proof.ec
-check proof/Ring_ops_proof_ct.ec
 check proof/Ring_ops_spec.ec
-check proof/Uniform_distr_extract_ct.ec
-check proof/Uniform_distr_proof_ct.ec
+check proof/DistrAux.ec
+check proof/Ring_ops_proof.ec
 
 
-## schnorr
-check proof/schnorr/AbstractSchnorr.ec
-check proof/schnorr/ConcreteSchnorr.ec
+# check proof/Ring_ops_extract.ec
+# check proof/Ring_ops_extract_ct.ec
 
+# check proof/Ring_ops_proof_ct.ec
+
+# check proof/Uniform_distr_extract_ct.ec
+# check proof/Uniform_distr_proof_ct.ec
+
+
+## schnorr protocol
+check proof/schnorr_protocol/W64_Zp_SchnorrIndistinguishability.ec
+check proof/schnorr_protocol/W64_SchnorrCompleteness.ec
+check proof/schnorr_protocol/W64_SchnorrSoundness.ec
+check proof/schnorr_protocol/W64_SchnorrExtractability.ec
 
 echo "DONE";

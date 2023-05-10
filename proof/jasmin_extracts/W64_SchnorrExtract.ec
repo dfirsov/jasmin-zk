@@ -1,8 +1,8 @@
 require import AllCore IntDiv CoreMap List Distr.
-require import JModel.
+from Jasmin require import JModel.
 
-require import Array32 Array64 Array128 Array256.
-require import WArray256 WArray512 WArray1024.
+from Jasmin require import Array32 Array64 Array128 Array256.
+from Jasmin require import WArray256 WArray512 WArray1024.
 
 
 
@@ -30,13 +30,13 @@ module M(SC:Syscall_t) = {
     
     x1 <- a.[0];
     x2 <- b.[0];
-    (cf, x1) <- subc_64 x1 x2 false;
+    (cf, x1) <- sbb_64 x1 x2 false;
     a.[0] <- x1;
     i <- 1;
     while (i < 32) {
       x1 <- a.[i];
       x2 <- b.[i];
-      (cf, x1) <- subc_64 x1 x2 cf;
+      (cf, x1) <- sbb_64 x1 x2 cf;
       a.[i] <- x1;
       i <- i + 1;
     }
@@ -54,14 +54,14 @@ module M(SC:Syscall_t) = {
     
     x1 <- a.[0];
     x2 <- b.[0];
-    (cf, x1) <- subc_64 x1 x2 false;
+    (cf, x1) <- sbb_64 x1 x2 false;
     a.[0] <- x1;
     aux <- (32 * 2);
     i <- 1;
     while (i < aux) {
       x1 <- a.[i];
       x2 <- b.[i];
-      (cf, x1) <- subc_64 x1 x2 cf;
+      (cf, x1) <- sbb_64 x1 x2 cf;
       a.[i] <- x1;
       i <- i + 1;
     }
@@ -176,13 +176,13 @@ module M(SC:Syscall_t) = {
     
     x1 <- a.[0];
     x2 <- b.[0];
-    (cf, x1) <- addc_64 x1 x2 false;
+    (cf, x1) <- adc_64 x1 x2 false;
     a.[0] <- x1;
     i <- 1;
     while (i < 32) {
       x1 <- a.[i];
       x2 <- b.[i];
-      (cf, x1) <- addc_64 x1 x2 cf;
+      (cf, x1) <- adc_64 x1 x2 cf;
       a.[i] <- x1;
       i <- i + 1;
     }

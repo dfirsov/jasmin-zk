@@ -1,7 +1,7 @@
 require import AllCore Distr DInterval List Int IntDiv.
 
-require import JModel JBigNum.
-require import Array32 Array64 Array128.
+from Jasmin require import JModel JBigNum.
+from Jasmin require import Array32 Array64 Array128.
 
 require import ZK_SchnorrBasics.
 require import Zp_SchnorrProtocol.

@@ -3,7 +3,7 @@ require import BitEncoding StdBigop Bigalg.
 (*---*) import Ring.IntID IntOrder BS2Int.
 (*---*) import Bigint BIA.
 
-require import JWord JUtils JArray.
+from Jasmin require import JWord JUtils JArray.
 
 (* Where does this belongs? *)
 lemma divzU a b q r:
@@ -1175,6 +1175,7 @@ clone BN as R2 with
   proof gt0_wsize by apply gt0_wsize*)
   proof gt0_nlimbs by (apply mulr_gt0 => //; apply gt0_nlimbs).
 
+
 import R2 R (*WordExt.*).
 
 (*
@@ -1999,8 +2000,8 @@ seq 2: (#[:-3]pre /\ i=nlimbs-2 /\
         = bnk (k+i+2) x
           + b2i _of * W64.modulus^(kk+i) + b2i _cf * W64.modulus^(kk+i+1) /\
         forall j, k+i+1 < j <= nlimbs+k => x.[j]=xx.[j]).
-  have E: forall x, x+2 = x+1+1 by smt(). wp. skip. progress. 
-  (* wp; skip => />; progress; first 2 smt().  *) admit.
+  have E: forall x, x+2 = x+1+1 by smt().
+  wp; skip => />; progress; first 2 smt(). 
    rewrite !get_setE 1:/#.
    rewrite (_:!kk + i{hr} + 1 = kk + i{hr}) 1:/# /=.
    rewrite !E addrA !R2.bnkS 1..6:/# /=.
