@@ -43,13 +43,12 @@ update_downloads :
 	unzip tmp/jasmin_archive.zip -d tmp/unpack
 	cp -a tmp/unpack/*/eclib/ proof/
 
-
 %.check.log : %.ec $(PROOF_FILES)
 	echo Checking "$<"
 	easycrypt $(ECO) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I ./proof/eclib -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr -timeout "$(TIMEOUT)" "$<" > $@
 
 proof/jasmin_extracts/W64_SchnorrExtract.ec : src/schnorr_protocol.jazz Makefile
-	$(JASMIN_PROGNAME) -ec commitment -ec response -ec challenge -ec verify -oec $@ $<
+	$(JASMIN_PROGNAME) -ec commitment -ec response -ec challenge -ec verify -oec $@ -oecarray proof/jasmin_extracts $<
 
 
 # BELOW: Experiments...

@@ -1,3 +1,4 @@
 *~
 *.check.log
 /tmp/
+*.eco
