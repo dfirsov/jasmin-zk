@@ -6,6 +6,7 @@ ECO=
 
 # TODO: Add more
 EXTRACTED_FILES = proof/jasmin_extracts/W64_SchnorrExtract.ec
+ 
 
 # TODO: Add other directories
 PROOF_FILES += $(EXTRACTED_FILES)
@@ -36,23 +37,17 @@ opam_pin :
 	opam install easycrypt jasmin.$(JASMIN_VERSION)
 
 # Downloads files in eclib
-# update_downloads :
-# 	rm -rf tmp/
-# 	rm -rf proof/eclib/
-# 	mkdir tmp
-# 	wget https://github.com/jasmin-lang/jasmin/archive/refs/tags/v$(JASMIN_VERSION).zip -O tmp/jasmin_archive.zip
-# 	unzip tmp/jasmin_archive.zip -d tmp/unpack
-# 	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib/JBigNum.ec -O tmp/JBigNum.ec
-# 	cp -a tmp/unpack/*/eclib/ proof/
-# 	cp tmp/JBigNum.ec proof/eclib
 update_downloads :
 	rm -rf tmp/
 	rm -rf proof/eclib/
 	mkdir tmp
-	wget https://github.com/formosa-crypto/libjbn/archive/$(BIGNUM_REVISION).zip -O tmp/jasmin_archive.zip
+	wget https://github.com/jasmin-lang/jasmin/archive/refs/tags/v$(JASMIN_VERSION).zip -O tmp/jasmin_archive.zip
 	unzip tmp/jasmin_archive.zip -d tmp/unpack
-	cp -a tmp/unpack/*/proof/eclib/ proof/
-
+	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib_extra/JBigNum.ec -O tmp/JBigNum.ec
+	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib/JArray.ec -O tmp/JArray.ec
+	cp -a tmp/unpack/*/eclib/ proof/
+	cp tmp/JBigNum.ec proof/eclib
+	cp tmp/JArray.ec proof/eclib
 
 
 %.check.log : %.ec $(PROOF_FILES)
@@ -63,6 +58,8 @@ proof/jasmin_extracts/W64_SchnorrExtract.ec : src/schnorr_protocol.jazz Makefile
 	rm -rf proof/jasmin_extracts
 	mkdir proof/jasmin_extracts
 	$(JASMIN_PROGNAME) -ec commitment -ec response -ec challenge -ec verify -oec $@ -oecarray proof/jasmin_extracts $<
+	$(JASMIN_PROGNAME) -CT -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec -oecarray proof/jasmin_extracts $<
+
 
 
 # BELOW: Experiments...
