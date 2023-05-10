@@ -12,7 +12,7 @@ PROOF_FILES += $(EXTRACTED_FILES)
 PROOF_FILES += $(wildcard proof/montgomery_ladder/*)
 
 # Replace by "JASMIN_PROGNAME = echo jasmin" to deactivate extraction if you do not have jasmin installed
-JASMIN_PROGNAME = echo jasmin
+JASMIN_PROGNAME = jasminc
 EASYCRYPT_PROGNAME = easycrypt
 
 .DELETE_ON_ERROR :
@@ -24,17 +24,16 @@ default : check_all
 	easycrypt $(ECO) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I ./proof/eclib -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr -timeout "$(TIMEOUT)" "$<" > $@
 
 # TODO
-JASMIN_COMMAND = echo jasmin ..options...
-JASMIN_COMMAND_CT = echo jasmin ..options for ct...
+JASMIN_COMMAND = $(JASMIN_PROGNAME)
 
 # TODO: Add for each Jazz extraction
 proof/jasmin_extracts/Ring_ops_extract.ec : src/ring_ops.jazz
 	# TODO proper syntax
-	$(JASMIN_COMMAND) input $< output $@
+	$(JASMIN_COMMAND) $< -o $@
 
 proof/jasmin_extracts/Ring_ops_extract_ct.ec : src/ring_ops.jazz
 	# TODO proper syntax
-	$(JASMIN_COMMAND) input $< output $@
+	$(JASMIN_COMMAND) $< -CT -o $@
 
 check_all : $(PROOF_FILES:.ec=.check.log)
 
