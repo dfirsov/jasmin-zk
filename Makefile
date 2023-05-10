@@ -15,8 +15,9 @@ PROOF_FILES += $(wildcard proof/montgomery_ladder/*)
 JASMIN_PROGNAME = jasminc
 EASYCRYPT_PROGNAME = easycrypt
 
-EASYCRYPT_REVISION = r2022.04-142-g94538c5
-JASMIN_REVISION = main
+EASYCRYPT_REVISION = 94538c5
+JASMIN_VERSION = 2022.09.2
+BIGNUM_REVISION = 81639ae
 
 .DELETE_ON_ERROR :
 
@@ -30,18 +31,20 @@ extract_all : $(EXTRACTED_FILES)
 
 # Use the tested EasyCrypt and Jasmin version in opam
 opam_pin :
-	opam pin add jasmin https://github.com/jasmin-lang/jasmin.git#$(JASMIN_REVISION)
+	opam update
 	opam pin add easycrypt https://github.com/EasyCrypt/easycrypt.git#$(EASYCRYPT_REVISION)
-	opam install easycrypt jasmin
+	opam install easycrypt jasmin.$(JASMIN_VERSION)
 
 # Downloads files in eclib
 update_downloads :
 	rm -rf tmp/
 	rm -rf proof/eclib/
 	mkdir tmp
-	wget https://github.com/jasmin-lang/jasmin/archive/refs/heads/$(JASMIN_REVISION).zip -O tmp/jasmin_archive.zip
+	wget https://github.com/jasmin-lang/jasmin/archive/refs/tags/v$(JASMIN_VERSION).zip -O tmp/jasmin_archive.zip
 	unzip tmp/jasmin_archive.zip -d tmp/unpack
+	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib/JBigNum.ec -O tmp/JBigNum.ec
 	cp -a tmp/unpack/*/eclib/ proof/
+	cp tmp/JBigNum.ec proof/eclib
 
 %.check.log : %.ec $(PROOF_FILES)
 	echo Checking "$<"
