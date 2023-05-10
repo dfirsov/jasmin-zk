@@ -36,15 +36,24 @@ opam_pin :
 	opam install easycrypt jasmin.$(JASMIN_VERSION)
 
 # Downloads files in eclib
+# update_downloads :
+# 	rm -rf tmp/
+# 	rm -rf proof/eclib/
+# 	mkdir tmp
+# 	wget https://github.com/jasmin-lang/jasmin/archive/refs/tags/v$(JASMIN_VERSION).zip -O tmp/jasmin_archive.zip
+# 	unzip tmp/jasmin_archive.zip -d tmp/unpack
+# 	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib/JBigNum.ec -O tmp/JBigNum.ec
+# 	cp -a tmp/unpack/*/eclib/ proof/
+# 	cp tmp/JBigNum.ec proof/eclib
 update_downloads :
 	rm -rf tmp/
 	rm -rf proof/eclib/
 	mkdir tmp
-	wget https://github.com/jasmin-lang/jasmin/archive/refs/tags/v$(JASMIN_VERSION).zip -O tmp/jasmin_archive.zip
+	wget https://github.com/formosa-crypto/libjbn/archive/$(BIGNUM_REVISION).zip -O tmp/jasmin_archive.zip
 	unzip tmp/jasmin_archive.zip -d tmp/unpack
-	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib/JBigNum.ec -O tmp/JBigNum.ec
-	cp -a tmp/unpack/*/eclib/ proof/
-	cp tmp/JBigNum.ec proof/eclib
+	cp -a tmp/unpack/*/proof/eclib/ proof/
+
+
 
 %.check.log : %.ec $(PROOF_FILES)
 	echo Checking "$<"
