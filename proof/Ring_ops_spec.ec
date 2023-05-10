@@ -1,10 +1,7 @@
 require import Core Int IntDiv Ring IntDiv StdOrder List Distr .
 
-from Jasmin require import JBigNum.
-from Jasmin require import Array32 Array64 Array128.
-
-from Jasmin require import JModel.
-
+from Jasmin require import JModel JBigNum.
+require import Array32 Array64 Array128.
 
 
 import Ring.IntID IntOrder.

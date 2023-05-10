@@ -275,7 +275,7 @@ rewrite /zeroR. smt(@Array32 @List).
 qed.
 
 
-from Jasmin require import WArray256 Array256.
+require import WArray256 Array256.
 
 
 equiv mul1first_eq:

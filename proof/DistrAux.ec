@@ -1,8 +1,7 @@
 require import AllCore IntDiv CoreMap List Distr.
 from Jasmin require import JModel.
 
-from Jasmin require import Array32  Array256.
-from Jasmin require import WArray256  .
+require import Array32  Array256 WArray256.
 
 
 require import W64_SchnorrExtract.
