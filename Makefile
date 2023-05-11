@@ -6,11 +6,13 @@ ECO=
 
 # TODO: Add more
 EXTRACTED_FILES = proof/jasmin_extracts/W64_SchnorrExtract.ec
- 
 
 # TODO: Add other directories
 PROOF_FILES += $(EXTRACTED_FILES)
 PROOF_FILES += $(wildcard proof/montgomery_ladder/*)
+PROOF_FILES += $(wildcard proof/rejection_sampling/*)
+PROOF_FILES += $(wildcard proof/schnorr_protocol/*)
+PROOF_FILES += $(wildcard proof/*)
 
 # Replace by "JASMIN_PROGNAME = echo jasmin" to deactivate extraction if you do not have jasmin installed
 JASMIN_PROGNAME = jasminc
@@ -52,7 +54,9 @@ update_downloads :
 
 %.check.log : %.ec $(PROOF_FILES)
 	echo Checking "$<"
-	easycrypt $(ECO) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I ./proof/eclib -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr -timeout "$(TIMEOUT)" "$<" > $@
+	easycrypt $(ECO) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I ./proof/eclib -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr -timeout "$(TIMEOUT)" "$<" 
+
+### > $@
 
 proof/jasmin_extracts/W64_SchnorrExtract.ec : src/schnorr_protocol.jazz Makefile
 	rm -rf proof/jasmin_extracts
