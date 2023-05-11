@@ -20,8 +20,9 @@ PROOF_FILES += $(wildcard proof/rejection_sampling/*)
 JASMIN_PROGNAME = jasminc
 EASYCRYPT_PROGNAME = easycrypt
 
-EASYCRYPT_REVISION = 577c882 # this is the latest released version with tag "r2022.04"
-jasmin_VERSION = 2022.09.2
+# this is the latest released version with tag "r2022.04"
+EASYCRYPT_REVISION = 577c882
+JASMIN_VERSION = 2022.09.2
 BIGNUM_REVISION = 81639ae
 
 .DELETE_ON_ERROR :
@@ -44,14 +45,19 @@ opam_pin :
 update_downloads :
 	rm -rf tmp/
 	rm -rf proof/eclib/
+	rm -rf easycrypt-zk-code/
 	mkdir tmp
 	wget https://github.com/jasmin-lang/jasmin/archive/refs/tags/v$(JASMIN_VERSION).zip -O tmp/jasmin_archive.zip
 	unzip tmp/jasmin_archive.zip -d tmp/unpack
+	wget https://github.com/dfirsov/easycrypt-zk-code/archive/refs/heads/main.zip -O tmp/easycrypt-zk-code.zip
+	unzip tmp/easycrypt-zk-code.zip -d tmp/zk_unpack
 	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib_extra/JBigNum.ec -O tmp/JBigNum.ec
 	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib/JArray.ec -O tmp/JArray.ec
 	cp -a tmp/unpack/*/eclib/ proof/
+	cp -a tmp/zk_unpack/easycrypt-zk-code-main easycrypt-zk-code
 	cp tmp/JBigNum.ec proof/eclib
 	cp tmp/JArray.ec proof/eclib
+
 
 
 %.check.log : %.ec $(PROOF_FILES)
