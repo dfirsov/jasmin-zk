@@ -1,11 +1,9 @@
-
-(* require import Ring_ops_extract_ct. *)
 require import W64_SchnorrExtract_ct.
-require import JModel List Int AllCore.
+require import List Int AllCore.
 
+from Jasmin require import JModel.
+(* require import Array1 WArray. *)
 
-require import Array1.
-require import WArray1.
 
 (* SUBTRACTION LEAKAGES  *)
 op sub_prefix : leakages_t = 
@@ -161,7 +159,8 @@ proof. proc.  sim. call aaaa. wp.  skip. progress. qed.
 
 require import Ring_ops_proof.
 require import Ring_ops_spec.
-
+require import UniformSampling_Abstract.
+require import UniformSampling_Concrete.
 
 equiv rsample_cspec2:
  M1.rsample ~ CSpecFp.rsample:
@@ -232,7 +231,7 @@ rewrite Pr[mu_split (M1.leakages = samp_t res.`1) ].
 rewrite Pr[mu_eq]. progress. auto.
 qed.
 
-require import InvFun.
+require import Aux.
 
 
 

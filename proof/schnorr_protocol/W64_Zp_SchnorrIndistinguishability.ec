@@ -40,7 +40,7 @@ module ASpecFp_Schnorr = {
 
 
 
-require import DistrAux.
+require import UniformSampling_Concrete.
 require import MontgomeryLadder_Concrete.
 
 lemma commit_same1 : 
@@ -94,6 +94,8 @@ apply commit_same.
 symmetry. apply commit_same1.
 qed.
 
+require import ModularMultiplication_Concrete.
+require import BarrettReduction_Concrete.
 
 lemma verify_eq : 
   equiv [ SchnorrVerifier.verify ~ JVerifier.verify :

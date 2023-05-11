@@ -128,33 +128,33 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
 
 
 
-export fn __commitment(reg u64 commitment_p) 
-{ 
-  reg u64 commitment_p2;
-  stack u64[nlimbs] commitment rp;
+// export fn __commitment(reg u64 commitment_p) 
+// { 
+//   reg u64 commitment_p2;
+//   stack u64[nlimbs] commitment rp;
 
-  // relax ABI contraints
-  commitment_p2 = commitment_p;
-  commitment, rp = commitment();
-  bn_store(commitment_p2, commitment);
-}
-
-
-export fn __response(reg u64 random_power_p challenge_p witness_p response_p) 
-{ 
-  reg u64 response_p2;
-  stack u64[nlimbs] commitment random_power witness challenge response;
+//   // relax ABI contraints
+//   commitment_p2 = commitment_p;
+//   commitment, rp = commitment();
+//   bn_store(commitment_p2, commitment);
+// }
 
 
-  random_power = bn_load(random_power_p);
-  challenge = bn_load(challenge_p);
-  witness = bn_load(witness_p);
+// export fn __response(reg u64 random_power_p challenge_p witness_p response_p) 
+// { 
+//   reg u64 response_p2;
+//   stack u64[nlimbs] commitment random_power witness challenge response;
 
-  // relax ABI contraints
-  response_p2 = response_p;
-  response = response(witness,random_power,challenge);
-  bn_store(response_p2, commitment);
-}
+
+//   random_power = bn_load(random_power_p);
+//   challenge = bn_load(challenge_p);
+//   witness = bn_load(witness_p);
+
+//   // relax ABI contraints
+//   response_p2 = response_p;
+//   response = response(witness,random_power,challenge);
+//   bn_store(response_p2, commitment);
+// }
 
 
 export fn __verify(reg u64 statement_p commitment_p challenge_p response_p result_p) 
@@ -162,6 +162,7 @@ export fn __verify(reg u64 statement_p commitment_p challenge_p response_p resul
   reg u64 result_p2;
   stack u64[nlimbs] statement commitment challenge response;
   stack u64 result;
+  stack u64[nlimbs] confused;
 
 
   statement = bn_load(statement_p);
@@ -172,7 +173,9 @@ export fn __verify(reg u64 statement_p commitment_p challenge_p response_p resul
   // relax ABI contraints
   result_p2 = result_p;
   result = verify(statement,commitment,challenge,response);
-  [result_p2] = result;
+
+  confused[0] = result;
+  [result_p] = confused[0]; 
 
 }
 

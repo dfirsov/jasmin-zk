@@ -11,6 +11,7 @@ require import W64_SchnorrExtract.
 import W64xN.
 import Zp.
 
+require import ModularMultiplication_Concrete.
 section.
 
 clone import MontgomeryLadder_Abstract as Exp with type R  <- zp,

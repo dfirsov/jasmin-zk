@@ -1,4 +1,3 @@
-
 TIMEOUT = 20
 
 ECO=
@@ -9,17 +8,20 @@ EXTRACTED_FILES = proof/jasmin_extracts/W64_SchnorrExtract.ec
 
 # TODO: Add other directories
 PROOF_FILES += $(EXTRACTED_FILES)
-PROOF_FILES += $(wildcard proof/montgomery_ladder/*)
-PROOF_FILES += $(wildcard proof/rejection_sampling/*)
 PROOF_FILES += $(wildcard proof/schnorr_protocol/*)
 PROOF_FILES += $(wildcard proof/*)
+PROOF_FILES += $(wildcard proof/modular_multiplication/*)
+PROOF_FILES += $(wildcard proof/montgomery_ladder/*)
+PROOF_FILES += $(wildcard proof/rejection_sampling/*)
+
+
 
 # Replace by "JASMIN_PROGNAME = echo jasmin" to deactivate extraction if you do not have jasmin installed
 JASMIN_PROGNAME = jasminc
 EASYCRYPT_PROGNAME = easycrypt
 
-EASYCRYPT_REVISION = 94538c5
-JASMIN_VERSION = 2022.09.2
+EASYCRYPT_REVISION = 577c882 # this is the latest released version with tag "r2022.04"
+jasmin_VERSION = 2022.09.2
 BIGNUM_REVISION = 81639ae
 
 .DELETE_ON_ERROR :
@@ -54,7 +56,7 @@ update_downloads :
 
 %.check.log : %.ec $(PROOF_FILES)
 	echo Checking "$<"
-	easycrypt $(ECO) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I ./proof/eclib -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr -timeout "$(TIMEOUT)" "$<" 
+	easycrypt $(ECO) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I ./proof/eclib -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr_protocol -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<" 
 
 ### > $@
 
