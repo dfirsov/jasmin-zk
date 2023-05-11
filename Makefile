@@ -44,12 +44,14 @@ update_downloads :
 	rm -rf proof/eclib/
 	mkdir tmp
 	wget https://github.com/jasmin-lang/jasmin/archive/refs/tags/v$(JASMIN_VERSION).zip -O tmp/jasmin_archive.zip
-	unzip tmp/jasmin_archive.zip -d tmp/unpack
-	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib_extra/JBigNum.ec -O tmp/JBigNum.ec
-	wget https://raw.githubusercontent.com/formosa-crypto/libjbn/$(BIGNUM_REVISION)/proof/eclib/JArray.ec -O tmp/JArray.ec
-	cp -a tmp/unpack/*/eclib/ proof/
-	cp tmp/JBigNum.ec proof/eclib
-	cp tmp/JArray.ec proof/eclib
+	unzip tmp/jasmin_archive.zip -d tmp/unpack-jasmin
+	wget https://github.com/formosa-crypto/libjbn/archive/$(BIGNUM_REVISION).zip -O tmp/bignum_archive.zip
+	unzip tmp/bignum_archive.zip -d tmp/unpack-bignum
+
+	mkdir -p proof/eclib
+	cp tmp/unpack-jasmin/*/eclib/*.ec proof/eclib/
+	cp tmp/unpack-bignum/*/proof/eclib_extra/JBigNum.ec proof/eclib/
+	cp tmp/unpack-bignum/*/proof/eclib/JArray.ec proof/eclib/
 
 
 %.check.log : %.ec $(PROOF_FILES)
