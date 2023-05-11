@@ -41,7 +41,7 @@ module ASpecFp_Schnorr = {
 
 
 require import DistrAux.
-
+require import MontgomeryLadder_Concrete.
 
 lemma commit_same1 : 
   equiv [ JProver.commitment ~ ASpecFp_Schnorr.commit 

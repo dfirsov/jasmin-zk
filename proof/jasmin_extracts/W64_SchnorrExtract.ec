@@ -680,50 +680,28 @@ module M(SC:Syscall_t) = {
              n:W64.t Array32.t) : W64.t Array32.t = {
     
     var x1:W64.t Array32.t;
-    var ctr:W64.t;
     var x2:W64.t Array32.t;
-    var d:W64.t;
-    var x3:W64.t Array32.t;
-    var x4:W64.t Array32.t;
-    var p:W64.t;
-    var lbit:W64.t;
-    var t1:W64.t;
-    var t2:W64.t;
-    var par:W64.t;
-    var q:W64.t;
-    var cbit:W64.t;
+    var x11:W64.t Array32.t;
+    var i:W64.t;
+    var b:W64.t;
     x1 <- witness;
+    x11 <- witness;
     x2 <- witness;
-    x3 <- witness;
-    x4 <- witness;
-    ctr <- (W64.of_int ((32 * 64) - 1));
     x1 <@ bn_set1 (x1);
-    x2 <@ bn_set1 (x2);
-    d <@ ith_bit (n, ctr);
-    x3 <@ bn_copy (x);
-    x4 <@ mulm (r, m, x, x3);
-    p <- d;
-    (x1, x3) <@ swapr (x1, x3, d);
-    (x2, x4) <@ swapr (x2, x4, d);
+    x2 <@ bn_copy (x);
+    x11 <@ bn_copy (x1);
+    i <- (W64.of_int (32 * 64));
+    b <- (W64.of_int 0);
     
-    while (((W64.of_int 0) \ult ctr)) {
-      lbit <- ctr;
-      ctr <- (ctr - (W64.of_int 1));
-      t1 <@ ith_bit (n, lbit);
-      t2 <@ ith_bit (n, ctr);
-      p <- d;
-      d <- (d `|` t2);
-      par <- (t1 `^` t2);
-      (x1, x2) <@ swapr (x1, x2, par);
-      x1 <@ mulm (r, m, x1, x2);
-      x2 <@ mulm (r, m, x2, x2);
-      q <- d;
-      cbit <- (q `^` p);
-      (x1, x3) <@ swapr (x1, x3, cbit);
-      (x2, x4) <@ swapr (x2, x4, cbit);
+    while (((W64.of_int 0) \ult i)) {
+      i <- (i - (W64.of_int 1));
+      b <@ ith_bit (n, i);
+      (x1, x2) <@ swapr (x1, x2, b);
+      x11 <@ bn_copy (x1);
+      x1 <@ mulm (r, m, x1, x1);
+      x2 <@ mulm (r, m, x11, x2);
+      (x1, x2) <@ swapr (x1, x2, b);
     }
-    p <@ ith_bit (n, (W64.of_int 0));
-    (x1, x2) <@ swapr (x2, x1, p);
     return (x1);
   }
   

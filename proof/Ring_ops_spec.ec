@@ -38,15 +38,14 @@ lemma D_sup x : x \in D <=> 0 <= x < M. smt(@Distr). qed.
 lemma D_mu x : x \in D => mu1 D x = Real.inv M%r. smt(@Distr). qed.
 
 
-
-
-(* Embedding into ring theory *)
+(* Embedding Zp theory *)
 require ZModP.
 clone import ZModP.ZModField as Zp 
         rename "zmod" as "zp".
 
 
-op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n.
+op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n. 
+op (^) (x : zp)(n : int) : zp = inzp (asint x ^ n).
 
 lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
 smt(@Int). qed.
@@ -60,7 +59,7 @@ axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
 (* cyclic group generator *)
 op g : zp.   
 
-axiom P_pos : 2 <= p.
+lemma P_pos : 2 <= p. smt(@Zp). qed.
 axiom M_P : p < M.
 
 lemma pmoval:  p - 1 < W64xN.modulusR. by smt(@Int M_P). qed.
@@ -68,11 +67,8 @@ lemma pmoval:  p - 1 < W64xN.modulusR. by smt(@Int M_P). qed.
 axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
 axiom p_val_prop2 : 2*p < W64xN.modulusR. 
 
-
-
 axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
-axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p.
-
+axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p. (* provable *)
 
         
 (** "Implements" relation *)
@@ -80,7 +76,6 @@ abbrev ImplWord x y = W64.to_uint x = y.
 abbrev ImplZZ x y = W64xN.valR x = y.
 abbrev ImplZZ2 x y = W64xN.valR2 x = y.
 abbrev ImplFp x y = W64xN.valR x = asint y.
-
 
 op zeroR : R = W64xN.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
 
@@ -99,7 +94,6 @@ by rewrite /zeroR W64xN.R.bn2seq /= W64xN.R.A.of_listK 1:/# /bn_seq.
 qed.
 
 
-op (^) (x : zp)(n : int) : zp = inzp (asint x ^ n).
 
 
 (******************************************************************)
@@ -154,7 +148,9 @@ module ASpecFp = {
     return r;
   }
 
-
+  proc swapr(a : zp, b : zp, c : bool) = {
+    return c ? (b,a) : (a, b);
+  }
 
   proc cminusP(a: int): int = {
     var r;
@@ -212,7 +208,19 @@ require import Distr DInterval.
 (******************************************************************)
 (*                  CONCRETE SPECIFICATIONS                       *)
 (******************************************************************)
+
+require import BitEncoding.
+
 module CSpecFp = {
+ proc swapr(a : W64xN.R.t, b : W64xN.R.t, c : bool) = {
+   return c ? (b,a) : (a, b);
+ }
+
+ proc ith_bit (r: W64xN.R.t, ctr:int) : W64.t = {
+    return (nth false (BS2Int.int2bs (64 * nlimbs) (W64xN.valR r)) ctr) ? W64.one : W64.zero;
+ }
+
+
  proc addm(a b p: int): int = {
   var c, x, r;
   (c, x) <@ ASpecFp.addn(a, b);

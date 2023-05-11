@@ -6,16 +6,23 @@ from Jasmin require import JModel. (* only properties of bs2int function *)
 require MontgomeryLadder_Abstract.
 require import Ring_ops_spec.
 require import Ring_ops_proof.
+require import W64_SchnorrExtract.
 
 import W64xN.
 import Zp.
 
+section.
+
 clone import MontgomeryLadder_Abstract as Exp with type R  <- zp,
                                                    op idR <- Zp.one,
-                                                   op ( *** ) <-  Zp.( * ).
+                                                   op ( *** ) <-  Zp.( * )
+proof*.
+realize op_assoc. smt(@Zp). qed.
+realize op_id. smt(@Zp). qed.
+realize op_id'. smt(@Zp). qed.
 
 
-module ML_Spec = {
+local module ML_Spec = {
   proc mladder_1 (x :zp , n : bits ) : zp = {
     var x1 , x2 , i , b, cf;
     (x1,x2) <- (Zp.one , x);
@@ -62,20 +69,8 @@ module ML_Spec = {
 
 
 
-lemma swap_lemma_ph xx yy ss :
-      phoare [ M.swapr : arg = (xx,yy,as_w64 ss) ==> res = if ss then (yy, xx) else (xx, yy)  ] = 1%r.
-bypr.
-progress.
-have ->: 1%r = Pr[ CSpecFp.swapr(x{m},y{m},as_bool swap_0{m}) @&m : res =  if ss then (yy, xx) else (xx, yy)  ].
-byphoare (_: arg = (x{m},y{m},as_bool swap_0{m}) ==> _). proc.
-skip.  progress. smt. smt(). auto.
-byequiv. conseq swap_lemma_cspec.  smt(). smt(). auto. auto.
-qed.
-
-
-require import W64_SchnorrExtract.
-lemma ml_equiv_M_3 :
-  equiv [M(Syscall).mladder ~ ML_Spec.mladder_3 : W64xN.valR x{1} = asint x{2} /\ valR n{1} =  valR n{2} /\ valR m{1} = Zp.p /\ (W64x2N.valR r{1}) = ri_uncompute Zp.p ==> valR res{1} = asint res{2}].
+local lemma ml_equiv_M_3 :
+  equiv [M(Syscall).expm ~ ML_Spec.mladder_3 : W64xN.valR x{1} = asint x{2} /\ valR n{1} =  valR n{2} /\ valR m{1} = Zp.p /\ (W64x2N.valR r{1}) = ri_uncompute Zp.p ==> valR res{1} = asint res{2}].
 proof. proc.
 while (W64.to_uint i{1} = i{2} /\ valR x{1} = asint x{2} /\ valR x1{1} = asint x1{2} /\ valR x2{1} = asint x2{2} /\ n{1} =  n{2} /\ as_bool b{1} = as_bool b{2} /\ valR m{1} = Zp.p /\ i{2} <= 2048 /\ (W64x2N.valR r{1}) = ri_uncompute Zp.p).
 ecall{1} (swap_lemma_ph x1{1} x2{1} (as_bool b{1})). simplify.
@@ -118,7 +113,7 @@ smt.
 qed.
 
 
-lemma ml_equiv_1_2 :
+local lemma ml_equiv_1_2 :
   equiv [ML_Spec.mladder_1 ~ ML_Spec.mladder_2 : x{1} = x{2} /\ bs2int n{1} = n{2} /\ size n{1} = nlimbs * 64  ==> ={res}].
 proc.
 while (={x,x1,x2,i,b} /\ bs2int n{1} =  n{2} /\ size n{1} = nlimbs * 64).
@@ -136,7 +131,7 @@ qed.
 
 
 
-lemma ml_equiv_2_3 :
+local lemma ml_equiv_2_3 :
   equiv [ML_Spec.mladder_2 ~ ML_Spec.mladder_3 : x{1} = x{2} /\ n{1} =  valR n{2} ==> ={res}].
 proc.
 while (={x,x1,x2,i} /\ n{1} = valR n{2} /\ b{1} = as_bool b{2}).
@@ -151,7 +146,7 @@ rewrite /as_bool. smt(@W64).
 qed.
 
 
-lemma ml_equiv_abs_1 : 
+local lemma ml_equiv_abs_1 : 
   equiv [ML_Abstract.mladder ~ ML_Spec.mladder_1 : ={arg} /\ size n{1} < W64xN.modulusR ==> ={res}].
 proc. inline*.  wp.
 while (={x,n,x1,x2,i,b} /\ i{1} < modulusR). 
@@ -189,8 +184,8 @@ smt.
 qed.
 
 
-lemma ml_equiv_abs_conc : 
-  equiv [ML_Abstract.iterop_spec ~ M(Syscall).mladder : 
+local lemma ml_equiv_abs_conc : 
+  equiv [ML_Abstract.iterop_spec ~ M(Syscall).expm : 
   ImplZZ m{2} p 
   /\ asint x{1} = valR x{2} 
   /\ bs2int n{1} = valR n{2} 
@@ -250,7 +245,7 @@ qed.
 
 
 
-lemma exp_same_comp (x : zp) : forall n, 0 <= n => (x ^ n)%Ring_ops_spec = (x ^ n)%Exp.
+local lemma exp_same_comp (x : zp) : forall n, 0 <= n => (x ^ n)%Ring_ops_spec = (x ^ n)%Exp.
 apply intind. progress.
 smt.
 progress.
@@ -264,8 +259,8 @@ auto.
 qed.
 
 
-lemma mladder_correct :
-      equiv[ ASpecFp.expm ~ M(Syscall).mladder :
+lemma expm_correct :
+      equiv[ ASpecFp.expm ~ M(Syscall).expm :
              ImplZZ m{2} p /\
              asint a{1} = valR x{2} /\
              b{1} = valR n{2}  /\
@@ -295,3 +290,28 @@ conseq ml_equiv_abs_conc.
 progress.
 smt.
 qed.
+
+
+lemma bn_expm_correct rr mm xx nn:
+  phoare[ M(Syscall).expm : r = rr /\ m = mm /\ x = xx /\ n = nn /\
+                   ImplZZ m p /\
+                   valR x < p /\
+                   r = R ==> (valR res) = ((valR xx) ^ (valR nn)) %% p ] = 1%r.
+bypr. progress.
+have <- : Pr[ASpecFp.expm(inzp (valR x{m}), valR n{m}) @ &m : asint res =  ((valR x{m}) ^ (valR n{m})) %% p ] = 1%r.
+  byphoare (_: arg = (inzp (valR x{m}), valR n{m}) ==> _).
+proc. inline*. wp. skip. progress.
+rewrite inzpK.
+have -> :  asint (inzp (valR x{m}))  =  (valR x{m} ).
+rewrite inzpK.
+smt (@W64xN). auto.
+auto. auto.
+byequiv.
+symmetry. conseq expm_correct.
+progress.
+rewrite inzpK.
+smt (@W64xN).
+smt(). auto. auto.
+qed.
+
+end section.

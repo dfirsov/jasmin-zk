@@ -191,44 +191,27 @@ inline fn mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b)
 }
 
 
-
 inline fn expm(stack u64[dnlimbs] r, stack u64[nlimbs] m x n) 
  -> (stack u64[nlimbs])
 {
-  reg u64 ctr bit d p par t1 t2 cbit lbit q mask;
-  inline int i;
-  stack u64[nlimbs] x1 x2 x3 x4;
+  reg u64 i b;
+  stack u64[nlimbs] x1 x2 x11;
 
-  ctr = nlimbs * 64 - 1;
   x1 = bn_set1(x1);
-  x2 = bn_set1(x2);
-  d  = ith_bit(n,ctr);
-  x3 = bn_copy(x);
-  x4 = mulm(r,m,x,x3);
-   p = d;
-  (x1,x3) = swapr(x1,x3,d);
-  (x2,x4) = swapr(x2,x4,d);
-
-  while(ctr > 0){
-    lbit = ctr;
-    ctr = ctr - 1;
-    t1 =  ith_bit(n,lbit);
-    t2 =  ith_bit(n,ctr);
-    p = d; 
-    d = d | t2;
-    par = t1 ^ t2;
-    (x1,x2) = swapr(x1,x2,par);
-    x1 = mulm(r,m,x1,x2);
-    x2 = mulm(r,m,x2,x2);
-    q = d;
-    cbit = q ^ p;
-    (x1,x3) = swapr(x1,x3,cbit);
-    (x2,x4) = swapr(x2,x4,cbit);
+  x2 = bn_copy(x);
+  x11 = bn_copy(x1);
+  i = nlimbs * 64;
+  b = 0;
+  while(i > 0){
+    i = i - 1;
+    b = ith_bit(n,i);
+    (x1,x2) = swapr(x1,x2,b);
+    x11 = bn_copy(x1);
+    x1 = mulm(r,m,x1,x1);
+    x2 = mulm(r,m,x11,x2);
+    (x1,x2) = swapr(x1,x2,b);
   }
-  
-   p = ith_bit(n,0);
-   (x1,x2) = swapr(x2,x1,p);
-  
+
   return x1;
 }
 

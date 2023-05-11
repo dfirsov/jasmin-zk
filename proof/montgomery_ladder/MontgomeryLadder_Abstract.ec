@@ -11,10 +11,9 @@ type bits = bool list.
 op idR : R.
 op ( *** ) (a b : R) : R.
 
-
-axiom op_commute (a b : R) :  a *** b = b *** a.
 axiom op_assoc (a b c : R) :  (a *** b) *** c = a *** (b *** c).
 axiom op_id (x : R) :  x *** idR = x.
+axiom op_id' (x : R) : idR *** x = x.
 
 op ith_bit (n : bits) (x : int) : bool = nth false n x.
 op has_true (bs : bits) : bool = has (fun x => x = true) bs.
@@ -33,7 +32,7 @@ progress.
 smt(@IterOp).
   have ->: iterop 1 ( *** ) b idR = b.
 smt(@IterOp).
-smt (op_id op_commute). auto.
+smt (op_id op_id'). auto.
 progress. progress.
 rewrite /iterop. 
 simplify. rewrite iteriS. auto. simplify. 
@@ -68,8 +67,15 @@ rewrite - iteropi. auto. auto.
 smt().
 qed.
 
+
+lemma exp_prop3'' x : forall i, 0 <= i => x ^ (1 + i) = x ^ i *** x.
+apply intind. smt.
+progress. smt.
+qed.
+
+
 lemma exp_prop3 (x : R) : forall (a : int), 0 <= a => forall b,  0 <= b => x ^ (a + b) = x ^ a *** x ^ b.
-apply intind. progress. rewrite exp_prop1.   smt (op_id op_commute).
+apply intind. progress. rewrite exp_prop1.   smt (op_id' op_id).
 progress.
 have ->: (i + 1) = (1 + i). smt().
 have ->: x ^ (1 + i) = x *** x ^ i.
@@ -83,16 +89,16 @@ rewrite - H0. auto. auto.
 smt (exp_prop3').
 qed.
 
-lemma exp_prop4' a b : forall i, 0 <= i => (a *** b) ^ i = a ^ i *** b ^ i.
-apply intind. progress. smt.
-progress.
-have -> : (i + 1) = (1 + i). smt().
-rewrite exp_prop3'. auto.
-rewrite exp_prop3'. auto. 
-rewrite exp_prop3'. auto. 
-rewrite H0. auto. auto.
-smt.
-qed.
+(* lemma exp_prop4' a b : forall i, 0 <= i => (a *** b) ^ i = a ^ i *** b ^ i. *)
+(* apply intind. progress. smt. *)
+(* progress. *)
+(* have -> : (i + 1) = (1 + i). smt(). *)
+(* rewrite exp_prop3'. auto. *)
+(* rewrite exp_prop3'. auto.  *)
+(* rewrite exp_prop3'. auto.  *)
+(* rewrite H0. auto. auto. *)
+(* smt. *)
+(* qed. *)
 
 lemma oner_exp : forall b, 0 <= b => idR = idR ^ b.
 apply intind. progress. smt(exp_prop1).
@@ -102,17 +108,21 @@ rewrite exp_prop3'. auto.
 smt.
 qed.
 
-lemma exp_prop4 (x : R)  : forall (a : int), 0 <= a => forall b, 
-  0 <= b =>  x ^ (a * b) = (x ^ a) ^ b.
+lemma exp_prop4 (x : R)  : forall (b : int), 0 <= b => forall a, 
+  0 <= a =>  x ^ (a * b) = (x ^ a) ^ b.
 apply intind.
-progress. rewrite exp_prop1. smt(oner_exp).
-progress. 
-have -> : ((i + 1) * b) = (i * b + b). smt().
-rewrite  exp_prop3. smt(). auto. auto.
-rewrite H0. auto. auto.
-have -> : (i + 1) = 1 + i. smt().
-rewrite  exp_prop3'. auto. auto.
-rewrite exp_prop4'. auto. auto.  smt(op_commute op_id).
+progress. rewrite exp_prop1. smt.
+move => i ip ih1.
+apply intind.
+progress. smt.
+progress.
+have -> : x ^ a ^ (i0 + 1)
+ = (x ^ a) ^ i0 *** (x ^ a). smt.
+have -> : x ^ (a * (i0 + 1))
+ = x ^ (a * i0 + a). smt.
+rewrite exp_prop3. auto. smt(). smt().
+smt.
+smt().
 qed.
 
 lemma hast3 xs :  0 < size xs => drop (size xs - 1) xs = [ith_bit xs (size xs - 1) ].
@@ -213,15 +223,15 @@ rewrite bs2int_cons. rewrite/b2i. simplify. smt.
 case (has_true (drop i{hr} n{hr})). progress. 
 case ( ith_bit n{hr} (i{hr} - 1)).
 progress. 
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 op_id op_commute op_assoc).
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 op_id op_commute op_assoc).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 op_id op_assoc).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 op_id op_assoc).
 progress.
-smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 op_id op_commute op_assoc).
+smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 op_id op_assoc).
 smt(). 
 skip.  progress. 
 have ->  : (drop (size n{hr}) n{hr}) = []. smt(@List).
 smt.
- smt(op_id op_commute).
+ smt(op_id op_id').
 smt().
 have i0_prop : i0 <= 0. smt().
 smt (@List).
