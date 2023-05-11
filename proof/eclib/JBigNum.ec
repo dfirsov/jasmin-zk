@@ -1175,7 +1175,6 @@ clone BN as R2 with
   proof gt0_wsize by apply gt0_wsize*)
   proof gt0_nlimbs by (apply mulr_gt0 => //; apply gt0_nlimbs).
 
-
 import R2 R (*WordExt.*).
 
 (*
