@@ -231,7 +231,7 @@ rewrite Pr[mu_split (M1.leakages = samp_t res.`1) ].
 rewrite Pr[mu_eq]. progress. auto.
 qed.
 
-require import Aux.
+require import AuxLemmas.
 
 
 
