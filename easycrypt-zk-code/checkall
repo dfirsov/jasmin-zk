@@ -1,0 +1,70 @@
+#!/bin/bash
+
+timeout=20
+
+ECO=
+ECO=-no-eco
+
+check() {
+  echo checking $1;
+  if easycrypt $ECO -p "CVC4"  -p "Z3" -p "Alt-Ergo"  -I .  -I ./rewinding  -I ./misc -I ./misc/while_props -I ./generic -timeout $timeout $1;
+  then echo passed: $1;
+       echo "";
+  else echo failed: $1;
+       echo "";
+       echo "skipping remaining scripts";
+  exit 1;
+  fi;
+}
+
+# list of files to check
+
+## misc
+check misc/AuxResults.ec
+check misc/Djoinmap.ec
+check misc/ExtractabilityEquations.ec
+check misc/HybridArgumentWithParameter.ec
+check misc/MeansWithParameter.ec
+check misc/MemoryProps.ec
+check misc/Permutation.ec
+check misc/PrIntervalToSum.ec
+check misc/Sim1Equations.ec
+check misc/WhileNoSuccess.ec
+check misc/WhileSplit.ec
+
+## Generic sigma protocol defs/results
+check generic/GenericSigmaProtocol.eca
+check generic/GenericCompleteness.eca
+check generic/GenericSoundness.eca
+check generic/GenericZeroKnowledge.eca
+check generic/GenericExtractability.eca
+check generic/GenericSpecialSoundness.eca
+
+
+## instance of Fiat-Shamir protocol
+check case_studies/FiatShamir/FS_Basics.ec
+check case_studies/FiatShamir/FS_Completeness.ec
+check case_studies/FiatShamir/FS_SpecialSoundness.ec
+check case_studies/FiatShamir/FS_Extractability.ec
+check case_studies/FiatShamir/FS_Soundness.ec
+check case_studies/FiatShamir/FS_Sim1Property.ec
+check case_studies/FiatShamir/FS_ZeroKnowledge.ec
+
+
+## instance of Schnorr protocol
+check case_studies/Schnorr/Schnorr_Basics.ec
+check case_studies/Schnorr/Schnorr_Completeness.ec
+check case_studies/Schnorr/Schnorr_SpecialSoundness.ec
+check case_studies/Schnorr/Schnorr_Extractability.ec
+
+## instance of Blum protocol
+check case_studies/HamiltonBlum/Blum_Basics.ec
+check case_studies/HamiltonBlum/Blum_Completeness.ec
+check case_studies/HamiltonBlum/Blum_SpecialSoundness.ec
+check case_studies/HamiltonBlum/Blum_Extractability.ec
+check case_studies/HamiltonBlum/Blum_Soundness.ec
+check case_studies/HamiltonBlum/Blum_Sim1Property.ec
+check case_studies/HamiltonBlum/Blum_ZeroKnowledge.ec
+
+
+echo "DONE";

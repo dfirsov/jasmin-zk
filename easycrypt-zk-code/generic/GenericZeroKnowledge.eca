@@ -1,0 +1,949 @@
+pragma Goals:printall.
+require import AllCore List Distr.
+
+require GenericSoundness.
+clone include GenericSoundness. (* inherit defs. *)
+
+
+require Sim1Equations HybridArgumentWithParameter.
+
+(* we can instantiate sbits with list of Booleans  *)
+type sbits.
+
+op pair_sbits : sbits * sbits -> sbits.
+op unpair: sbits -> sbits * sbits.
+axiom ips: injective pair_sbits. 
+axiom unpair_pair x : unpair (pair_sbits x) = x.
+
+type summary = sbits.
+
+op zk_relation : relation.
+
+
+module type RewMaliciousVerifier = {
+  proc challenge(_:statement * commitment) : challenge
+  proc summitup(statement: statement, response: response): summary
+  proc getState() : sbits
+  proc setState(b : sbits) : unit 
+}.
+
+module type MaliciousVerifier = {
+  proc challenge(_:statement * commitment) : challenge
+  proc summitup(statement: statement, response: response) : summary
+}.
+
+module type ZKDistinguisher = {
+  proc guess(statement: statement, witness: witness, summary: summary) : bool
+}.
+
+module type Simulator(V: RewMaliciousVerifier) = {
+  proc simulate(statement: statement) : summary
+}.
+
+module type Simulator1(V: RewMaliciousVerifier) = {
+  proc run(statement: statement) : bool * summary
+}.
+
+module ZKReal(P: HonestProver, V: MaliciousVerifier, D: ZKDistinguisher) = {
+  proc run(statement: statement, witness: witness) = {
+    var commit, challenge, response, summary, guess;
+    commit <@ P.commitment(statement, witness);
+    challenge <@ V.challenge(statement, commit);
+    response <@ P.response(challenge);
+    summary <@ V.summitup(statement, response);
+    guess <@ D.guess(statement, witness, summary);
+    return guess;
+  }
+}.
+
+module ZKIdeal(S: Simulator, V: RewMaliciousVerifier, D: ZKDistinguisher) = {
+  proc run(statement: statement, witness: witness) = {
+    var summary, guess;
+    summary <@ S(V).simulate(statement);
+    guess <@ D.guess(statement, witness, summary);
+    return guess;
+  }
+}.
+
+
+abstract theory ZeroKnowledge.
+
+(* Number of repetitions in sequential composition.
+
+Ideally, this would be a parameter of the theory TODO below and not of
+ZeroKnowledge.  However, we need to specify this already when cloning
+HybridArgumentWithParameter below and therefore it needs to be a
+parameter of ZeroKnowledge.
+*)
+op n : int.
+axiom n_pos : 1 <= n.
+
+(* We actually only need this in TODO below. However, if we clone this
+before defining the module TODO below, EasyCrypt will not assume that
+TODO and TODO have disjoint variables which breaks the proofs
+later. *)
+clone import HybridArgumentWithParameter as Hyb with type input <- unit,
+                                        type output <- summary,
+                                        type outputA <- bool,
+                                        type argt <- statement * witness,
+                                        op q <- n
+proof *.
+
+
+  theory SequentialComposition.
+
+
+  module ZKRealAmp(P: HonestProver, V: MaliciousVerifier, D: ZKDistinguisher) = {
+    proc run(statement: statement, witness: witness) = {
+      var commit, challenge, response, summary, guess,i;
+       i <- 0;
+       summary <- Pervasive.witness;
+       while(i < n){
+         commit <@ P.commitment(statement, witness);
+         challenge <@ V.challenge(statement, commit);
+         response <@ P.response(challenge);
+         summary <@ V.summitup(statement, response);
+         i <- i + 1;
+       }
+      guess <@ D.guess(statement, witness, summary);
+      return guess;
+    }
+  }.
+
+
+  module SimAmp(S: Simulator, V : RewMaliciousVerifier) = { 
+    proc simulate(statement:statement) = { 
+     var summary, i; 
+     i <- 0;
+     summary <- witness;
+     while(i < n) { 
+       summary <@ S(V).simulate(statement); 
+       i <- i + 1;
+     } 
+     return summary; 
+    } 
+  }.
+
+
+  require MemoryProps.
+
+  clone import MemoryProps with type at2 <- statement * witness,
+                                type at1 <- statement * witness
+  proof *.
+
+
+  section.
+
+  declare module P <: HonestProver{-HybOrcl,-Count}.
+  declare module Sim <: Simulator{-HybOrcl,-Count,  -P }.
+  declare module V <: RewMaliciousVerifier {-HybOrcl,-Count,  -P, -Sim }.
+  declare module D <: ZKDistinguisher{-P, -HybOrcl,-Count}. 
+
+
+  local module Ad(D : ZKDistinguisher, Ob : Orclb, O : Orcl) = {
+    proc main(s:statement,w:witness) : bool = {
+      var summary, guess,i;
+      i <- 0;
+      summary <- witness;
+      while (i < n){
+         summary <@ O.orcl((s,w));
+         i <- i + 1;
+      }
+      guess <@ D.guess(s, w, summary);
+      return guess;
+    }
+  }.
+
+
+  local module Obb(P : HonestProver, V : RewMaliciousVerifier, Sim : Simulator) = {
+    proc leaks(x:inleaks) : outleaks = {
+      return witness;
+    }
+    proc orclR(s:statement, w: witness) : summary = {
+      var commit, challenge, response, summary;
+      commit <@ P.commitment(s, w);
+      challenge <@ V.challenge(s, commit);
+      response <@ P.response(challenge);
+      summary <@ V.summitup(s, response);
+      return summary;
+    }
+    proc orclL(s:statement, w: witness) : summary = {
+      var summary;
+      summary <@ Sim(V).simulate(s);
+      return summary;
+    }
+  }.
+
+
+  declare axiom sim_run_ll : forall (V0 <: RewMaliciousVerifier),  
+       islossless V0.challenge => islossless V0.summitup => islossless Sim(V0).simulate.
+  declare axiom V_summitup_ll  : islossless V.summitup.
+  declare axiom V_challenge_ll : islossless V.challenge.
+  declare axiom P_response_ll : islossless P.response.
+  declare axiom P_commitment_ll : islossless P.commitment.
+  declare axiom D_guess_ll     : islossless D.guess.
+  declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg} ==> ={res} ].
+
+
+  local module Ob = Obb(P,V,Sim).
+  local module A = Ad(D).
+
+
+  local module G1 = {
+    proc main(s:statement, w: witness) = {
+     var summary, guess;
+     HybOrcl.l0 <$ [0..max 0 (n-1)];
+     HybOrcl.l <- 0;
+     summary <- witness;
+     while (HybOrcl.l < n && HybOrcl.l < HybOrcl.l0) {
+       summary <@
+         HybOrcl(Ob, R(Ob)).orcl(s,w);
+     }
+     while (HybOrcl.l < n && HybOrcl.l0 <= HybOrcl.l) {
+       summary <@
+         HybOrcl(Ob, R(Ob)).orcl(s,w);
+     }
+     guess <@ D.guess(s, w, summary);
+     return guess;
+   }
+  }.
+
+  local module G2 = {
+    proc main(s:statement, w:witness) = {
+     var summary, guess;
+     HybOrcl.l0 <$ [0..max 0 (n -1 )];
+     HybOrcl.l <- 0;
+     summary <- witness;
+     while (HybOrcl.l < n && HybOrcl.l < HybOrcl.l0) {
+       summary <@
+         HybOrcl(Ob, L(Ob)).orcl(s,w);
+     }
+     while (HybOrcl.l < n && HybOrcl.l0 <= HybOrcl.l) {
+       summary <@
+         HybOrcl(Ob, L(Ob)).orcl(s,w);
+     }
+     guess <@ D.guess(s, w, summary);
+     return guess;
+   }
+  }.
+
+  local module G3 = {
+    proc main(s:statement, w:witness) = {
+     var summary, guess;
+     HybOrcl.l0 <$ [0..max 0 (n -1 )];
+     HybOrcl.l <- 0;
+     summary <- witness;
+     while (HybOrcl.l < n && HybOrcl.l < HybOrcl.l0) {
+       summary <@
+         HybOrcl(Ob, L(Ob)).orcl(s,w);
+     }
+     if(HybOrcl.l < n && HybOrcl.l0 <= HybOrcl.l){
+       summary <@
+         HybOrcl(Ob, L(Ob)).orcl(s,w);
+     }
+     while (HybOrcl.l < n && HybOrcl.l0 <= HybOrcl.l) {
+       summary <@
+         HybOrcl(Ob, L(Ob)).orcl(s,w);
+     }
+     guess <@ D.guess(s, w, summary);
+     return guess;
+   }
+  }.
+
+  local module G4 = {
+    proc main(s:statement, w:witness) = {
+     var summary, guess;
+     HybOrcl.l0 <$ [0..max 0 (n -1 )];
+     HybOrcl.l <- 0;
+     summary <- witness;
+     while (HybOrcl.l < n && HybOrcl.l < HybOrcl.l0) {
+       summary <@
+         HybOrcl(Ob, R(Ob)).orcl(s,w);
+     }
+     if(HybOrcl.l < n && HybOrcl.l0 <= HybOrcl.l){
+       summary <@
+         HybOrcl(Ob, R(Ob)).orcl(s,w);
+     }
+     while (HybOrcl.l < n && HybOrcl.l0 <= HybOrcl.l) {
+       summary <@
+         HybOrcl(Ob, R(Ob)).orcl(s,w);
+     }
+     guess <@ D.guess(s, w, summary);
+     return guess;
+   }
+  }.
+
+  local module G5 = {
+    proc main(s:statement, w:witness) = {
+      var commit, challenge, response, summary, guess;
+     HybOrcl.l0 <$ [0..max 0 (n -1 )];
+     HybOrcl.l <- 0;
+     summary <- witness;
+     while (HybOrcl.l < n && HybOrcl.l < HybOrcl.l0) {
+       commit <@ P.commitment(s, w);
+       challenge <@ V.challenge(s, commit);
+       response <@ P.response(challenge);
+       summary <@ V.summitup(s, response);
+       HybOrcl.l <- HybOrcl.l + 1;
+     }
+     summary <@ Sim(V).simulate(s);
+     HybOrcl.l <- HybOrcl.l + 1;
+     while (HybOrcl.l < n) {
+      summary <@ Sim(V).simulate(s);
+      HybOrcl.l <- HybOrcl.l + 1;
+     }
+     guess <@ D.guess(s, w, summary);
+     return guess;
+   }
+  }.
+
+  local module G6 = {
+    proc main(s:statement, w:witness) = {
+      var commit, challenge, response, summary, guess;
+     HybOrcl.l0 <$ [0..max 0 (n -1 )];
+     HybOrcl.l <- 0;
+     summary <- witness;
+     while (HybOrcl.l < n && HybOrcl.l < HybOrcl.l0) {
+       commit <@ P.commitment(s, w);
+       challenge <@ V.challenge(s, commit);
+       response <@ P.response(challenge);
+       summary <@ V.summitup(s, response);
+       HybOrcl.l <- HybOrcl.l + 1;
+     }
+       commit <@ P.commitment(s, w);
+       challenge <@ V.challenge(s, commit);
+       response <@ P.response(challenge);
+       summary <@ V.summitup(s, response);
+     HybOrcl.l <- HybOrcl.l + 1;
+     while (HybOrcl.l < n) {
+      summary <@ Sim(V).simulate(s);
+      HybOrcl.l <- HybOrcl.l + 1;
+     }
+     guess <@ D.guess(s, w, summary);
+     return guess;
+   }
+  }.
+
+  local lemma g4_g6 &m ss ww:
+    Pr[G4.main(ss,ww) @ &m : res] = Pr[G6.main(ss,ww) @ &m : res].
+  byequiv(_: ={glob D, glob V, glob P, glob Sim, glob HybOrcl, arg} ==> _).
+  proc.
+  seq 6 10 : (={summary, glob V,s,w}).
+  seq 4 4 : (={s,w,HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\ HybOrcl.l0{2} = HybOrcl.l{2} /\ HybOrcl.l0{2} < n 
+   /\ HybOrcl.l{2} < n
+     ).
+  while (={s,w,glob V, glob P, HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\ HybOrcl.l{2} <= HybOrcl.l0{2}  /\ HybOrcl.l0{2} < n  ). inline*.
+  sp.
+  rcondf {1} 1 . progress. skip. smt().
+  rcondf {1} 1 . progress. skip. smt().    
+  sp. wp. call (_:true).
+  call (_:true). call (_:true).
+  call (_:true). skip. progress. smt(). 
+  wp. rnd. skip. progress.  smt(@DInterval). smt(@DInterval n_pos). smt(). smt().
+  rcondt {1} 1. progress. 
+  seq 1 5 : (={s,w,HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\
+    HybOrcl.l0{2} < HybOrcl.l{2} /\ HybOrcl.l0{2} < n  /\ HybOrcl.l{2} <= n ).
+  inline HybOrcl(Ob, R(Ob)).orcl. sp. 
+  rcondf {1} 1. progress. 
+  rcondt {1} 1. progress. 
+  inline*.
+  sp. wp.  
+  call (_:true). call (_:true).
+  call (_:true). call (_:true). skip. progress. smt().  smt().
+  while (={s,w,HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\
+    HybOrcl.l0{2} < HybOrcl.l{2} /\ HybOrcl.l0{2} < n).
+  inline*. sp.
+  rcondt {1} 1. progress. 
+  sp.  wp.  call (_: ={glob V}). sim. sim. sim. sim. skip. progress. smt(). 
+  smt(). skip. progress. smt().
+  call D_guess_prop. skip.  
+  auto. auto. auto.
+  qed.
+
+  local lemma g3_g5 ss ww &m :
+    Pr[G3.main(ss,ww) @ &m : res] =
+      Pr[G5.main(ss,ww) @ &m : res].
+  byequiv(_: ={s,w,glob D, glob V, glob P, glob Sim, glob HybOrcl} ==> _).
+  proc.
+  seq 6 7 : (={s,w,summary, glob V}).
+  seq 4 4 : (={s,w,HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\ HybOrcl.l0{2} = HybOrcl.l{2} /\ HybOrcl.l0{2} < n 
+   /\ HybOrcl.l{2} <= n
+     ).
+  while (={s,w,glob V, glob P, HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\ HybOrcl.l{2} <= HybOrcl.l0{2}  /\ HybOrcl.l0{2} < n  ). inline*.
+  sp.
+  rcondf {1} 1 . progress. skip. smt().
+  rcondf {1} 1 . progress. skip. smt().    
+  sp. wp. call (_:true).
+  call (_:true). call (_:true).
+  call (_:true). skip. progress. smt(). 
+  wp. rnd. skip. progress.  smt(@DInterval). smt(@DInterval n_pos). smt(). smt().
+  rcondt {1} 1. progress.  
+  seq 1 2 : (={HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary,s,w} /\
+    HybOrcl.l0{2} < HybOrcl.l{2} /\ HybOrcl.l0{2} < n  /\ HybOrcl.l{2} <= n).
+  inline HybOrcl(Ob, L(Ob)).orcl. sp. 
+  rcondf {1} 1. progress. 
+  rcondt {1} 1. progress. 
+  inline*.
+  sp. wp.  
+  call (_: ={glob V}). sim. sim. sim. sim. skip. progress. smt(). smt().
+  while (={HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary, s, w} /\
+    HybOrcl.l0{2} < HybOrcl.l{2} /\ HybOrcl.l0{2} < n).
+  inline*. sp.
+  rcondt {1} 1. progress. 
+  sp.  wp.  call (_: ={glob V}). sim. sim. sim. sim. skip. progress. smt(). 
+  smt().   skip. progress. smt().
+  call D_guess_prop. auto.
+  auto. auto.
+  qed.
+
+  local lemma g1_g4 ss ww &m : 
+    Pr[G1.main(ss,ww) @ &m : res] = 
+      Pr[G4.main(ss,ww) @ &m : res].
+  byequiv(_: ={s,w,glob D, glob V, glob P, glob Sim, glob HybOrcl} ==> _).
+  proc. 
+  unroll {1} 5.
+  seq 6 6 : (={s,w,summary, glob V}).
+  sim. call D_guess_prop. skip. auto.
+  auto. auto.
+  qed.
+  local lemma ww ss ww' &m : 
+    Pr[G2.main(ss,ww') @ &m : res] = 
+      Pr[G3.main(ss,ww') @ &m : res].
+  byequiv(_: ={s,w,glob D, glob V, glob P, glob Sim, glob HybOrcl} ==> _).
+  proc. 
+  unroll {1} 5.
+  seq 6 6 : (={s,w,summary, glob V}).
+  sim.
+  call D_guess_prop. skip. auto.
+  auto. auto.
+  qed.
+
+  local lemma hyb_g2 ss ww &m : 
+    Pr[HybGame(A,Ob,L(Ob)).main(ss,ww) @ &m : res] = 
+    Pr[G2.main(ss,ww) @ &m : res].
+  byequiv(_: ma{1} = (s,w){2} /\ ={glob D, glob V, glob P, glob Sim} ==> _).
+  proc.
+  inline {1} A(Ob, HybOrcl(Ob, L(Ob))).main.
+  splitwhile {1} 6 : (i < HybOrcl.l0).
+  seq 6 4 : (={s,w,glob V, glob P, HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\
+    i{1} = HybOrcl.l{2} /\ HybOrcl.l0{2} <= HybOrcl.l{2}).
+  simplify. wp.
+  while (={s,w,glob V, glob P, HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\
+    i{1} = HybOrcl.l{2}). inline*.
+  sp.
+  rcondf {1} 1 . progress. skip. progress. smt().
+  rcondf {2} 1 . progress. skip. progress. smt().
+  rcondf {1} 1 . progress. skip. progress. smt().
+  rcondf {2} 1 . progress. skip. progress. smt().
+  sp. wp.  call (_:true). call (_:true). call (_:true). call (_:true).
+  skip. progress.
+  wp. rnd. skip. progress. smt(@DInterval n_pos).
+  wp. 
+  seq 1 1 : (={s,w,summary, glob V}).
+  while (={s,w,glob V, glob P, HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\
+    i{1} = HybOrcl.l{2} /\ HybOrcl.l0{2} <= HybOrcl.l{2} ). 
+  wp. simplify. 
+  inline HybOrcl(Ob, L(Ob)).orcl.
+  wp. sp. if. progress. inline*. wp. 
+  call (_: ={glob V}). sim. sim. sim. sim. 
+  wp. skip. progress. smt(). smt(). 
+  rcondt {1} 1. progress. skip. progress. smt().
+  rcondt {2} 1. progress. skip. progress. smt().
+  inline*. wp.
+  call (_: ={glob V}). sim. sim. sim. sim. 
+  wp.  skip. progress. smt(). smt().  
+  skip. progress.  
+  call D_guess_prop. skip. auto.
+  auto.
+  auto.
+  qed.
+  local lemma yyy ss ww &m : 
+    Pr[HybGame(A,Ob,R(Ob)).main(ss,ww) @ &m : res] = 
+    Pr[G1.main(ss,ww) @ &m : res].
+  byequiv(_: ={arg,glob D, glob V, glob P, glob Sim} ==> _).
+  proc.
+  inline {1} A(Ob, HybOrcl(Ob, R(Ob))).main.
+  splitwhile {1} 6 : (i < HybOrcl.l0).
+  seq 6 4 : (={s,w,glob V, glob P, HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\
+    i{1} = HybOrcl.l{2} /\ HybOrcl.l0{2} <= HybOrcl.l{2}).
+  simplify.
+  while (={s,w,glob V, glob P, HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\
+    i{1} = HybOrcl.l{2}). inline*.
+  sp.
+  rcondf {1} 1 . progress. skip.   progress.  smt().
+  rcondf {2} 1 . progress. skip.   progress.  smt().
+  rcondf {1} 1 . progress. skip.   progress.  smt().
+  rcondf {2} 1 . progress. skip.   progress.  smt().
+  sp. wp.  call (_:true). call (_:true). call (_:true). call (_:true).
+  skip. progress.
+  wp. rnd. skip. progress. smt(@DInterval n_pos).
+  wp. 
+  seq 1 1 : (={s,w,summary, glob V, glob HybOrcl}).
+  while (={s,w,glob V, glob P, HybOrcl.l, HybOrcl.l0, glob V, glob P, glob Sim, summary} /\
+    i{1} = HybOrcl.l{2} /\ HybOrcl.l0{2} <= HybOrcl.l{2} ). 
+  wp. simplify. 
+  inline HybOrcl(Ob, R(Ob)).orcl.
+  wp. sp. if. progress. inline*. wp. 
+  call (_: ={glob V, glob HybOrcl}). sim. sim. sim. sim. 
+  wp. skip. progress. smt(). smt(). 
+  rcondt {1} 1. progress. skip. progress. smt().
+  rcondt {2} 1. progress. skip. progress. smt().
+  inline*. wp. sp.  call (_:true). call (_:true). call (_:true). call (_:true).
+  skip. progress. smt(). smt().
+  skip. progress.  call D_guess_prop. skip. auto.
+  auto.
+  auto.
+  qed.
+
+  local lemma ln_rn ss ww &m:
+          Pr[Ln(Ob,A).main(ss,ww) @ &m : res]
+        - Pr[Rn(Ob,A).main(ss,ww) @ &m : res]
+      = n%r *(Pr[HybGame(A,Ob,L(Ob)).main(ss,ww) @ &m : res]
+              - Pr[HybGame(A,Ob,R(Ob)).main(ss,ww) @ &m : res]).
+  apply (Hybrid_restr _ Ob A _ _ _ _ _ &m (fun _ _ _ r => r)). smt(n_pos).
+  progress. proc. inline*.
+  wp.  call (_:true). 
+  while (Count.c = i /\ i <= n) . wp. 
+  call (_:true). wp.  skip.  progress. smt().
+  wp.  skip.  progress. smt(n_pos).
+  proc. skip. auto. proc.
+  call (sim_run_ll V). apply V_challenge_ll.
+  apply V_summitup_ll. skip. auto.
+  proc. call V_summitup_ll. call P_response_ll.
+  call V_challenge_ll. call P_commitment_ll. skip. auto.
+  progress.
+  proc. call D_guess_ll. sp.
+  while (true) (n - i + 1). progress.
+  wp. call H. skip. progress. smt(n_pos).
+  progress. skip. progress. smt(n_pos).
+  qed.
+
+  local module Ob1 = Obb(P,V,Sim).
+  local module A1 = Ad(D).
+
+  local module Amem : IR1R2 = {
+    proc init(s:statement, w:witness) = {
+     var commit, challenge, response, summary;
+     HybOrcl.l0 <$ [0..max 0 (n -1 )];
+     HybOrcl.l <- 0;
+     summary <- witness;
+     while (HybOrcl.l < n && HybOrcl.l < HybOrcl.l0) {
+       commit <@ P.commitment(s, w);
+       challenge <@ V.challenge(s, commit);
+       response <@ P.response(challenge);
+       summary <@ V.summitup(s, response);
+       HybOrcl.l <- HybOrcl.l + 1;
+     }
+    }
+    proc run1(s:statement, w:witness) = {
+     var  summary, guess;
+     summary <@ Sim(V).simulate(s);
+     HybOrcl.l <- HybOrcl.l + 1;
+     while (HybOrcl.l < n) {
+      summary <@ Sim(V).simulate(s);
+      HybOrcl.l <- HybOrcl.l + 1;
+     }
+     guess <@ D.guess(s, w, summary);
+     return guess;
+    }
+    proc run2(s:statement, w:witness) = {
+     var commit, challenge, response, summary, guess;
+     commit <@ P.commitment(s, w);
+     challenge <@ V.challenge(s, commit);
+     response <@ P.response(challenge);
+     summary <@ V.summitup(s, response);
+     HybOrcl.l <- HybOrcl.l + 1;
+     while (HybOrcl.l < n) {
+      summary <@ Sim(V).simulate(s);
+      HybOrcl.l <- HybOrcl.l + 1;
+     }
+     guess <@ D.guess(s, w, summary);
+     return guess;
+    }
+  }.
+
+  module Di(D:ZKDistinguisher)(Sim : Simulator)(V : RewMaliciousVerifier) : ZKDistinguisher = {
+    proc guess(s : statement, w: witness, summary: summary) = {
+     var guess;
+     HybOrcl.l <- HybOrcl.l + 1;
+     while (HybOrcl.l < n) {
+      summary <@ Sim(V).simulate(s);
+      HybOrcl.l <- HybOrcl.l + 1;
+     }
+     guess <@ D.guess(s, w,  summary);
+     return guess;
+    }
+  }.
+
+
+  module Dstar = Di(D,Sim,V).
+
+  local lemma zk_hyb (ss : statement) (ww : witness) &m deltoid: 
+     0%r <= deltoid =>
+     (forall &n,
+      `|Pr[ZKIdeal(Sim, V, Dstar).run(ss, ww) @ &n : res]
+      - Pr[ZKReal(P, V, Dstar).run(ss, ww) @ &n : res]|
+             <= deltoid) =>
+     `|Pr[HybGame(A1,Ob1,L(Ob1)).main(ss,ww) @ &m : res]
+                 - Pr[HybGame(A1,Ob1,R(Ob1)).main(ss,ww) @ &m : res]| <= deltoid.
+  move => dlt zk_ass.
+  have ->: Pr[HybGame(A1,Ob1,L(Ob1)).main(ss,ww) @ &m : res] =
+           Pr[MemoryProps.P(Amem).main1((ss,ww),(ss,ww)) @ &m : res].
+  rewrite hyb_g2. rewrite ww. rewrite g3_g5.
+  byequiv. proc. 
+  inline Amem.run1. inline Amem.init.
+  wp.  seq 7 9 : (={glob V} /\ (s,w){1} = (s,w){2} /\ summary{1} = summary{2} ).  sp. wp. 
+  seq 4 4 : (={glob HybOrcl, glob V, glob Sim, glob P} /\ (s,w){1} = (s0,w0){2} /\ summary{1} = summary0{2} /\ (s,w){1} = i2{2}).
+  while (={glob V, glob P, glob HybOrcl} /\ (s,w){1} = (s0,w0){2}
+   /\ summary{1} = summary0{2} /\ (s,w){1} = i2{2}).
+  wp.  call (_:true). call (_:true). call (_:true).  call (_:true).
+  skip. progress. wp.  rnd. skip. progress.   smt().  smt().
+  sp.
+  seq 2 2 : (={glob P, glob V,  glob Sim, glob HybOrcl, summary, s, w}).
+  wp.  call (_: ={glob V}). sim. sim. sim. sim.
+  skip. progress.         
+  while (={glob Sim,glob V, glob P, glob HybOrcl} /\ (s,w){1} = (s,w){2}
+   /\ summary{1} = summary{2}) . wp. 
+  call (_: ={glob V}).  sim. sim. sim. sim.
+  skip. progress. 
+  skip. progress. 
+  call D_guess_prop. skip. auto.
+  auto. auto. 
+  have ->: Pr[HybGame(A1,Ob1,R(Ob1)).main(ss,ww) @ &m : res] =
+           Pr[MemoryProps.P(Amem).main2((ss,ww),(ss,ww)) @ &m : res].
+  rewrite yyy. rewrite g1_g4. rewrite g4_g6.
+  byequiv. proc. 
+  inline Amem.run2. inline Amem.init.
+  wp. seq 10 12 : (={s,w,summary, glob V}). 
+  sim. wp.
+  while (={glob V, glob P, glob HybOrcl} /\ (s,w){1} = (s0,w0){2}
+   /\ summary{1} = summary0{2} /\ (s,w){1} = i2{2}).
+  wp.  call (_:true). call (_:true). call (_:true).  call (_:true).
+  skip. progress. wp.  rnd. wp. skip. progress. smt().  smt().
+  call D_guess_prop. skip. auto.
+  auto. auto.
+  case (`|Pr[MemoryProps.P(Amem).main1((ss,ww), (ss,ww)) @ &m : res] -
+  Pr[MemoryProps.P(Amem).main2((ss,ww),(ss,ww)) @ &m : res]| <= deltoid). auto.
+  move => q. 
+  have zz : `|Pr[MemoryProps.P(Amem).main1((ss,ww),(ss,ww)) @ &m : res] -
+    Pr[MemoryProps.P(Amem).main2((ss,ww),(ss,ww)) @ &m : res]| > deltoid. 
+  smt(). clear q.
+  have ko : exists &n, deltoid < `|Pr[Amem.run1((ss,ww)) @ &n : res] - Pr[Amem.run2((ss,ww)) @ &n : res]|. 
+  apply (exists_mem_abs_diff Amem _ _ _ (ss, ww) (ss, ww) &m). 
+    proc. while (true) (n - HybOrcl.l). progress.
+   wp. call V_summitup_ll. call P_response_ll. call V_challenge_ll. call P_commitment_ll.
+   skip. progress. smt(). wp. conseq (_: _ ==> true). progress. smt(). rnd. skip. progress. smt(@DInterval).
+   proc. call D_guess_ll. while (true) (n - HybOrcl.l). progress. wp.  call (sim_run_ll V). apply V_challenge_ll.
+   apply V_summitup_ll. skip. smt(). wp. call V_summitup_ll. call P_response_ll. call V_challenge_ll.
+   call P_commitment_ll. skip. progress. smt().
+   proc. call D_guess_ll. while (true) (n - HybOrcl.l). progress. wp.  call (sim_run_ll V). apply V_challenge_ll.
+   apply V_summitup_ll. skip. smt(). wp. call (sim_run_ll V). apply V_challenge_ll.
+   apply V_summitup_ll.  skip. progress. smt().
+  auto. auto.
+  elim ko. move => &n. move => q.
+  have ok : `|Pr[Amem.run1((ss, ww)) @ &n : res] - Pr[Amem.run2((ss, ww)) @ &n : res]| <= deltoid.
+  have -> : Pr[Amem.run1((ss, ww)) @ &n : res] = Pr[ZKIdeal(Sim, V, Dstar).run(ss, ww) @ &n : res].
+  byequiv. proc.         
+  inline Dstar.guess. wp.
+  seq 3 6: (={glob V,s,w} /\ summary{1} = summary0{2} /\  HybOrcl.l{1} =  HybOrcl.l{2}). sim. 
+  progress. smt(). smt().
+  call D_guess_prop. skip. auto.
+  auto.  auto. 
+  have -> : Pr[Amem.run2((ss, ww)) @ &n : res] = Pr[ZKReal(P, V, Dstar).run(ss, ww) @ &n : res].
+  byequiv. proc.         
+  inline Dstar.guess. wp.
+  seq 6 9: (={glob V,s,w} /\ summary{1} = summary0{2} /\ HybOrcl.l{1} = HybOrcl.l{2}). sim. 
+  progress. smt(). smt().
+  call D_guess_prop. skip. progress.
+  auto.  auto. 
+  apply (zk_ass  &n). smt(). 
+  qed.
+
+
+  lemma zk_seq &m deltoid ss ww :
+     0%r <= deltoid =>
+     (forall &n,
+      `|Pr[ZKIdeal(Sim, V, Di(D,Sim,V)).run(ss, ww) @ &n : res]
+      - Pr[ZKReal(P, V, Di(D,Sim,V)).run(ss, ww) @ &n : res]|
+             <= deltoid) =>
+     `|Pr[ZKIdeal(SimAmp(Sim), V, D).run(ss, ww) @ &m : res]
+          - Pr[ZKRealAmp(P, V, D).run(ss, ww) @ &m : res]|
+            <= n%r * deltoid.
+  move => dlt zk_ass.
+  have -> : Pr[ZKIdeal(SimAmp(Sim), V, D).run(ss, ww) @ &m : res]
+   = Pr[Ln(Ob,A).main(ss,ww) @ &m : res].
+  byequiv (_:
+    (glob V){2} = (glob V){m} /\ ={glob Sim, arg}/\
+    (statement{1}, witness{1}) = (ss, ww) /\
+     (glob V){1} = (glob V){m} ==> _).
+  proc. inline*. wp. sp.
+  seq 2 1 : (={glob V, summary} /\ statement{1} = s{2} /\ witness{1} = w{2}).   wp.
+  while (={i, glob V, glob Sim} /\ summary0{1} = summary{2} /\ statement0{1} = s{2} /\ witness{1} = w{2} ).
+  wp. call (_: ={glob V}). sim. sim. sim. sim. wp.  skip. progress.
+  skip. progress.
+  call D_guess_prop. skip. auto. auto. auto.
+  have -> : Pr[ZKRealAmp(P, V, D).run(ss, ww) @ &m : res]
+   = Pr[Rn(Ob,A).main(ss,ww) @ &m : res].
+  byequiv (_: ={glob V, glob P, arg} /\ (statement{1}, witness{1}) = (ss, ww) ==> _). proc.
+  inline*. wp. sp.
+  seq 1 1 : (={glob V, summary} /\ statement{1} = s{2} /\ witness{1} = w{2} ).   simplify. wp.
+  while (={i, glob V, glob P} /\ summary{1} = summary{2} /\ statement{1} = s{2} /\  witness{1} = w{2}). sp. wp.
+  call (_:true). call (_:true). call (_:true). call (_:true). skip. progress.
+  skip. progress. call D_guess_prop. skip.  auto. auto. auto.
+  rewrite ln_rn.
+  have :  `|Pr[HybGame(A1,Ob1,L(Ob1)).main(ss,ww) @ &m : res]
+                 - Pr[HybGame(A1,Ob1,R(Ob1)).main(ss,ww) @ &m : res]| <= deltoid.
+  apply zk_hyb.  apply dlt.
+  move => &n.
+  apply (zk_ass &n).
+  have : n%r > 0%r. smt(n_pos).
+  progress.
+  have : n%r * `|Pr[HybGame(A1, Ob1, L(Ob1)).main(ss, ww) @ &m : res] -
+    Pr[HybGame(A1, Ob1, R(Ob1)).main(ss, ww) @ &m : res]| <=
+  n%r * deltoid.
+  smt().
+  smt(@Real).
+  qed.
+  end section.
+  end SequentialComposition.
+
+
+  abstract theory OneShotSimulator.
+
+  op N : int.
+  axiom N_pos : 0 <= N.
+
+  module SimN(S : Simulator1)(V : RewMaliciousVerifier)  = {
+    module A = S(V)
+    proc simulate(statement : statement) : summary = {
+     var c,r;
+     c <- 1;
+     r <- (false, Pervasive.witness);
+     while (c <= N /\ ! (fst r)){
+       r <@ A.run(statement);
+       c <- c + 1;
+     }       
+     return r.`2;
+    }
+  }.
+
+  module type ZKRun = {
+    proc run(s:statement) : (bool * summary)
+  }.
+
+  module RD(A : ZKRun, D0 : ZKDistinguisher) = {
+    proc run(a : statement, w : witness) : bool * (bool * summary) = {
+      var r : bool * summary;
+      var b : bool;
+      r <@ A.run(a);
+      b <@ D0.guess((a, w, r.`2));
+      return (b, r);
+    }
+  }.
+
+
+  module ZKD(P : HonestProver, V : MaliciousVerifier, D : ZKDistinguisher) = {
+    proc main(Ny : statement, w : witness) = {
+      var c,b,r,result,rb;
+      c <@ P.commitment(Ny,w);
+      b <@ V.challenge(Ny,c);
+      r <@ P.response(b);
+      result <@ V.summitup(Ny,r);
+      rb <@ D.guess(Ny,w,result);
+      return rb;
+    }
+  }.
+
+
+  theory Computational.
+
+  section.
+
+
+  declare module HonestProver <: HonestProver{-Hyb.Count, -Hyb.HybOrcl}.
+  declare module Sim1 <: Simulator1{-Hyb.Count, -Hyb.HybOrcl}.
+  declare module V <: RewMaliciousVerifier {-Sim1, -HonestProver,-Hyb.Count, -Hyb.HybOrcl}.
+  declare module D <: ZKDistinguisher{-HonestProver} .
+
+
+  local clone import Sim1Equations as OMZK with type prob <- statement,
+                                        type wit <- witness,
+                                        type sbits <- summary,
+                                        type event <- bool,
+                                        op E <- fst,
+                                        op fevent <- false,
+                                        op pair_sbits <- pair_sbits,
+                                        op unpair <- unpair
+  rename "Simulator1" as "Simulator1NP"
+  proof*.
+  realize MW.IFB.ips. apply ips. qed.
+  realize MW.IFB.unpair_pair. apply unpair_pair. qed.
+  realize MW.IFB.RW.ips. apply ips. qed.
+  realize MW.IFB.RW.unpair_pair. apply unpair_pair. qed.
+
+
+  local module W0 = MW.W0.
+
+
+  local module Simulator'(S : Simulator1)(V : RewMaliciousVerifier)  = {
+    module M = MW.IFB.W(S(V))
+    proc simulate(statement : statement) : summary = {
+         var r;
+         r <@ M.whp(fst,statement,1,N,(false,witness));
+         return r.`2;
+    }
+  }.
+
+
+   declare axiom sim1_run_ll : forall (V0 <: RewMaliciousVerifier),
+        islossless V0.challenge => islossless V0.summitup => islossless Sim1(V0).run.
+   declare axiom V_summitup_ll  : islossless V.summitup.
+   declare axiom V_challenge_ll : islossless V.challenge.
+   declare axiom D_guess_ll     : islossless D.guess.
+   declare axiom sim1_rew_ph : forall (x : (glob Sim1(V))),
+                 phoare[ Sim1(V).run : (glob Sim1(V)) = x ==> ! fst res => (glob Sim1(V)) = x] = 1%r.
+   declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg, glob Hyb.Count, glob Hyb.HybOrcl} ==> ={res} ].
+
+
+  local module Sim1' = {
+    module C = Count
+    module S = Sim1(V)
+    proc xxx() = {
+         HybOrcl.l <- 0;
+         HybOrcl.l0 <- 0;
+    }
+    proc run = S.run
+  }.
+
+
+  lemma computational_zk stat wit sigma epsilon &m:
+     zk_relation stat wit =>
+     `|Pr[RD(Sim1(V), D).run(stat, wit) @ &m : fst res.`2 /\ res.`1] /
+           Pr[Sim1(V).run(stat) @ &m : fst res]
+       - Pr[ ZKD(HonestProver,V,D).main(stat,wit) @ &m : res ]| <= epsilon =>
+      sigma <= Pr[Sim1(V).run(stat) @ &m : res.`1] =>
+      let real_prob = Pr[ZKReal(HonestProver, V, D).run(stat, wit) @ &m : res] in
+      let ideal_prob = Pr[ZKIdeal(SimN(Sim1), V, D).run(stat, wit) @ &m : res] in
+        `|ideal_prob - real_prob| <= epsilon + 2%r * (1%r - sigma)^N.
+  proof. progress.
+  have ->: Pr[ZKIdeal(SimN(Sim1), V, D).run(stat, wit) @ &m : res]
+   = Pr[ZKIdeal(Simulator'(Sim1), V, D).run(stat, wit) @ &m : res].
+  byequiv (_: ={glob V, glob Sim1, arg, glob Count, glob HybOrcl} ==> _). proc.
+  seq 1 1 : (={glob V,statement,witness,summary,glob Sim1, glob Count, glob HybOrcl}).
+  inline*. sp.  wp. 
+  sim.
+  while (c{1} = MW.IFB.W.c{2} /\ r{1} = r0{2} /\ ={glob V, glob Sim1} 
+         /\ statement0{1} = i{2} /\ e{2} = N /\ p{2} = fst).
+  wp.  call (_: ={glob V}).
+  sim. sim. sim. sim.
+  skip. progress. 
+  skip. progress.  
+  call D_guess_prop. skip. progress.
+  auto. auto.
+     have ->:
+      `|Pr[ZKIdeal(Simulator'(Sim1), V, D).run(stat, wit) @ &m : res] - 
+         Pr[ZKReal(HonestProver, V, D).run(stat, wit) @ &m : res]|
+       = `|Pr[ZKIdeal(Simulator'(Sim1), V, D).run(stat, wit) @ &m : res]
+           - Pr[ZKReal(HonestProver, V, D).run(stat, wit) @ &m : res]|. smt().
+     have ->: Pr[ZKIdeal(Simulator'(Sim1), V, D).run(stat, wit) @ &m : res]
+      = Pr[Iter(Sim1(V), D).run(false,stat,wit,N,fst) @ &m : res.`1].
+     byequiv (_:  E{2} = fst  /\ N = ea{2} /\ fevent{2} = false  /\
+       statement{1} = Ny{2} /\ witness{1} = w{2} /\
+         ={glob Count, glob HybOrcl, glob Sim1, glob HonestProver,  glob V, glob MW.IFB.W} ==> _)  ;auto.  proc.
+     inline Iter(Sim1(V), D).WI.run. wp.  sp. simplify.
+      call D_guess_prop.
+     simplify. inline Simulator'(Sim1,V).simulate. wp. sp.
+     call (_: ={glob Sim1, glob V, glob MW.IFB.W}).  sim. skip. progress.
+     progress.
+     have ->: Pr[ZKReal(HonestProver, V, D).run(stat, wit) @ &m : res]
+       = Pr[ ZKD(HonestProver,V,D).main(stat,wit) @ &m : res ].
+      byequiv (_:   arg{2} = (stat, wit) /\ ={glob Count, glob HybOrcl, glob V, glob HonestProver}
+    /\
+    (glob V){2} = (glob V){m} /\
+    (glob HonestProver){2} = (glob HonestProver){m} /\
+    arg{1} = (stat, wit) /\
+    (glob V){1} = (glob V){m} /\
+    (glob HonestProver){1} = (glob HonestProver){m} ==> _).
+    proc. seq  4 4 : (={glob V, glob Count, glob HybOrcl} /\ (statement{1}, witness{1}, summary{1}) =
+    (Ny{2}, w{2}, result{2})). sim. call D_guess_prop. skip. auto. auto. auto. 
+have -> : Pr[Iter(Sim1(V), D).run(false, stat, wit, OneShotSimulator.N,
+                       fun (p : bool * summary) => p.`1) @ &m :
+  res.`1] = Pr[Iter(Sim1', D).run(false, stat, wit, OneShotSimulator.N,
+                       fun (p : bool * summary) => p.`1) @ &m :
+  res.`1]. byequiv (_: ={glob D, glob V, glob Sim1, arg, glob Count, glob HybOrcl} ==> _). proc.   inline*.  wp.  call D_guess_prop. simplify. sp. simplify.
+wp. while (={MW.IFB.W.c, glob Sim1, glob V,p,i,e,glob Count,r1}).
+sim.  skip. progress. auto. auto.
+     apply (one_to_many_zk  Sim1' D _  _ _ _ _ &m  stat wit sigma epsilon N
+        Pr[ZKD(HonestProver, V, D).main(stat, wit) @ &m : res]  _ _ _).
+     conseq D_guess_prop. auto.
+     apply (sim1_run_ll V). apply V_challenge_ll. apply V_summitup_ll. 
+     move => x. 
+     proc*. 
+     call (sim1_rew_ph (x.`4, x.`5)).
+     skip. auto.
+     apply D_guess_ll.
+     auto.  
+     have ->: Pr[W0(Sim1', D).run(stat, wit) @ &m : res.`2.`1 /\ res.`1]
+     = Pr[RD(Sim1(V), D).run(stat, wit) @ &m : res.`2.`1 /\ res.`1].
+  byequiv (_: ={glob V, glob Sim1, arg, glob Count, glob HybOrcl} ==> _). proc. 
+  seq 1 1 : (={glob V, glob Sim1, r,a,w, glob Count, glob HybOrcl}).
+  sim. call D_guess_prop. skip.
+  progress. auto. auto. auto.
+  apply N_pos. rewrite Pr[mu_le1]. rewrite Pr[mu_ge0]. auto. auto.
+  qed.
+  end section.
+  end Computational.
+
+
+  theory Statistical.
+
+  section.
+  
+  declare op epsilon : real.
+  declare op sigma   : real.
+  declare axiom epsilon_pos : 0%r <= epsilon.
+
+  local clone include Computational.
+
+  declare module HonestProver <: HonestProver{-Hyb.Count, -Hyb.HybOrcl}.
+  declare module Sim1 <: Simulator1{-Hyb.Count, -Hyb.HybOrcl}.
+  declare module V <: RewMaliciousVerifier {-Sim1, -HonestProver,-Hyb.Count, -Hyb.HybOrcl}.
+  declare module D <: ZKDistinguisher{-HonestProver}.
+
+  declare axiom sim1_run_ll : forall (V0 <: RewMaliciousVerifier), islossless V0.challenge
+    => islossless V0.summitup => islossless Sim1(V0).run.
+  declare axiom V_summitup_ll  : islossless V.summitup.
+  declare axiom V_challenge_ll : islossless V.challenge.
+  declare axiom D_guess_ll     : islossless D.guess.
+  declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg, glob Count, glob HybOrcl} ==> ={res} ].
+
+
+  lemma statistical_zk stat wit &m:
+      (forall (x : (glob Sim1(V))),
+          phoare[ Sim1(V).run : (glob Sim1(V)) = x 
+              ==> !fst res => (glob Sim1(V)) = x] = 1%r)
+   => (`|Pr[RD(Sim1(V), D).run(stat, wit) @ &m : fst res.`2 /\ res.`1] /
+           Pr[Sim1(V).run(stat) @ &m : fst res]
+            - Pr[ ZKD(HonestProver,V,D).main(stat,wit) @ &m : res ]| <= epsilon)
+   => (Pr[Sim1(V).run(stat) @ &m : res.`1] >= sigma)
+   =>
+      zk_relation stat wit => 
+      let real_prob = Pr[ZKReal(HonestProver, V, D).run(stat, wit) @ &m : res] in
+      let ideal_prob = Pr[ZKIdeal(SimN(Sim1), V, D).run(stat, wit) @ &m : res] in
+        `|ideal_prob - real_prob| <= epsilon + 2%r * (1%r - sigma)^N.
+  proof. move => D. progress.
+   apply (computational_zk HonestProver Sim1 V D _ _ _ _ _ _ stat wit sigma epsilon &m). 
+   apply sim1_run_ll.
+   apply V_summitup_ll.
+   apply V_challenge_ll.
+   apply D_guess_ll.
+   auto.
+   apply D_guess_prop.
+   auto.
+   auto.
+   auto.
+  qed.  
+  end section.  
+  end Statistical.
+  end OneShotSimulator.
+end ZeroKnowledge.

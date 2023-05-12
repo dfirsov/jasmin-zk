@@ -1,0 +1,33 @@
+#!/bin/bash
+
+timeout=20
+
+ECO=
+ECO=-no-eco
+
+check() {
+  echo checking $1;
+  if easycrypt $ECO -p "CVC4" -p "Z3" -p "Alt-Ergo"  -I .   -timeout $timeout $1;
+  then echo passed: $1;
+       echo "";
+  else echo failed: $1;
+       echo "";
+       echo "skipping remaining scripts";
+  exit 1;
+  fi;
+}
+
+
+# list of files to check
+check RandomFacts.ec
+check FiniteApproximation.ec
+check Averaging.ec
+check JensensInf.ec
+check SquareConvex.ec
+check Reflection.ec
+check ReflectionComp.ec
+check RewBasics.ec
+check RewMultRule.ec
+check RewWithInit.ec
+
+echo "DONE";

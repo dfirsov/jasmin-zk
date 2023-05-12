@@ -1,0 +1,24 @@
+ - [*Aux.ec*](Aux.ec) - Variety of useful results absent (or not found) from EasyCrypt standard library.
+ - [*Permutation.ec*](Permutation.ec) - Basic axiomatization of permutations as functions.
+ - [*MemoryProps.ec*](MemoryProps.ec) 
+	 - `lemma exists_mem_init_run_res` - proof that if `p < Pr[A.init(); r <@ A.run() @&m: r]` then there exists a memory `&n` so that `p < Pr[r <@ A.run() @&n: r]`. Same could be derived for other relations (i.e., `<=, >=, >`).
+	 - `lemma exists_mem_diff` - same but for differences of `Pr`-expressions.
+ - [*PrIntervalToSum.ec*](PrIntervalToSum.ec) 
+	 - `lemma pr_interval_to_sum_lemma` -  probability expression of the form `Pr[r <@ A.run() : s <= r <= e]` can be represented as a finite sum.
+ - [*HybridArgumentWithParameter.ec*](MeansWithParameter.ec) - Formalization of a "hybrid argument technique".  This file is a **copy** from the EasyCrypt standard library development which adds a universally quantified parameter to the adversary.  
+ - [*MeansWithParameter.ec*](MeansWithParameter.ec) - Dependency of a hybrid argument development which  formalizes the finite version of the "averaging technique". This file is a **copy** from the EasyCrypt standard library which adds a universally quantified parameter to the "tail" of the computation.
+ - [*ExtractabilityEquations.ec*](ExtractabilityEquations.ec)
+ 	- `lemma extraction_success_prob` - *raw* equation which establishes the lower-bound on success of extraction. 
+ - [*Sim1Equations.ec*](Sim1Equations.ec)
+ 	- `lemma one_to_many_zk` - *raw* equation associated with iteration of a "one-shot simulator".
+ - [*WhileSplit.ec*](WhileSplit.ec)
+	- `lemmas if_whp_prop, whp_if_prop, whp_split_prop` - while cycle decomposition.
+	- `lemma whp_cap_fin_sum` - represention of finite "iterate-until-success" as a sum. 
+ - [*WhileNoSuccess.ec*](WhileNoSuccess.ec)
+	- `theory IterUntilSuccDistr` - distribution sampling in the while-loop until success.
+		- `lemmas iter_sample_eq, iter_sample_le, iter_sample_ge`
+	- `theory IterUntilSuccRew` - run a procedure in the while-loop until success, otherwise rewind.
+		- `lemmas iter_run_rew_eq, iter_run_rew_le, iter_run_rew_ge`
+	- `theory IterUntilSucc` - assuming a probability bound which holds for all memories, run a procedure in the while-loop until success.
+		- `lemmas iter_run_eq_ph, iter_run_le_ph, iter_run_ge_ph`
+
