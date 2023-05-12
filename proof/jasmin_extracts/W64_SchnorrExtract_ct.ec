@@ -1006,6 +1006,27 @@ module M(SC:Syscall_t) = {
     return (x, y);
   }
   
+  proc sn_cmov (cond:bool, a:W64.t, b:W64.t) : W64.t = {
+    var aux: W64.t;
+    
+    var r1:W64.t;
+    var r2:W64.t;
+    
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- a;
+    r1 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- b;
+    r2 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- (cond ? r2 : r1);
+    r1 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- r1;
+    a <- aux;
+    return (a);
+  }
+  
   proc bn_eq (a:W64.t Array32.t, b:W64.t Array32.t) : W64.t = {
     var aux_1: bool;
     var aux_0: int;
@@ -1016,7 +1037,7 @@ module M(SC:Syscall_t) = {
     var i:int;
     var c1:W64.t;
     var c2:W64.t;
-    var reseq:bool;
+    var cf:bool;
     
     leakages <- LeakAddr([]) :: leakages;
     aux <- (W64.of_int 0);
@@ -1040,12 +1061,9 @@ module M(SC:Syscall_t) = {
     }
     leakages <- LeakAddr([]) :: leakages;
     aux_1 <- (result = (W64.of_int 0));
-    reseq <- aux_1;
+    cf <- aux_1;
     leakages <- LeakAddr([]) :: leakages;
-    aux <- (W64.of_int 0);
-    output <- aux;
-    leakages <- LeakAddr([]) :: leakages;
-    aux <- (reseq ? (W64.of_int 1) : output);
+    aux <@ sn_cmov (cf, (W64.of_int 0), (W64.of_int 1));
     output <- aux;
     return (output);
   }
@@ -1344,6 +1362,50 @@ module M(SC:Syscall_t) = {
     return (x1);
   }
   
+  proc bn_set_go (a:W64.t Array32.t) : W64.t Array32.t = {
+    var aux_0: int;
+    var aux: W64.t;
+    
+    var i:int;
+    
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- (W64.of_int 1);
+    leakages <- LeakAddr([0]) :: leakages;
+    a.[0] <- aux;
+    leakages <- LeakFor(1,32) :: LeakAddr([]) :: leakages;
+    i <- 1;
+    while (i < 32) {
+      leakages <- LeakAddr([]) :: leakages;
+      aux <- (W64.of_int 1);
+      leakages <- LeakAddr([i]) :: leakages;
+      a.[i] <- aux;
+      i <- i + 1;
+    }
+    return (a);
+  }
+  
+  proc bn_set_eo (a:W64.t Array32.t) : W64.t Array32.t = {
+    var aux_0: int;
+    var aux: W64.t;
+    
+    var i:int;
+    
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- (W64.of_int 1);
+    leakages <- LeakAddr([0]) :: leakages;
+    a.[0] <- aux;
+    leakages <- LeakFor(1,32) :: LeakAddr([]) :: leakages;
+    i <- 1;
+    while (i < 32) {
+      leakages <- LeakAddr([]) :: leakages;
+      aux <- (W64.of_int 1);
+      leakages <- LeakAddr([i]) :: leakages;
+      a.[i] <- aux;
+      i <- i + 1;
+    }
+    return (a);
+  }
+  
   proc bn_set_gg (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux_0: int;
     var aux: W64.t;
@@ -1389,28 +1451,6 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_eo (a:W64.t Array32.t) : W64.t Array32.t = {
-    var aux_0: int;
-    var aux: W64.t;
-    
-    var i:int;
-    
-    leakages <- LeakAddr([]) :: leakages;
-    aux <- (W64.of_int 1);
-    leakages <- LeakAddr([0]) :: leakages;
-    a.[0] <- aux;
-    leakages <- LeakFor(1,32) :: LeakAddr([]) :: leakages;
-    i <- 1;
-    while (i < 32) {
-      leakages <- LeakAddr([]) :: leakages;
-      aux <- (W64.of_int 1);
-      leakages <- LeakAddr([i]) :: leakages;
-      a.[i] <- aux;
-      i <- i + 1;
-    }
-    return (a);
-  }
-  
   proc bn_set_eb (a:W64.t Array64.t) : W64.t Array64.t = {
     var aux_0: int;
     var aux: W64.t;
@@ -1425,28 +1465,6 @@ module M(SC:Syscall_t) = {
     aux_0 <- (32 * 2);
     i <- 1;
     while (i < aux_0) {
-      leakages <- LeakAddr([]) :: leakages;
-      aux <- (W64.of_int 1);
-      leakages <- LeakAddr([i]) :: leakages;
-      a.[i] <- aux;
-      i <- i + 1;
-    }
-    return (a);
-  }
-  
-  proc bn_set_go (a:W64.t Array32.t) : W64.t Array32.t = {
-    var aux_0: int;
-    var aux: W64.t;
-    
-    var i:int;
-    
-    leakages <- LeakAddr([]) :: leakages;
-    aux <- (W64.of_int 1);
-    leakages <- LeakAddr([0]) :: leakages;
-    a.[0] <- aux;
-    leakages <- LeakFor(1,32) :: LeakAddr([]) :: leakages;
-    i <- 1;
-    while (i < 32) {
       leakages <- LeakAddr([]) :: leakages;
       aux <- (W64.of_int 1);
       leakages <- LeakAddr([i]) :: leakages;

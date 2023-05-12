@@ -24,8 +24,6 @@ smt(@Real).
 qed.
 
 
-
-
 axiom bn_set_bf_prop : 
   phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
 axiom bn_set_go_prop : 
@@ -118,7 +116,7 @@ qed.
 
 lemma bn_eq_correct x1 x2 :
   phoare[ M.bn_eq :  arg = (x1,x2) ==> (res = W64.one) = (valR x1 = valR x2)  /\ (res = W64.zero \/ res = W64.one) ] = 1%r.
-proc. sp. wp.
+proc. sp. inline M.sn_cmov.  wp.
 while (i <= nlimbs /\ ((result = W64.zero) <=> (forall j, 0 <= j < i => a.[j] = b.[j])%Array32)) (nlimbs - i). progress.
 wp.  skip.  progress. smt(). smt(@W64xN).
 smt(@W64xN).

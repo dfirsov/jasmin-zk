@@ -1,62 +1,7 @@
 require "uniform_distr.jazz"
 require "ring_ops.jazz"
 
-/* constant assigning */
-inline fn bn_set_gg(stack u64[nlimbs] a) -> stack u64[nlimbs] {
-  inline int i;
-  a[0] = 1;
-  for i = 1 to nlimbs {
-    a[i] = 1;
-  }
-  return a;
-}
-
-
-/* constant assigning */
-inline fn bn_set_bf(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
-  inline int i;
-  a[0] = 1;
-  for i = 1 to dnlimbs {
-    a[i] = 1;
-  }
-  return a;
-}
-
-
-
-
-
-/* constant assigning */
-inline fn bn_set_eo(stack u64[nlimbs] a) -> stack u64[nlimbs] {
-  inline int i;
-  a[0] = 1;
-  for i = 1 to nlimbs {
-    a[i] = 1;
-  }
-  return a;
-}
-
-
-/* constant assigning */
-inline fn bn_set_eb(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
-  inline int i;
-  a[0] = 1;
-  for i = 1 to dnlimbs {
-    a[i] = 1;
-  }
-  return a;
-}
-
-
-/* constant assigning */
-inline fn bn_set_go(stack u64[nlimbs] a) -> stack u64[nlimbs] {
-  inline int i;
-  a[0] = 1;
-  for i = 1 to nlimbs {
-    a[i] = 1;
-  }
-  return a;
-}
+require "schnorr_constants.jazz"
 
 
 inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
@@ -128,55 +73,51 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
 
 
 
-// export fn __commitment(reg u64 commitment_p) 
-// { 
-//   reg u64 commitment_p2;
-//   stack u64[nlimbs] commitment rp;
+export fn __commitment(reg u64 commitment_p random_power_p) 
+{ 
+  reg u64 commitment_p2 random_power_p2;
+  stack u64[nlimbs] commitment rp;
+  commitment_p2 = commitment_p;   // relax ABI contraints
 
-//   // relax ABI contraints
-//   commitment_p2 = commitment_p;
-//   commitment, rp = commitment();
-//   bn_store(commitment_p2, commitment);
-// }
+  commitment, rp = commitment();
 
-
-// export fn __response(reg u64 random_power_p challenge_p witness_p response_p) 
-// { 
-//   reg u64 response_p2;
-//   stack u64[nlimbs] commitment random_power witness challenge response;
+  bn_store(commitment_p2, commitment);
+  bn_store(random_power_p2, rp);
+}
 
 
-//   random_power = bn_load(random_power_p);
-//   challenge = bn_load(challenge_p);
-//   witness = bn_load(witness_p);
+export fn __response(reg u64 random_power_p challenge_p witness_p response_p) 
+{ 
+  reg u64 response_p2;
+  stack u64[nlimbs] commitment random_power witness challenge response;
+  response_p2 = response_p;   // relax ABI contraints 
 
-//   // relax ABI contraints
-//   response_p2 = response_p;
-//   response = response(witness,random_power,challenge);
-//   bn_store(response_p2, commitment);
-// }
+  random_power = bn_load(random_power_p);
+  challenge    = bn_load(challenge_p);
+  witness      = bn_load(witness_p);
+
+  response = response(witness,random_power,challenge);
+  bn_store(response_p2, commitment);
+}
 
 
 export fn __verify(reg u64 statement_p commitment_p challenge_p response_p result_p) 
 { 
   reg u64 result_p2;
+  reg u64 result2;
   stack u64[nlimbs] statement commitment challenge response;
   stack u64 result;
   stack u64[nlimbs] confused;
+  result_p2 = result_p; // relax ABI contraints 
 
-
-  statement = bn_load(statement_p);
+  statement  = bn_load(statement_p);
   commitment = bn_load(commitment_p);
-  challenge = bn_load(challenge_p);
-  response = bn_load(response_p);
+  challenge  = bn_load(challenge_p);
+  response   = bn_load(response_p);
 
-  // relax ABI contraints
-  result_p2 = result_p;
   result = verify(statement,commitment,challenge,response);
 
-  confused[0] = result;
-  [result_p] = confused[0]; 
-
+  [result_p2] = result; 
 }
 
 
@@ -184,10 +125,10 @@ export fn __challenge(reg u64 challenge_p)
 { 
   reg u64 challenge_p2;
   stack u64[nlimbs] challenge;
+  challenge_p2 = challenge_p;   // relax ABI contraints
 
-  // relax ABI contraints
-  challenge_p2 = challenge_p;
   challenge = challenge();
+
   bn_store(challenge_p2, challenge);
 }
 

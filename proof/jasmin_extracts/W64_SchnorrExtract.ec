@@ -510,6 +510,18 @@ module M(SC:Syscall_t) = {
     return (x, y);
   }
   
+  proc sn_cmov (cond:bool, a:W64.t, b:W64.t) : W64.t = {
+    
+    var r1:W64.t;
+    var r2:W64.t;
+    
+    r1 <- a;
+    r2 <- b;
+    r1 <- (cond ? r2 : r1);
+    a <- r1;
+    return (a);
+  }
+  
   proc bn_eq (a:W64.t Array32.t, b:W64.t Array32.t) : W64.t = {
     var aux: int;
     
@@ -518,7 +530,7 @@ module M(SC:Syscall_t) = {
     var i:int;
     var c1:W64.t;
     var c2:W64.t;
-    var reseq:bool;
+    var cf:bool;
     
     result <- (W64.of_int 0);
     i <- 0;
@@ -529,9 +541,8 @@ module M(SC:Syscall_t) = {
       result <- (result `|` c1);
       i <- i + 1;
     }
-    reseq <- (result = (W64.of_int 0));
-    output <- (W64.of_int 0);
-    output <- (reseq ? (W64.of_int 1) : output);
+    cf <- (result = (W64.of_int 0));
+    output <@ sn_cmov (cf, (W64.of_int 0), (W64.of_int 1));
     return (output);
   }
   
@@ -705,6 +716,34 @@ module M(SC:Syscall_t) = {
     return (x1);
   }
   
+  proc bn_set_go (a:W64.t Array32.t) : W64.t Array32.t = {
+    var aux: int;
+    
+    var i:int;
+    
+    a.[0] <- (W64.of_int 1);
+    i <- 1;
+    while (i < 32) {
+      a.[i] <- (W64.of_int 1);
+      i <- i + 1;
+    }
+    return (a);
+  }
+  
+  proc bn_set_eo (a:W64.t Array32.t) : W64.t Array32.t = {
+    var aux: int;
+    
+    var i:int;
+    
+    a.[0] <- (W64.of_int 1);
+    i <- 1;
+    while (i < 32) {
+      a.[i] <- (W64.of_int 1);
+      i <- i + 1;
+    }
+    return (a);
+  }
+  
   proc bn_set_gg (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux: int;
     
@@ -734,20 +773,6 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_eo (a:W64.t Array32.t) : W64.t Array32.t = {
-    var aux: int;
-    
-    var i:int;
-    
-    a.[0] <- (W64.of_int 1);
-    i <- 1;
-    while (i < 32) {
-      a.[i] <- (W64.of_int 1);
-      i <- i + 1;
-    }
-    return (a);
-  }
-  
   proc bn_set_eb (a:W64.t Array64.t) : W64.t Array64.t = {
     var aux: int;
     
@@ -757,20 +782,6 @@ module M(SC:Syscall_t) = {
     aux <- (32 * 2);
     i <- 1;
     while (i < aux) {
-      a.[i] <- (W64.of_int 1);
-      i <- i + 1;
-    }
-    return (a);
-  }
-  
-  proc bn_set_go (a:W64.t Array32.t) : W64.t Array32.t = {
-    var aux: int;
-    
-    var i:int;
-    
-    a.[0] <- (W64.of_int 1);
-    i <- 1;
-    while (i < 32) {
       a.[i] <- (W64.of_int 1);
       i <- i + 1;
     }
