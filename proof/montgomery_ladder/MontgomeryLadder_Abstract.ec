@@ -199,7 +199,7 @@ have -> : x{hr} ^ (1 + 2 * bs2int (drop i{hr} n{hr}))
 rewrite exp_prop3. auto. smt(bs2int_ge0). auto. rewrite exp_prop2. auto.
 have ->: x{hr} ^ (2 * bs2int (drop i{hr} n{hr}))
  = x{hr} ^ (bs2int (drop i{hr} n{hr})) *** x{hr} ^ (bs2int (drop i{hr} n{hr})).
-smt.
+smt(exp_prop3). 
 have -> : bs2int (drop i{hr} n{hr})  = 0.
 rewrite  hast5. auto. auto. rewrite exp_prop1. rewrite op_id. smt.  
 simplify.
@@ -214,12 +214,12 @@ rewrite bs2int_cons.
 rewrite exp_prop3. smt (bs2int_ge0). auto. auto. smt (bs2int_ge0). rewrite exp_prop2.
 have ->: (2 * m) = m + m. smt().
 rewrite exp_prop3. smt. smt.
-smt.
+smt(op_assoc exp_prop3' exp_prop3).
 have x : drop (i{hr} - 1) n{hr} = ith_bit n{hr} (i{hr} - 1) :: drop i{hr} n{hr}.
 rewrite (drop_nth false (i{hr} - 1)).  smt(). simplify. auto.
 simplify.  
 move => ifalse.  rewrite x. rewrite ifalse. 
-rewrite bs2int_cons. rewrite/b2i. simplify. smt.
+rewrite bs2int_cons. rewrite/b2i. simplify. smt(exp_prop3).
 case (has_true (drop i{hr} n{hr})). progress. 
 case ( ith_bit n{hr} (i{hr} - 1)).
 progress. 
@@ -230,7 +230,8 @@ smt(exp_prop1 exp_prop2 exp_prop3 exp_prop4 op_id op_assoc).
 smt(). 
 skip.  progress. 
 have ->  : (drop (size n{hr}) n{hr}) = []. smt(@List).
-smt.
+have -> : bs2int [] = 0. smt(@BS2Int).
+smt(exp_prop1).
  smt(op_id op_id').
 smt().
 have i0_prop : i0 <= 0. smt().

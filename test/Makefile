@@ -6,7 +6,7 @@ RANDOMLIB ?= common/notrandombytes.c common/notrandombytes1.c
 BIN ?= bin
 
 MIN_NLIMBS    ?= 1
-MAX_NLIMBS    ?= 16
+MAX_NLIMBS    ?= 32
 NLIMBS        := $(shell seq $(MIN_NLIMBS) $(MAX_NLIMBS))
 
 GMP_TARGETS   := $(addprefix $(BIN)/gmp_try_expm_, $(NLIMBS))
