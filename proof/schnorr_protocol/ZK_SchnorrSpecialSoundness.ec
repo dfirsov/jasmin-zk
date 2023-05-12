@@ -84,12 +84,12 @@ rewrite /c in H1'.
 have ->: statement ^^ transcript1.`2 * transcript2.`1 *
   (inv (statement ^^ transcript2.`2) * inv transcript2.`1) =
   statement ^^ transcript1.`2 *
-  (inv (statement ^^ transcript2.`2)). timeout 15. smt.
+  (inv (statement ^^ transcript2.`2)). timeout 100. smt(g_nonz @Zp). 
 (* smt (mulN mulA mul1 mulC). *)
 have ->: inv (statement ^^ transcript2.`2)
   = (statement ^^ - transcript2.`2).
 rewrite pow_opp. auto.
-rewrite   pow_plus. smt. auto.
+rewrite   pow_plus. smt(g_nonz @Zp). auto.
 rewrite pow_pow.
 apply inv_mul. smt().
 qed.

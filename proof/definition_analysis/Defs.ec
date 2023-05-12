@@ -35,8 +35,8 @@ have h1 : forall &m,  Pr[ P.main(x1)@&m : (glob P) = (p_fun x1).`2 ]
  = Pr[ P.main(x2)@&m : (glob P) = (p_fun x1).`2 ].
 progress. apply p_ct. 
 have h2 : forall &m, Pr[P.main(x2) @ &m : (glob P) = (p_fun x1).`2] = 1%r. move => &m. rewrite - h1. 
-  rewrite - (p_deterministic &m x1). smt.
-have h3 : forall &m, Pr[P.main(x2) @ &m : (glob P) = (p_fun x2).`2] = 1%r. move => &m.   rewrite - (p_deterministic &m x2). smt.
+  have := (p_deterministic &m x1). smt(@Distr).
+have h3 : forall &m, Pr[P.main(x2) @ &m : (glob P) = (p_fun x2).`2] = 1%r. move => &m.     have := (p_deterministic &m x2). smt(@Distr).
 move => h.
 have h4 : forall &m, Pr[P.main(x2) @ &m : (glob P) = (p_fun x1).`2 \/ (glob P) = (p_fun x2).`2] = 2%r. move => &m.
 rewrite Pr[mu_disjoint]. progress. smt(). rewrite h2. rewrite h3. simplify. auto.
@@ -88,7 +88,7 @@ have claim2 : (r,g) = p_fun x.
   case (r = (p_fun x).`1). auto.
   move => hh.
     have q : Pr[P.main(x) @ &m : res = (p_fun x).`1] = 1%r.
-    rewrite - (p_deterministic &m x). timeout 15. smt.
+    have := (p_deterministic &m x). smt(@Distr).
     have : Pr[P.main(x) @ &m : res = r \/ res = (p_fun x).`1] = 2%r. rewrite Pr[mu_disjoint]. smt().  rewrite q claim1. auto. smt.
   smt().
 rewrite /g_fun. rewrite /g_fun'.
@@ -99,9 +99,8 @@ have cl : exists x0, P x0.
 exists (Some x). rewrite /P. split. smt().
 simplify. apply h. smt.
 move => hh.
-have : choiceb (fun (i : in_t option) => i <> None /\ (p_fun (oget i)).`2 = g)
-     None <>
-   None. smt.
+have : choiceb (fun (i : in_t option) => i <> None /\ (p_fun (oget i)).`2 = g) None <> None.
+  smt(choiceb_dfl).
 have -> : (if choiceb (fun (i : in_t option) => i <> None /\ (p_fun (oget i)).`2 = g)
      None =
    None then 0%r
