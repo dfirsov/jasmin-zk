@@ -44,7 +44,7 @@ rewrite   (Indexed.prob  &m (RSP a1) (fun z => z = x) _ (i - 1) _).
 progress.  auto. smt(). congr. simplify. smt(@Distr).
 qed.
 
-require import Aux.
+require import AuxLemmas.
 
 (* need to prove what Top.M equals to (W64x2N.modulusR ?) *)
 lemma rsample_uni &m x P : P < M =>  0 <= x =>  RSP P x =>
