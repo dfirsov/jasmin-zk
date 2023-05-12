@@ -1,0 +1,55 @@
+
+/* group order */
+inline fn bn_set_go(stack u64[nlimbs] a) -> stack u64[nlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to nlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
+/* exponent order = group order - 1*/
+inline fn bn_set_eo(stack u64[nlimbs] a) -> stack u64[nlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to nlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
+/* group generator */
+inline fn bn_set_gg(stack u64[nlimbs] a) -> stack u64[nlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to nlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+/* barrett factor for group order */
+inline fn bn_set_bf(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to dnlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
+
+
+/* barrett factor for exponent order */
+inline fn bn_set_eb(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
+  inline int i;
+  a[0] = 1;
+  for i = 1 to dnlimbs {
+    a[i] = 1;
+  }
+  return a;
+}
+
