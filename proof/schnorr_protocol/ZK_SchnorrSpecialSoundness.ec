@@ -36,7 +36,7 @@ lemma pow_plus (g : zp) (a b : int) : unit g => g ^^ (a + b) = (g ^^ a) * (g ^^ 
 lemma pow_inv (g : zp) (a: int) :  g ^^ - a = inv (g ^^ a). progress.  rewrite /(^^). smt(@ZModpRing). qed.
 lemma nosmt pow_opp: forall (x : zp) (p : int), x ^^ -p = inv (x ^^ p). progress.  rewrite /(^^). smt(@ZModpRing). qed.
 
-axiom g_nonz : g <> zero.
+axiom g_nonz : Ring_ops_spec.g <> Zp.zero.
 
 
 

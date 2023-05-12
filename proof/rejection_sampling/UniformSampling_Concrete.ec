@@ -3,7 +3,6 @@ from Jasmin require import JModel.
 
 require import Array32  Array256 WArray256.
 
-
 require import W64_SchnorrExtract.
 
 op f = (fun (a0 : WArray256.t) =>
@@ -456,6 +455,7 @@ call {1} (bn_set0_correct). wp. skip. progress.
 qed.
 
 
+require import UniformSampling_Abstract.
 
 equiv rsample_aspec:
  M.rsample ~ ASpecFp.rsample:
