@@ -8,12 +8,12 @@ EXTRACTED_FILES = proof/jasmin_extracts/W64_SchnorrExtract.ec
 
 # TODO: Add other directories
 PROOF_FILES += $(EXTRACTED_FILES)
-PROOF_FILES += $(wildcard proof/schnorr_protocol/*)
 PROOF_FILES += $(wildcard proof/*)
 PROOF_FILES += $(wildcard proof/modular_multiplication/*)
 PROOF_FILES += $(wildcard proof/montgomery_ladder/*)
 PROOF_FILES += $(wildcard proof/rejection_sampling/*)
-
+PROOF_FILES += $(wildcard proof/schnorr_protocol/*)
+PROOF_FILES += $(wildcard proof/definition_analysis/*)
 
 
 # Replace by "JASMIN_PROGNAME = echo jasmin" to deactivate extraction if you do not have jasmin installed

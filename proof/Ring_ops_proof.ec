@@ -2,7 +2,7 @@ require import AllCore IntDiv CoreMap List RealExp.
 
 from Jasmin require import JModel JBigNum.
 require import Ith_Bit64.
-require import Ring_ops_spec (* Ring_ops_extract *).
+require import Ring_ops_spec.
 require import W64_SchnorrExtract.
 import Array128 Array64 Array32.
 
