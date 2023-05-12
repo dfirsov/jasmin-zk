@@ -687,7 +687,20 @@ have z :  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : true] = Pr[W
 rewrite Pr[mu_split (valR res <> valR arg{m})]. simplify. auto.
 have w :  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : valR res = valR arg{m}] = 1%r.
 byphoare (_: arg = arg{m} ==> _). conseq (bn_expand_correct ( arg{m})).  auto. auto.
-rewrite Pr[mu_split valR res = valR arg{m}]. simplify. smt(@Distr).
+rewrite Pr[mu_split valR res = valR arg{m}]. simplify. 
+have ->: Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   valR res <> valR arg{m} /\ valR res <> valR arg{m}] =
+Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   valR res <> valR arg{m}]. rewrite Pr[mu_eq]. auto. auto.
+have easy_fact1 : Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   valR res <> valR arg{m}] = 0%r. smt(@Distr).
+have easy_fact2 : Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   valR res <> valR arg{m} /\ valR res = valR arg{m}]
+ <= Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   valR res <> valR arg{m}]. smt(@Distr).
+have easy_fact3 : Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   valR res <> valR arg{m} /\ valR res = valR arg{m}] = 0%r. smt(@Distr).
+smt().
 qed.
 
 
