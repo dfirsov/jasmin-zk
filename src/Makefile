@@ -1,24 +1,10 @@
 JASMIN  ?= jasminc
 
-.PHONY: __phony
+default: schnorr_protocol.o
 
-#--
-ring_ops_%.s: __phony
-	$(MAKE) params_$*.jinc
-	$(JASMIN) -nowarning ring_ops.jazz -o $@
+schnorr_protocol.s: $(wildcard *.jazz)
+	$(JASMIN) schnorr_protocol.jazz -o $@
 
-params_%.jinc:
-	echo "param int nlimbs = $*;" > params.jinc
+schnorr_protocol.o : schnorr_protocol.s
 
-#--
-uniform_distr_%.s: __phony
-	$(MAKE) params_$*.jinc
-	$(JASMIN) uniform_distr.jazz -o $@
 
-#--
-
-clean:
-	rm *.s
-
-distclean: clean
-	rm -f params.jinc

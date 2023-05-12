@@ -78,6 +78,7 @@ export fn __commitment(reg u64 commitment_p random_power_p)
   reg u64 commitment_p2 random_power_p2;
   stack u64[nlimbs] commitment rp;
   commitment_p2 = commitment_p;   // relax ABI contraints
+  random_power_p2 = random_power_p; // relax ABI contraints
 
   commitment, rp = commitment();
 
