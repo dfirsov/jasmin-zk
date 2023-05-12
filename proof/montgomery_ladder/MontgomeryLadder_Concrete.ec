@@ -248,7 +248,7 @@ qed.
 
 local lemma exp_same_comp (x : zp) : forall n, 0 <= n => (x ^ n)%Ring_ops_spec = (x ^ n)%Exp.
 apply intind. progress.
-smt.
+smt(@Zp @Ring).
 progress.
 have ->: (x ^ (i + 1))%Ring_ops_spec = x * (x^ i)%Ring_ops_spec. 
  rewrite /(^).
@@ -280,16 +280,16 @@ transitivity ML_Abstract.iterop_spec
 progress.
 exists (arg{1}.`1, int2bs (nlimbs * 64) arg{1}.`2).
 progress.
-smt.
-smt.
-smt.
+admit.
+admit.
+smt(@BS2Int).
 auto.
 proc. sp. skip. progress. 
 pose N := bs2int n{2}.           
-apply exp_same_comp. smt.
+apply exp_same_comp. smt(@BS2Int).
 conseq ml_equiv_abs_conc.
 progress.
-smt.
+smt().
 qed.
 
 

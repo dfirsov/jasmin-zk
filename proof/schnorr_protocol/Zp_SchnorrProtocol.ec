@@ -78,7 +78,7 @@ rewrite - (dl_completeness s w &m). auto.
 byequiv (_: ={arg} ==> _). proc.
 inline*. wp. 
 rnd. wp. rnd.  wp. skip. progress. smt(@Distr @List).
-smt. auto. auto.
+smt(). auto. auto.
 qed.
 
 
@@ -191,7 +191,7 @@ have -> : Pr[SoundnessG(P, SchnorrVerifier).run(s) @ &m : res]
 byequiv (_: ={glob P, arg} ==> _).
 proc. inline*. wp.  call(_:true). wp. 
 rnd. wp.  call (_:true). wp.  skip. progress.
-smt. smt. auto. auto. 
+smt(@Distr). clear H H0. rewrite /verify_transcript. simplify. smt(@Zp). auto. auto. 
 have -> : Pr[ExtractorG(P).extract(s) @ &m : soundness_relation s res] 
  = Pr[Extractor(P').extract(s) @ &m : soundness_relation s res].
 byequiv (_: ={glob P, arg} ==> _). proc.
