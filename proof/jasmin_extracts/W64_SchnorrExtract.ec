@@ -721,10 +721,10 @@ module M(SC:Syscall_t) = {
     
     var i:int;
     
-    a.[0] <- (W64.of_int 1);
+    a.[0] <- (W64.of_int (- 1));
     i <- 1;
     while (i < 32) {
-      a.[i] <- (W64.of_int 1);
+      a.[i] <- (W64.of_int (- 1));
       i <- i + 1;
     }
     return (a);
@@ -735,10 +735,10 @@ module M(SC:Syscall_t) = {
     
     var i:int;
     
-    a.[0] <- (W64.of_int 1);
+    a.[0] <- (W64.of_int (- 1));
     i <- 1;
     while (i < 32) {
-      a.[i] <- (W64.of_int 1);
+      a.[i] <- (W64.of_int (- 1));
       i <- i + 1;
     }
     return (a);
@@ -778,11 +778,11 @@ module M(SC:Syscall_t) = {
     
     var i:int;
     
-    a.[0] <- (W64.of_int 1);
+    a.[0] <- (W64.of_int (- 1));
     aux <- (32 * 2);
     i <- 1;
     while (i < aux) {
-      a.[i] <- (W64.of_int 1);
+      a.[i] <- (W64.of_int (- 1));
       i <- i + 1;
     }
     return (a);

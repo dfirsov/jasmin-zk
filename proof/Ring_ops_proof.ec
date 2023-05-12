@@ -47,12 +47,10 @@ axiom bn_set_gg_prop :
 (* lemma ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs). *)
 (*     rewrite /ri_uncompute nasty_id. trivial. *)
 (* qed. *)
-    
+(* axiom xxx: nasty_id x = x. *)    
 
 op ri_uncompute (p : int) : int.
-axiom xxx: nasty_id x = x.
-axiom ri_un p : ri_uncompute (valR p)%W64xN = (nasty_id ri) (valR p)%W64xN (dnlimbs * nlimbs).
-
+axiom ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs).
 
 
 equiv addc_spec:

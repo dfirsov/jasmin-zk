@@ -1369,14 +1369,14 @@ module M(SC:Syscall_t) = {
     var i:int;
     
     leakages <- LeakAddr([]) :: leakages;
-    aux <- (W64.of_int 1);
+    aux <- (W64.of_int (- 1));
     leakages <- LeakAddr([0]) :: leakages;
     a.[0] <- aux;
     leakages <- LeakFor(1,32) :: LeakAddr([]) :: leakages;
     i <- 1;
     while (i < 32) {
       leakages <- LeakAddr([]) :: leakages;
-      aux <- (W64.of_int 1);
+      aux <- (W64.of_int (- 1));
       leakages <- LeakAddr([i]) :: leakages;
       a.[i] <- aux;
       i <- i + 1;
@@ -1391,14 +1391,14 @@ module M(SC:Syscall_t) = {
     var i:int;
     
     leakages <- LeakAddr([]) :: leakages;
-    aux <- (W64.of_int 1);
+    aux <- (W64.of_int (- 1));
     leakages <- LeakAddr([0]) :: leakages;
     a.[0] <- aux;
     leakages <- LeakFor(1,32) :: LeakAddr([]) :: leakages;
     i <- 1;
     while (i < 32) {
       leakages <- LeakAddr([]) :: leakages;
-      aux <- (W64.of_int 1);
+      aux <- (W64.of_int (- 1));
       leakages <- LeakAddr([i]) :: leakages;
       a.[i] <- aux;
       i <- i + 1;
@@ -1458,7 +1458,7 @@ module M(SC:Syscall_t) = {
     var i:int;
     
     leakages <- LeakAddr([]) :: leakages;
-    aux <- (W64.of_int 1);
+    aux <- (W64.of_int (- 1));
     leakages <- LeakAddr([0]) :: leakages;
     a.[0] <- aux;
     leakages <- LeakFor(1,(32 * 2)) :: LeakAddr([]) :: leakages;
@@ -1466,7 +1466,7 @@ module M(SC:Syscall_t) = {
     i <- 1;
     while (i < aux_0) {
       leakages <- LeakAddr([]) :: leakages;
-      aux <- (W64.of_int 1);
+      aux <- (W64.of_int (- 1));
       leakages <- LeakAddr([i]) :: leakages;
       a.[i] <- aux;
       i <- i + 1;

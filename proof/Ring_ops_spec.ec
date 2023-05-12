@@ -4,6 +4,7 @@ from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
 
 
+
 import Ring.IntID IntOrder.
 
 abbrev nlimbs = 32.
@@ -43,6 +44,7 @@ require ZModP.
 clone import ZModP.ZModField as Zp 
         rename "zmod" as "zp".
 
+print Zp.
 
 op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n. 
 op (^) (x : zp)(n : int) : zp = inzp (asint x ^ n).
@@ -58,6 +60,9 @@ axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
 
 (* cyclic group generator *)
 op g : zp.   
+axiom g_not_zero : g <> Zp.zero.
+lemma g_unit : unit g.  smt(g_not_zero unitE). qed.
+
 
 lemma P_pos : 2 <= p. smt(@Zp). qed.
 axiom M_P : p < M.
