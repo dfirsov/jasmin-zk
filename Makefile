@@ -3,12 +3,12 @@ TIMEOUT = 20
 EXTRACTED_FILES = proof/jasmin_extracts/W64_SchnorrExtract.ec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec
 
 PROOF_FILES += $(EXTRACTED_FILES)
-PROOF_FILES += $(wildcard proof/*)
-PROOF_FILES += $(wildcard proof/modular_multiplication/*)
-PROOF_FILES += $(wildcard proof/montgomery_ladder/*)
-PROOF_FILES += $(wildcard proof/rejection_sampling/*)
-PROOF_FILES += $(wildcard proof/schnorr_protocol/*)
-PROOF_FILES += $(wildcard proof/definition_analysis/*)
+PROOF_FILES += $(wildcard proof/*.ec)
+PROOF_FILES += $(wildcard proof/modular_multiplication/*.ec)
+PROOF_FILES += $(wildcard proof/montgomery_ladder/*.ec)
+PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
+PROOF_FILES += $(wildcard proof/schnorr_protocol/*.ec)
+PROOF_FILES += $(wildcard proof/definition_analysis/*.ec)
 
 
 JASMIN_PROGNAME = jasminc
