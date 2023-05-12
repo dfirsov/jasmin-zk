@@ -14,8 +14,7 @@ PROOF_FILES += $(wildcard proof/definition_analysis/*)
 JASMIN_PROGNAME = jasminc
 EASYCRYPT_PROGNAME = easycrypt
 
-# this is the latest released version with tag "r2022.04"
-EASYCRYPT_REVISION = 577c882
+EASYCRYPT_REVISION = r2022.04
 JASMIN_VERSION = 2022.09.2
 BIGNUM_REVISION = 81639ae
 
