@@ -25,7 +25,6 @@ default : check_all
 # Check all EasyCrypt proofs
 check_all : $(PROOF_FILES:.ec=.eco)
 
-# Check all EasyCrypt files from Jasmin sources
 extract_all : $(EXTRACTED_FILES)
 
 # Use the tested EasyCrypt and Jasmin version in opam
@@ -59,11 +58,10 @@ update_downloads :
 	echo Checking "$<"
 	easycrypt -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I Jasmin:./proof/eclib -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr_protocol -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<" 
 
+# Check all EasyCrypt files from Jasmin sources
 # If you do not have Jasmin, you can remove this block to skip extraction
-proof/jasmin_extracts/W64_SchnorrExtract.ec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec : src/schnorr_protocol.jazz Makefile
+extract_all proof/jasmin_extracts/W64_SchnorrExtract.ec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec : src/schnorr_protocol.jazz Makefile
 	rm -rf proof/jasmin_extracts
 	mkdir proof/jasmin_extracts
-	$(JASMIN_PROGNAME) -ec commitment -ec response -ec challenge -ec verify -oec $@ -oecarray proof/jasmin_extracts $<
+	$(JASMIN_PROGNAME)     -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract.ec    -oecarray proof/jasmin_extracts $<
 	$(JASMIN_PROGNAME) -CT -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec -oecarray proof/jasmin_extracts $<
-
-
