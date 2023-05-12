@@ -1,9 +1,7 @@
 TIMEOUT = 20
 
-# TODO: Add more
-EXTRACTED_FILES = proof/jasmin_extracts/W64_SchnorrExtract.ec
+EXTRACTED_FILES = proof/jasmin_extracts/W64_SchnorrExtract.ec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec
 
-# TODO: Add other directories
 PROOF_FILES += $(EXTRACTED_FILES)
 PROOF_FILES += $(wildcard proof/*)
 PROOF_FILES += $(wildcard proof/modular_multiplication/*)
