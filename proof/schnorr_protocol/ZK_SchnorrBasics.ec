@@ -16,6 +16,17 @@ require import Ring_ops_proof.
 import Zp DZmodP.
 import ZModpRing.
 
+axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
+axiom p_val_prop2 : 2*p < W64xN.modulusR. 
+
+axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
+axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p. 
+
+op g : zp.   
+axiom g_not_zero : g <> Zp.zero.
+lemma g_unit : unit g.  smt(g_not_zero unitE). qed.
+
+
 (* op g : zp. *)
 import Ring.IntID IntOrder.
 

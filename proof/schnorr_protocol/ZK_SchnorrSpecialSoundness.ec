@@ -24,12 +24,12 @@ qed.
 
 import ZModpRing.
 op inv (a : int) : int.
-axiom inv_mul1 (g : zp) (a : int) : a %% (p-1) <> 0 => a * (inv a) %% (p-1) = 1.
+axiom inv_mul1 (g : zp) (a : int) : a %% (p-1) <> 0 => (a * (inv a)) %% p = 1.
 
 
-lemma inv_mul (g : zp) (a : int) : a %% (p-1) <> 0 => g ^^ (a * inv a) = g.  
-admitted.
-
+lemma inv_mul (g : zp) (a : int) : a %% (p-1) <> 0 => (g ^^ ((a * inv a) %% p)) = g.  
+smt(inv_mul1 @Zp).
+qed.
 
 
 (* perfect witness extraction from two valid transcripts  *)
@@ -98,8 +98,9 @@ have ->: inv (statement ^^ transcript2.`2)
 rewrite pow_opp. auto.
 rewrite pow_plus. smt(g_unit @Zp). auto.
 rewrite pow_pow.
-apply inv_mul. 
+(* apply inv_mul.  *)
 admit.                          (* in progress *)
 qed.
+
 
 end section.

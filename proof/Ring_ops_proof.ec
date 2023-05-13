@@ -23,18 +23,6 @@ lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
 smt(@Real).
 qed.
 
-(* TODO: think about how to....?  *)
-axiom bn_set_bf_prop : 
-  phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
-axiom bn_set_go_prop : 
-  phoare[ M.bn_set_go : true ==> valR res = p  ] = 1%r.
-axiom bn_set_eo_prop : 
-  phoare[ M.bn_set_eo : true ==> valR res = p-1  ] = 1%r.
-axiom bn_set_eb_prop : 
-  phoare[ M.bn_set_eb : true ==> W64x2N.valR res = Rip  ] = 1%r.
-axiom bn_set_gg_prop : 
-  phoare[ M.bn_set_gg : true ==> valR res = Sub.val g  ] = 1%r.
-
 (* TODO: Ri  *)
 (* op nasty_id ['a] = choiceb (fun (x:'a->'a) => x = (fun x => x)) witness. *)
 (* lemma nasty_id ['a] (x:'a): nasty_id x = x. *)
