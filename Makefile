@@ -30,10 +30,13 @@ check_all : $(PROOF_FILES:.ec=.eco)
 extract_all : $(EXTRACTED_FILES)
 
 # Use the tested EasyCrypt and Jasmin version in opam
+# Requirements in Arch: sudo pacman -S z3 cvc4 pkg-config gmp pcre zlib mpfr ppl autoconf
+# Requirements in Ubuntu: sudo apt install opam cvc4 pkg-config libgmp-dev libpcre3-dev zlib1g-dev libmpfr-dev libppl-dev autoconf python3-distutils
+# Current versioon of `apron` fails to build on newer systems. Temporary workaround: opam pin add apron --dev-repo
 opam_pin :
 	opam update
 	opam pin add easycrypt https://github.com/EasyCrypt/easycrypt.git#$(EASYCRYPT_REVISION)
-	opam install easycrypt jasmin.$(JASMIN_VERSION)
+	opam install easycrypt jasmin.$(JASMIN_VERSION) alt-ergo
 	why3 config detect
 
 # Downloads files in eclib
