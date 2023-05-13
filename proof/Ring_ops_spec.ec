@@ -1,4 +1,4 @@
-require import Core Int IntDiv Ring IntDiv StdOrder List Distr .
+require import Core Int IntDiv Ring IntDiv StdOrder List Distr Real.
 
 from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
@@ -44,7 +44,6 @@ require ZModP.
 clone import ZModP.ZModField as Zp 
         rename "zmod" as "zp".
 
-print Zp.
 
 op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n. 
 op (^) (x : zp)(n : int) : zp = inzp (asint x ^ n).
@@ -63,7 +62,6 @@ op g : zp.
 axiom g_not_zero : g <> Zp.zero.
 lemma g_unit : unit g.  smt(g_not_zero unitE). qed.
 
-
 lemma P_pos : 2 <= p. smt(@Zp). qed.
 axiom M_P : p < M.
 
@@ -73,7 +71,8 @@ axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1).
 axiom p_val_prop2 : 2*p < W64xN.modulusR. 
 
 axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
-axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p. (* provable *)
+axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p. 
+
 
         
 (** "Implements" relation *)

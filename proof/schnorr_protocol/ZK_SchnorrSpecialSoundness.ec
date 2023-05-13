@@ -1,4 +1,3 @@
-
 require import Int IntDiv.
 require import Real.
 require import Distr.
@@ -8,40 +7,48 @@ require import StdOrder.
 
 
 require import ZK_SchnorrBasics.
+
 require import Ring_ops_spec Ring_ops_proof.
+
 import Zp DZmodP.
 
 import Ring.IntID IntOrder.
 
-op inv : int -> int.
-axiom inv_mul (g : zp) (a : int) : a <> 0 => g ^^ (a * inv a) = g. 
-axiom pow_mod (g : zp) (a : int) : g ^^ a  = g ^^ (a %% (p-1)). 
+lemma pow_mod  (a : int) : g ^^ a  = g ^^ (a %% (p-1)).  
+rewrite /(^^).
+apply (Zp.exp_mod  g a (p-1)).
+apply exp_sub_p_1.
+apply g_unit.
+qed.
 
 
+import ZModpRing.
+op inv (a : int) : int.
+axiom inv_mul1 (g : zp) (a : int) : a %% (p-1) <> 0 => a * (inv a) %% (p-1) = 1.
+
+
+lemma inv_mul (g : zp) (a : int) : a %% (p-1) <> 0 => g ^^ (a * inv a) = g.  
+admitted.
 
 
 
 (* perfect witness extraction from two valid transcripts  *)
-op special_soundness_extract (_ : dl_stat) (t1 t2 : transcript): dl_wit
- = ((inv (t1.`2 - t2.`2)) * (t1.`3  - t2.`3)) %% (p-1).
+op special_soundness_extract (s : dl_stat) (t1 t2 : transcript): dl_wit
+ = ((inv  (t1.`2 - t2.`2)) * (t1.`3  - t2.`3)) %% (p-1).
 
 clone export SpecialSoundness with op special_soundness_extract <- special_soundness_extract
 proof *.
 
 
 
-
 lemma pow_pow: forall (g : zp) (x y : int), (g ^^ x) ^^ y = g ^^ (x * y). progress.  rewrite /(^^). smt(@ZModpRing). qed.
-lemma pow_plus (g : zp) (a b : int) : unit g => g ^^ (a + b) = (g ^^ a) * (g ^^ b). progress.  rewrite /(^^). smt(@ZModpRing). qed.
-lemma pow_inv (g : zp) (a: int) :  g ^^ - a = inv (g ^^ a). progress.  rewrite /(^^). smt(@ZModpRing). qed.
+lemma pow_plus  (g : zp) (a b : int) : unit g => g ^^ (a + b) = (g ^^ a) * (g ^^ b). progress.  rewrite /(^^). smt(@ZModpRing). qed.
+lemma pow_inv  (a: int) :  g ^^ - a = inv  (g ^^ a). progress.  rewrite /(^^). smt(@ZModpRing). qed.
 lemma nosmt pow_opp: forall (x : zp) (p : int), x ^^ -p = inv (x ^^ p). progress.  rewrite /(^^). smt(@ZModpRing). qed.
-
-axiom g_nonz : Ring_ops_spec.g <> Zp.zero.
 
 
 
 section. 
-
 
 
 (* proof of perfect special soundness  *)
@@ -64,7 +71,7 @@ rewrite H in H1'.
 clear H.
 have ->:
 (inv (transcript1.`2 - transcript2.`2) * (transcript1.`3 - transcript2.`3))
-  = ((transcript1.`3 - transcript2.`3) * inv (transcript1.`2 - transcript2.`2)). smt.
+  = ((transcript1.`3 - transcript2.`3) * inv (transcript1.`2 - transcript2.`2) ). smt.
 rewrite - pow_mod. 
 rewrite - pow_pow.
 have -> : 
@@ -84,14 +91,15 @@ rewrite /c in H1'.
 have ->: statement ^^ transcript1.`2 * transcript2.`1 *
   (inv (statement ^^ transcript2.`2) * inv transcript2.`1) =
   statement ^^ transcript1.`2 *
-  (inv (statement ^^ transcript2.`2)). timeout 100. smt(g_nonz @Zp). 
+  (inv (statement ^^ transcript2.`2)). timeout 100. smt(g_unit @Zp). 
 (* smt (mulN mulA mul1 mulC). *)
 have ->: inv (statement ^^ transcript2.`2)
   = (statement ^^ - transcript2.`2).
 rewrite pow_opp. auto.
-rewrite   pow_plus. smt(g_nonz @Zp). auto.
+rewrite pow_plus. smt(g_unit @Zp). auto.
 rewrite pow_pow.
-apply inv_mul. smt().
+apply inv_mul. 
+admit.                          (* in progress *)
 qed.
 
 end section.

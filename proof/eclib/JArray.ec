@@ -45,10 +45,8 @@ abstract theory MonoArray.
   hint simplify initiE.
   (* -------------------------------------------------------------------- *)
   op "_.[_<-_]" (t:t) (i:int) (e:elem) =
-    init (fun j => if j = i then e else t.[j]).
-  lemma setE (t:t) (i:int) (e:elem):
-    "_.[_<-_]" t i e = init (fun j => if j = i then e else t.[j])
-    by rewrite /"_.[_<-_]".
+    init (fun j => if j = i then e else t.[j])
+  axiomatized by setE.
 
   lemma get_set_if (t:t) (i j :int) (a:elem) :
     t.[i <- a].[j] = if 0 <= i < size /\ j = i then a else t.[j].
@@ -114,16 +112,12 @@ abstract theory MonoArray.
 
   (* -------------------------------------------------------------------- *)
   op of_list (l:elem list) =
-    init (fun i => nth dfl l i).
-  lemma of_listE (l:elem list):
-    of_list l = init (fun i => nth dfl l i)
-    by rewrite /of_listE.
+    init (fun i => nth dfl l i)
+  axiomatized by of_listE.
 
   op to_list (t:t) =
-    mkseq (fun i => t.[i]) size.
-  lemma to_listE (t:t):
-    to_list t = mkseq (fun i => t.[i]) size
-    by rewrite /to_list.
+    mkseq (fun i => t.[i]) size
+  axiomatized by to_listE.
 
   lemma size_to_list (t:t): size (to_list t) = size.
   proof. rewrite to_listE size_mkseq /max; smt (ge0_size). qed.
@@ -187,10 +181,8 @@ abstract theory MonoArray.
 
   (* -------------------------------------------------------------------- *)
   op map (f: elem -> elem) (t:t) : t =
-     init (fun i => f t.[i]).
-  lemma mapE (f: elem -> elem) (t:t):
-    map f t = init (fun i => f t.[i])
-    by rewrite /map.
+     init (fun i => f t.[i])
+  axiomatized by mapE.
 
   lemma mapiE f t i : 0 <= i < size => (map f t).[i] = f t.[i].
   proof. by rewrite mapE;apply initiE. qed.
@@ -210,10 +202,8 @@ abstract theory MonoArray.
 
   (* -------------------------------------------------------------------- *)
   op map2 (f: elem -> elem -> elem) (t1 t2:t) : t =
-    init (fun i => f t1.[i] t2.[i]).
-  lemma map2E (f: elem -> elem -> elem) (t1 t2:t) :
-    map2 f t1 t2 = init (fun i => f t1.[i] t2.[i])
-    by rewrite /map2.
+    init (fun i => f t1.[i] t2.[i])
+  axiomatized by map2E.
 
   lemma map2iE f t1 t2 i : 0 <= i < size => (map2 f t1 t2).[i] = f t1.[i] t2.[i].
   proof. by rewrite map2E;apply initiE. qed.
@@ -235,7 +225,7 @@ abstract theory MonoArray.
     rewrite (nth_map 0) 1:// (nth_map (dfl,dfl)).
     + rewrite size_zip StdOrder.IntOrder.minrE /= !size_map.
       smt (size_iota ge0_size).
-    rewrite /= nth_zip ?size_map //=.
+    rewrite /= nth_zip ?size_map //=; 1: smt (size_iota ge0_size).
     rewrite !(nth_map 0) // !nth_iota //; smt (ge0_size size_iota).
   qed.
 
@@ -259,10 +249,8 @@ abstract theory MonoArray.
 
   (* -------------------------------------------------------------------- *)
   op fill (f : int -> elem) (k len : int) (t : t) =
-    init (fun i => if k <= i < k + len then f i else t.[i]).
-  lemma fillE (f : int -> elem) (k len : int) (t : t):
-    fill f k len t = init (fun i => if k <= i < k + len then f i else t.[i])
-    by rewrite /fill.
+    init (fun i => if k <= i < k + len then f i else t.[i])
+  axiomatized by fillE.
 
   lemma filliE (f : int -> elem) (k len:int) (t : t)  i : 0 <= i < size =>
     (fill f k len t).[i] = if k <= i < k + len then f i else t.[i].
@@ -315,10 +303,8 @@ abstract theory PolyArray.
 
   (* -------------------------------------------------------------------- *)
   op "_.[_<-_]" (t:'a t) (i:int) (e:'a) =
-    init (fun j => if j = i then e else t.[j]).
-  lemma setE (t:'a t) (i:int) (e:'a):
-    "_.[_<-_]" t i e = init (fun j => if j = i then e else t.[j])
-    by rewrite /"_.[_<-_]".
+    init (fun j => if j = i then e else t.[j])
+  axiomatized by setE.
 
   lemma get_set_if (t:'a t) (i j :int) (a:'a) :
     t.[i <- a].[j] = if 0 <= i < size /\ j = i then a else t.[j].
@@ -394,10 +380,8 @@ abstract theory PolyArray.
   qed.
 
   (* -------------------------------------------------------------------- *)
-  op create (a:'a) = init (fun (i:int) => a).
-  lemma createE (a:'a):
-    create a = init (fun (i:int) => a)
-    by rewrite /create.
+  op create (a:'a) = init (fun (i:int) => a)
+  axiomatized by createE.
 
   lemma createiE (a:'a) i : 0 <= i < size => (create a).[i] = a.
   proof. by rewrite createE;apply initiE. qed.
@@ -406,10 +390,8 @@ abstract theory PolyArray.
 
   (* -------------------------------------------------------------------- *)
   op map ['a, 'b] (f: 'a -> 'b) (t:'a t) : 'b t =
-     init (fun i => f t.[i]).
-  lemma mapE ['a, 'b] (f: 'a -> 'b) (t:'a t) :
-    map f t = init (fun i => f t.[i])
-    by rewrite /map.
+     init (fun i => f t.[i])
+  axiomatized by mapE.
 
   lemma mapiE ['a, 'b] (f: 'a -> 'b) t i : 0 <= i < size => (map f t).[i] = f t.[i].
   proof. by rewrite mapE;apply initiE. qed.
@@ -418,10 +400,8 @@ abstract theory PolyArray.
 
   (* -------------------------------------------------------------------- *)
   op map2 ['a, 'b, 'c] (f: 'a -> 'b -> 'c) t1 t2 =
-     init (fun i => f t1.[i] t2.[i]).
-  lemma map2E ['a, 'b, 'c] (f: 'a -> 'b -> 'c) t1 t2:
-    map2 f t1 t2 = init (fun i => f t1.[i] t2.[i])
-    by rewrite /map2.
+     init (fun i => f t1.[i] t2.[i])
+  axiomatized by map2E.
 
   lemma map2iE ['a, 'b, 'c] (f: 'a -> 'b -> 'c) t1 t2 i : 0 <= i < size =>
     (map2 f t1 t2).[i] = f t1.[i] t2.[i].
@@ -510,10 +490,8 @@ abstract theory PolyArray.
 
   (* -------------------------------------------------------------------- *)
   op fill (f : int -> 'a) (k len : int) (t : 'a t) =
-    init (fun i => if k <= i < k + len then f i else t.[i]).
-  lemma fillE (f : int -> 'a) (k len : int) (t : 'a t):
-    fill f k len t = init (fun i => if k <= i < k + len then f i else t.[i])
-    by rewrite /fill.
+    init (fun i => if k <= i < k + len then f i else t.[i])
+  axiomatized by fillE.
 
   lemma filliE (f : int -> 'a) (k len:int) (t : 'a t)  i : 0 <= i < size =>
     (fill f k len t).[i] = if k <= i < k + len then f i else t.[i].

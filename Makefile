@@ -14,9 +14,10 @@ PROOF_FILES += $(wildcard proof/definition_analysis/*.ec)
 JASMIN_PROGNAME = jasminc
 EASYCRYPT_PROGNAME = easycrypt
 
-EASYCRYPT_REVISION = r2022.04
+
+EASYCRYPT_REVISION = 94538c5
 JASMIN_VERSION = 2022.09.2
-BIGNUM_REVISION = 81639ae
+BIGNUM_REVISION = e5c3a1e
 EASYCRYPT_ZK_REVISION = 4a99a0f
 
 .DELETE_ON_ERROR :
@@ -51,7 +52,7 @@ update_downloads :
 	mkdir -p proof/eclib
 	cp tmp/unpack-jasmin/*/eclib/*.ec proof/eclib/
 	cp tmp/unpack-bignum/*/proof/eclib_extra/JBigNum.ec proof/eclib/
-	cp tmp/unpack-bignum/*/proof/eclib/JArray.ec proof/eclib/
+# cp tmp/unpack-bignum/*/proof/eclib/JArray.ec proof/eclib/
 	cp -a tmp/zk_unpack/easycrypt-zk-code-* easycrypt-zk-code
 
 

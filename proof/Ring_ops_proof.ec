@@ -583,7 +583,8 @@ smt(). smt(@Array64). smt(). skip. progress.
 smt(). smt().
 have ->:  W64x2N.modulusR  = W64x2N.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
 have ->: (R2.bnk (2*dnlimbs) x{hr})%R2 = valR2 x{hr}. auto.
-rewrite R2.bghint_div. auto.
+rewrite R2.bn_div_kup.
+auto.
 rewrite - R.bnkup0.
 rewrite /bnkup.
 have ->: 
