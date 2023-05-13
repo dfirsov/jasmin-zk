@@ -16,6 +16,7 @@ clone import BigNum as W64xN with
  op nlimbs <- nlimbs,
  theory R.A <= Array32,
  theory R2.A <= Array64
+  (* TODO proof* or make this theory abstract *)
  proof gt0_nlimbs by done.
 
 
@@ -23,6 +24,7 @@ clone import BigNum as W64x2N with
  op nlimbs <- dnlimbs,
  theory R.A <= Array64,
  theory R2.A <= Array128
+  (* TODO proof* or make this theory abstract *)
  proof gt0_nlimbs by done.
 
  
@@ -44,6 +46,7 @@ lemma D_mu x : x \in D => mu1 D x = Real.inv M%r. smt(@Distr). qed.
 require ZModP.
 clone import ZModP.ZModField as Zp 
         rename "zmod" as "zp".
+  (* TODO proof* or make this theory abstract *)
 
 
 op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n. 

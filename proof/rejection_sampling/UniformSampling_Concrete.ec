@@ -160,6 +160,8 @@ clone import SurjFromInj as GetSurj with type a <- t,
                                          op f <- h,
                                          op alist <- all_256words,
                                          op blist <- all_w64xN.
+  (* TODO proof* or make this theory abstract *)
+
 lemma h_surj : surjective h.    
 apply f_surj. 
 apply all_256words_uniq.

@@ -5,6 +5,7 @@ require RejectionSampling.
 clone import RejectionSampling as RS with type X <- int,
                                           op d <- D,
                                           op defX <- 0.
+  (* TODO proof* or make this theory abstract *)
 
 
 
