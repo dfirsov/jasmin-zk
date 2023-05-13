@@ -1,5 +1,13 @@
 require import AllCore Distr Finite List.
 
+op nasty_id ['a] = choiceb (fun (x:'a->'a) => x = (fun x => x)) witness.
+lemma nasty_id ['a] (x:'a): nasty_id x = x.
+    have : (fun (x:'a->'a) => x = (fun x => x)) nasty_id.
+    rewrite /nasty_id. apply choicebP. smt().
+    smt().
+qed.
+
+
 op LessThan (n x : int) = 0 <= x < n.
 
 lemma inveq a b : 1%r / a = 1%r / b => a = b.

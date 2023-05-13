@@ -152,7 +152,27 @@ progress.
 smt(@Array256).
 qed.
 
-axiom h_surj : surjective h.    (* types are finite and of the same cardinality *)
+(* types are finite and of the same cardinality *)
+require import SurjFromInj.
+require import FinLists.
+clone import SurjFromInj as GetSurj with type a <- t,
+                                         type b <- W64.t Array32.t,
+                                         op f <- h,
+                                         op alist <- all_256words,
+                                         op blist <- all_w64xN.
+lemma h_surj : surjective h.    
+apply f_surj. 
+apply all_256words_uniq.
+apply all_w64xN_uniq.
+rewrite all_256words_size.
+rewrite all_w64xN_size. by ring.
+apply all_256words_full.
+apply all_w64xN_full.
+apply h_inj.
+qed.
+
+
+
 require import DList.
 
 lemma darray_ll:

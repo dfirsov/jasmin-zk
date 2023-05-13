@@ -166,7 +166,7 @@ have q1: 0 <= Ri. rewrite Ri_def.
 rewrite divz_ge0. smt(P_pos). smt(@Ring).
 have q2: Ri < W64x2N.modulusR .
   have ->: W64x2N.modulusR = (2^ (64 * dnlimbs)). rewrite /W64x2N.modulusR. smt(@Ring).
-  have -> : Ri = (ri p (64 * nlimbs)). rewrite /Ri. rewrite /ri. rewrite Ri_def. smt().
+  have -> : Ri = (ri p (64 * nlimbs)). rewrite /ri. rewrite Ri_def. smt().
   have : (ri p (64 * nlimbs))%r <= ((4 ^ (64*nlimbs))%r / p%r).  rewrite - same_ri. smt(P_pos). smt().
   rewrite /r.  rewrite - exp_lemma1. smt(). smt(). smt(floor_bound).
   have -> : (4 ^ (64 * nlimbs))%r = ((2 * 2) ^ (64 * nlimbs))%r. smt().
@@ -280,8 +280,16 @@ transitivity ML_Abstract.iterop_spec
 progress.
 exists (arg{1}.`1, int2bs (nlimbs * 64) arg{1}.`2).
 progress.
-admit.
-admit.
+have : b{1} < modulusR. smt(@W64xN).
+search bs2int int2bs.
+rewrite int2bsK. auto. split. rewrite H1. smt(@W64xN). 
+have : 2 ^ 2048  = W64xN.modulusR. ring.
+move => q. rewrite q. smt(R.bnk_cmp). auto.
+have : b{1} < modulusR. smt(@W64xN).
+search bs2int int2bs.
+rewrite int2bsK. auto. split. rewrite H1. smt(@W64xN). 
+have : 2 ^ 2048  = W64xN.modulusR. ring.
+move => q. rewrite q. smt(R.bnk_cmp). auto.
 smt(@BS2Int).
 auto.
 proc. sp. skip. progress. 

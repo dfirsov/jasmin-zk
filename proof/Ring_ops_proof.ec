@@ -3,6 +3,7 @@ require import AllCore IntDiv CoreMap List RealExp.
 from Jasmin require import JModel JBigNum.
 require import Ith_Bit64.
 require import Ring_ops_spec.
+require import AuxLemmas.
 require import W64_SchnorrExtract.
 import Array128 Array64 Array32.
 
@@ -23,22 +24,12 @@ lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
 smt(@Real).
 qed.
 
-(* TODO: Ri  *)
-(* op nasty_id ['a] = choiceb (fun (x:'a->'a) => x = (fun x => x)) witness. *)
-(* lemma nasty_id ['a] (x:'a): nasty_id x = x. *)
-(*     have : (fun (x:'a->'a) => x = (fun x => x)) nasty_id. *)
-(*     rewrite /nasty_id. apply choicebP. smt(). *)
-(*     smt(). *)
-(* qed. *)
+op ri_uncompute p = (nasty_id ri) p (dnlimbs * nlimbs).
 
-(* op ri_uncompute p = (nasty_id ri) p (dnlimbs * nlimbs). *)
-(* lemma ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs). *)
-(*     rewrite /ri_uncompute nasty_id. trivial. *)
-(* qed. *)
-(* axiom xxx: nasty_id x = x. *)    
+lemma ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs).
+    rewrite /ri_uncompute nasty_id. trivial.
+qed.
 
-op ri_uncompute (p : int) : int.
-axiom ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs).
 
 
 equiv addc_spec:
