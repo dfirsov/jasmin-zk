@@ -16,6 +16,7 @@ require import Ring_ops_proof.
 import Zp DZmodP.
 import ZModpRing.
 
+  (* TODO remove axioms or make this theory abstract *)
 axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
 axiom p_val_prop2 : 2*p < W64xN.modulusR. 
 
@@ -70,6 +71,7 @@ clone include GenericSigmaProtocol with
   op soundness_relation    <- soundness_relation,
   op completeness_relation <- completeness_relation,
   op zk_relation           <- zk_relation.
+  (* TODO proof* or make this theory abstract *)
 
 
 (* Honest Prover *)

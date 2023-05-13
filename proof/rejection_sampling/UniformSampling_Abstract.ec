@@ -10,6 +10,7 @@ realize dll. apply D_ll. qed.
 
 
 
+
 op RSP (a:int) x =  x < a.
 lemma rsample_pr1  a1  &m r : 
   Pr[CSpecFp.rsample(a1) @ &m : res = r]
