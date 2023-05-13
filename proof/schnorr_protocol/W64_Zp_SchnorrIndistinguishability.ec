@@ -17,6 +17,20 @@ require import Ring_ops_proof.
 
 
 
+(* TODO: think about how to....?  *)
+axiom bn_set_bf_prop : 
+  phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
+axiom bn_set_go_prop : 
+  phoare[ M.bn_set_go : true ==> valR res = p  ] = 1%r.
+axiom bn_set_eo_prop : 
+  phoare[ M.bn_set_eo : true ==> valR res = p-1  ] = 1%r.
+axiom bn_set_eb_prop : 
+  phoare[ M.bn_set_eb : true ==> W64x2N.valR res = Rip  ] = 1%r.
+axiom bn_set_gg_prop : 
+  phoare[ M.bn_set_gg : true ==> valR res = Sub.val g  ] = 1%r.
+
+
+
 lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@Zp). qed.
 lemma zp_mul (z1 z2 : zp) : val (z1 * z2) = (val z1 * val z2) %% p. smt(@Zp). qed.
 lemma inzpKK: forall (z : int), val (inzp z) = z %% p. smt(@Zp). qed.

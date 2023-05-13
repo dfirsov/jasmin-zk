@@ -1,4 +1,5 @@
 require import Core Int IntDiv Ring IntDiv StdOrder List Distr Real.
+require import AuxLemmas.
 
 from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
@@ -51,29 +52,25 @@ op (^) (x : zp)(n : int) : zp = inzp (asint x ^ n).
 lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
 smt(@Int). qed.
 
+
+
 (* constants to make typechecking faster *)
-op Ri : int.
-axiom Ri_def : Ri = 4 ^ (64 * nlimbs) %/ p.
-op Rip : int.
-axiom Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
+
+op Ri : int = nasty_id (4 ^ (64 * nlimbs) %/ p).
+lemma Ri_def : Ri = (4 ^ (64 * nlimbs) %/ p).
+rewrite /Ri. smt(nasty_id). qed.
+
+op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ (p-1)).
+lemma Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
+rewrite /Rip. smt(nasty_id). qed.
+
+
 
 (* cyclic group generator *)
-op g : zp.   
-axiom g_not_zero : g <> Zp.zero.
-lemma g_unit : unit g.  smt(g_not_zero unitE). qed.
-
 lemma P_pos : 2 <= p. smt(@Zp). qed.
 axiom M_P : p < M.
 
 lemma pmoval:  p - 1 < W64xN.modulusR. by smt(@Int M_P). qed.
-
-axiom p_val_prop1 x : W64xN.valR x < (p-1) * (p-1). 
-axiom p_val_prop2 : 2*p < W64xN.modulusR. 
-
-axiom exp_pow x n : x ^^ n = x ^^ (n %% (p-1)).
-axiom exps (s : zp) c : Sub.val (s ^^ c) = ((Sub.val s) ^ c) %% p. 
-
-
         
 (** "Implements" relation *)
 abbrev ImplWord x y = W64.to_uint x = y.
