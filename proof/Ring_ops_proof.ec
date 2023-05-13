@@ -30,8 +30,6 @@ lemma ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimb
     rewrite /ri_uncompute nasty_id. trivial.
 qed.
 
-
-
 equiv addc_spec:
  M.bn_addc ~ ASpecFp.addn:
   ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2}
