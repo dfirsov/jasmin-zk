@@ -4,7 +4,9 @@ require import Ring_ops_spec.
 require RejectionSampling.
 clone import RejectionSampling as RS with type X <- int,
                                           op d <- D,
-                                          op defX <- 0.
+                                          op defX <- 0
+proof*. 
+realize dll. apply D_ll. qed.
 
 
 

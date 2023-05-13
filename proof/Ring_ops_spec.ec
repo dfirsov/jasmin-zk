@@ -11,26 +11,30 @@ import Ring.IntID IntOrder.
 abbrev nlimbs = 32.
 abbrev dnlimbs = 64.
 
+require import Array3.
 
 clone import BigNum as W64xN with
  op nlimbs <- nlimbs,
  theory R.A <= Array32,
- theory R2.A <= Array64
- proof gt0_nlimbs by done.
+ theory R2.A <= Array64,
+ theory Array3 <= Array3
+proof*.
+realize gt0_nlimbs by done.
 
 
 clone import BigNum as W64x2N with
  op nlimbs <- dnlimbs,
  theory R.A <= Array64,
- theory R2.A <= Array128
- proof gt0_nlimbs by done.
+ theory R2.A <= Array128,
+ theory Array3 <= Array3
+proof*.
+realize gt0_nlimbs by done.
 
  
 type R = W64.t Array32.t.
 type R2 = W64.t Array64.t.
 
 op M : int = W64xN.modulusR.
-
 
 op D : int distr = duniform (range 0 M).
 lemma D_ll : is_lossless D. apply duniform_ll.  
@@ -53,8 +57,7 @@ lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
 smt(@Int). qed.
 
 
-
-(* constants to make typechecking faster *)
+(* opaque constants to make typechecking faster *)
 
 op Ri : int = nasty_id (4 ^ (64 * nlimbs) %/ p).
 lemma Ri_def : Ri = (4 ^ (64 * nlimbs) %/ p).
