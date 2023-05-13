@@ -3,9 +3,16 @@ import Ring.IntID IntOrder.
 
 require import BarrettRedInt BarrettReduction_Abstract Ring_ops_spec Ring_ops_proof.
 require import W64_SchnorrExtract.
-
+require import AuxLemmas.
 import W64x2N.
 import W64xN.
+
+
+op ri_uncompute p = (nasty_id ri) p (dnlimbs * nlimbs).
+lemma ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs).
+    rewrite /ri_uncompute nasty_id. trivial.
+qed.
+
 
 equiv breduce_cspec:
  M(Syscall).bn_breduce ~ CSpecFp.redm:

@@ -3,9 +3,6 @@ require import AuxLemmas.
 
 from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
-
-
-
 import Ring.IntID IntOrder.
 
 abbrev nlimbs = 32.
@@ -21,6 +18,20 @@ clone import BigNum as W64xN with
 proof*.
 realize gt0_nlimbs by done.
 
+
+op as_word (x : bool) : W64.t  = x ? W64.one : W64.zero.
+op ith_bitword64 (n : W64.t) (x : int)  : W64.t = as_word (n.[x]).
+
+
+lemma ones64 : (2^64  - 1)  = 18446744073709551615. smt(). qed.
+op as_bool (x : W64.t) : bool  = (x = W64.one).
+op as_w64 (x : bool) : W64.t  = x ? W64.one : W64.zero.
+
+
+lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
+ a <= b / c => a < b.
+smt(@Real).
+qed.
 
 
 clone import BigNum as W64x2N with
@@ -60,15 +71,17 @@ smt(@Int). qed.
 
 
 (* opaque constants to make typechecking faster *)
-
 op Ri : int = nasty_id (4 ^ (64 * nlimbs) %/ p).
 lemma Ri_def : Ri = (4 ^ (64 * nlimbs) %/ p).
 rewrite /Ri. smt(nasty_id). qed.
 
+op oneR : R = (of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero ))%Array32.
+
+op R : W64.t Array64.t = W64xN.R2.bn_ofint Ri.
+
 op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ (p-1)).
 lemma Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
 rewrite /Rip. smt(nasty_id). qed.
-
 
 
 (* cyclic group generator *)

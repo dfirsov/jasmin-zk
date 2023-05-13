@@ -67,10 +67,10 @@ rewrite - iteropi. auto. auto.
 smt().
 qed.
 
-
+require import AuxLemmas.
 lemma exp_prop3'' x : forall i, 0 <= i => x ^ (1 + i) = x ^ i *** x.
 apply intind. smt.
-progress. smt.
+progress. timeout 10. smt.
 qed.
 
 

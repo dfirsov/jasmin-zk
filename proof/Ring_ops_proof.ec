@@ -1,34 +1,17 @@
 require import AllCore IntDiv CoreMap List RealExp.
+import StdBigop Bigint BIA.
 
 from Jasmin require import JModel JBigNum.
-require import Ith_Bit64.
-require import Ring_ops_spec.
-require import AuxLemmas.
-require import W64_SchnorrExtract.
-import Array128 Array64 Array32.
+require import W64_SchnorrExtract Array128 Array64 Array32.
 
+require import Ring_ops_spec AuxLemmas.
 import Zp W64xN R.
-import StdBigop Bigint BIA.
-require import BarrettRedInt.
 
-
-op R : W64.t Array64.t = R2.bn_ofint Ri.
-lemma ones64 : (2^64  - 1)  = 18446744073709551615. smt(). qed.
-op as_bool (x : W64.t) : bool  = (x = W64.one).
-op as_w64 (x : bool) : W64.t  = x ? W64.one : W64.zero.
+require import BitEncoding.
+import BS2Int.
 
 module M = M(Syscall).
 
-lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
- a <= b / c => a < b.
-smt(@Real).
-qed.
-
-op ri_uncompute p = (nasty_id ri) p (dnlimbs * nlimbs).
-
-lemma ri_un p : ri_uncompute (valR p)%W64xN = ri (valR p)%W64xN (dnlimbs * nlimbs).
-    rewrite /ri_uncompute nasty_id. trivial.
-qed.
 
 equiv addc_spec:
  M.bn_addc ~ ASpecFp.addn:
@@ -92,7 +75,6 @@ proc. wp. skip. progress. auto. auto.
 byequiv. conseq addc_spec.  
 progress.  smt(). auto. auto.
 qed.
-
     
 
 lemma bn_cmov_correct x y z :
@@ -195,6 +177,7 @@ progress.
     by rewrite W64xN.R.bn_borrowE 1:/# b2i0 /bn_modulus /=.
 qed.
 
+
 equiv cminus_spec:
  M.cminusP ~ ASpecFp.cminus:
  W64xN.valR p{1} = p{2} /\ W64xN.valR x{1} = a{2} /\ 0 <= p{2}  ==> W64xN.valR res{1}  =res{2}.
@@ -223,8 +206,6 @@ move => qq.
 have qqq : a{2} - p{2} < modulusR. smt(@Int).
 smt(@Int).
 qed.
-
-
 
 
 equiv addm_spec_eq:
@@ -465,11 +446,6 @@ apply Array64.ext_eq. progress. smt(@Array64).
 qed.
 
 
-
-require import List.
-
-op oneR : R = (of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero ))%Array32.
-
     (* TODO: nlimbs specific *)
 lemma oneRE: ImplZZ oneR 1.
 rewrite /oneR /valR /bnk.
@@ -635,11 +611,10 @@ lemma bn_expand_correct : forall a,
       = mkseq (fun (i0 : int) => W64.zero) nlimbs.
     apply eq_in_mkseq. progress. rewrite H0. smt(). auto.
     have -> : mkseq (fun (_ : int) => W64.zero) nlimbs = nseq nlimbs W64.zero.   
-    print mkseq_nth.
      pose s := (nseq nlimbs W64.zero).
     rewrite (eq_mkseq (fun (x: int) => W64.zero) (nth W64.zero s)). 
    apply fun_ext.    apply fun_ext. progress. move => x. smt.
-   have ->: nlimbs = size s. rewrite /s. search nseq. rewrite size_nseq. smt.
+   have ->: nlimbs = size s. rewrite /s. rewrite size_nseq. smt.
 apply mkseq_nth. 
     rewrite /bn_seq.
     rewrite foldr_cat.
@@ -696,7 +671,66 @@ have easy_fact3 : Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
 smt().
 qed.
 
+(* ith_bit  *)
 
+module IB = {
+  proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {    
+    var bit:W64.t;
+    var p:W64.t;    
+    bit <- k;
+    p <- ctr;
+    p <- (p `&` (W64.of_int 63));
+    bit <- (bit `>>` (truncateu8 p));
+    bit <- (bit `&` (W64.of_int 1));
+    return (bit);
+  }  
+}.
+  
+lemma ithbit64 a b :
+ phoare[ IB.ith_bit64   : arg = (a,b) /\
+     0 <= to_uint ctr < 64 ==> res = ith_bitword64 a (to_uint b) ] = 1%r.
+proc. 
+wp.  skip. progress.
+rewrite /ith_bitword64.
+rewrite /as_word.
+rewrite /truncateu8.
+have -> : (to_uint (ctr{hr} `&` (of_int 63)%W64))
+  = (to_uint ctr{hr} %% 2 ^ 6).
+rewrite - to_uint_and_mod. auto.
+smt. simplify.
+have -> : (of_int (to_uint ctr{hr} %% 64))%W8 = (of_int (to_uint ctr{hr}))%W8.
+smt.
+rewrite /(`>>`).
+rewrite /(`>>>`).
+rewrite /W64.(`&`).
+rewrite /map2.
+case (k{hr}.[to_uint ctr{hr}]).
+progress.
+apply W64.ext_eq.
+progress.
+rewrite initiE. auto.
+simplify.
+rewrite initiE. auto.
+simplify.
+case (x = 0).
+progress. smt.
+progress.
+have -> : W64.one.[x] = false.
+apply w64oneP. smt().
+auto.
+progress.
+apply W64.ext_eq.
+progress.
+rewrite initiE. auto.
+simplify.
+rewrite initiE. auto.
+simplify.
+case (x = 0).
+progress. smt.
+progress.
+rewrite w64oneP. smt(). simplify.
+auto.
+qed.
 
 module MM = {
   proc ith_bit (kk:W64.t Array32.t, ctr:W64.t) : W64.t = {
@@ -747,15 +781,6 @@ auto. simplify.
 smt (@W64 @IntDiv).
 sim.
 qed.
-
-lemma mkseqS' ['a]:
-  forall (f : int -> 'a) (n : int),
-    0 < n => mkseq f n = rcons (mkseq f (n - 1)) (f (n - 1)).
-smt(mkseqS).
-qed.
-
-require import BitEncoding.
-import BS2Int.
 
 lemma ith_bit_lemma_cspec :
       equiv[ M.ith_bit ~ CSpecFp.ith_bit : arg{1}.`1 = arg{2}.`1 /\  W64.to_uint arg{1}.`2 = arg{2}.`2 /\
@@ -851,8 +876,6 @@ rewrite  bs2intK. auto. auto.
 smt().
 auto. smt().
 qed.
-
-
 
 
 lemma swap_lemma_cspec :

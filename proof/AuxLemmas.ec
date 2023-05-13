@@ -1,10 +1,32 @@
 require import AllCore Distr Finite List.
 
+require import BitEncoding.
+import BS2Int.
+
+from Jasmin require import JWord.
+
+lemma w64oneP : forall x, 0 < x < 64 => W64.one.[x] = false. 
+progress. 
+rewrite /W64.one.
+rewrite - of_intE.
+rewrite of_intwE.
+have -> : (0 <= x && x < 64) = true. smt(). simplify.
+timeout 10. smt.
+qed.
+
 op nasty_id ['a] = choiceb (fun (x:'a->'a) => x = (fun x => x)) witness.
 lemma nasty_id ['a] (x:'a): nasty_id x = x.
     have : (fun (x:'a->'a) => x = (fun x => x)) nasty_id.
     rewrite /nasty_id. apply choicebP. smt().
     smt().
+qed.
+
+
+
+lemma mkseqS' ['a]:
+  forall (f : int -> 'a) (n : int),
+    0 < n => mkseq f n = rcons (mkseq f (n - 1)) (f (n - 1)).
+smt(mkseqS).
 qed.
 
 

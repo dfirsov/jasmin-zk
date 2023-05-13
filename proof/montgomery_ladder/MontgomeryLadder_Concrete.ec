@@ -69,6 +69,8 @@ local module ML_Spec = {
 }.
 
 
+require import  BarrettRedInt.
+require import BarrettReduction_Concrete.
 
 local lemma ml_equiv_M_3 :
   equiv [M(Syscall).expm ~ ML_Spec.mladder_3 : W64xN.valR x{1} = asint x{2} /\ valR n{1} =  valR n{2} /\ valR m{1} = Zp.p /\ (W64x2N.valR r{1}) = ri_uncompute Zp.p ==> valR res{1} = asint res{2}].
@@ -84,11 +86,11 @@ wp. simplify.
 call ith_bit_lemma_cspec.
 inline*. wp.  simplify.
 skip. progress.
-have f1 : to_uint i{1} < modulusR. smt.
-have -> : (to_uint i{1} - 1) %% modulusR = (to_uint i{1} - 1). smt.
+have f1 : to_uint i{1} < W64xN.modulusR. smt.
+have -> : (to_uint i{1} - 1) %% W64xN.modulusR = (to_uint i{1} - 1). smt.
 smt(@W64).
 smt.
-have -> : (to_uint i{1} - 1) %% modulusR = (to_uint i{1} - 1). timeout 10. smt.
+have -> : (to_uint i{1} - 1) %% W64xN.modulusR = (to_uint i{1} - 1). timeout 10. smt.
 smt.
 smt(@W64xN).
 smt(@W64xN).
@@ -150,8 +152,8 @@ qed.
 local lemma ml_equiv_abs_1 : 
   equiv [ML_Abstract.mladder ~ ML_Spec.mladder_1 : ={arg} /\ size n{1} < W64xN.modulusR ==> ={res}].
 proc. inline*.  wp.
-while (={x,n,x1,x2,i,b} /\ i{1} < modulusR). 
-wp. skip. progress. smt.
+while (={x,n,x1,x2,i,b} /\ i{1} < W64xN.modulusR). 
+wp. skip. progress. timeout 10. smt.
 smt. smt. smt.
 smt. smt. smt.
 wp. skip.  progress.
