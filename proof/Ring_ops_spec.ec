@@ -58,13 +58,12 @@ lemma D_mu x : x \in D => mu1 D x = Real.inv M%r. smt(@Distr). qed.
 
 (* Embedding Zp theory *)
 require ZModP.
-clone import ZModP.ZModField as Zp 
-        rename "zmod" as "zp".
+clone import ZModP.ZModField as Zp.
   (* TODO proof* or make this theory abstract *)
 
 
-op (^^) (x : zp)(n : int) : zp = ZModpRing.exp x n. 
-op (^) (x : zp)(n : int) : zp = inzp (asint x ^ n).
+op (^^) (x : zmod)(n : int) : zmod = ZModpRing.exp x n. 
+op (^) (x : zmod)(n : int) : zmod = inzmod (asint x ^ n).
 
 lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
 smt(@Int). qed.
@@ -167,7 +166,7 @@ module ASpecFp = {
     return r;
   }
 
-  proc swapr(a : zp, b : zp, c : bool) = {
+  proc swapr(a : zmod, b : zmod, c : bool) = {
     return c ? (b,a) : (a, b);
   }
 
@@ -198,25 +197,25 @@ module ASpecFp = {
     return r %% p;
   }
 
-  proc copym(a: zp): zp = {
+  proc copym(a: zmod): zmod = {
     var r;
     r <- a;
     return r;
   }
   
-  proc set0m(): zp = {
+  proc set0m(): zmod = {
     var r;
     r <- Zp.zero;
     return r;
   }
 
-  proc mulm(a b: zp): zp = {
+  proc mulm(a b: zmod): zmod = {
     var r;
     r <- a * b;
     return r;
   }
   
-  proc expm(a : zp,  b: int): zp = {
+  proc expm(a : zmod,  b: int): zmod = {
     var r;
     r <- a ^ b;
     return r;

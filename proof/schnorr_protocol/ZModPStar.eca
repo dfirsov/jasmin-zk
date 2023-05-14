@@ -1,0 +1,32 @@
+require import AllCore.
+require ZModP Group.
+
+op p : int.
+axiom ge2_p: 2 <= p.
+
+clone ZModP.ZModRing as Zp with
+  op p <= p
+proof ge2_p.
+(* TODO: proof* *)
+realize ge2_p. apply ge2_p. qed.
+
+type zmod = Zp.zmod.
+  
+clone Subtype as Sub with
+  type T <- zmod,
+  pred P = Zp.unit.
+(* TODO: proof* *)
+
+type zmods = Sub.sT.
+  
+clone Group.ComGroup as Zps with
+  type group <= zmods,
+  op e <= Sub.insubd Zp.zero,
+  op ( * ) <= Sub.Lift.lift2 Zp.( * ),
+  op inv <= Sub.Lift.lift1 Zp.inv
+proof *.
+realize mulcC. admit. qed.
+realize mul1c. admit. qed.
+realize mulcA. admit. qed.
+realize mulVc. admit. qed.
+

@@ -57,7 +57,6 @@ clone include GenericSigmaProtocol with
   op zk_relation           <- zk_relation.
   (* TODO proof* or make this theory abstract *)
 
-
 (* Honest Prover *)
 module HP : HonestProver = {
  var pa : dl_stat
