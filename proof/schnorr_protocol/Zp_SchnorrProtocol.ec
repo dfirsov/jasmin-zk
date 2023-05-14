@@ -8,40 +8,45 @@ import Ring.IntID IntOrder.
 require (*--*) Subtype.
 
 require Abstract_SchnorrProtocol.
-require  Group.
+require ZModPStar.
 
 require import Ring_ops_spec.
 import Zp.
-import Group.
 
-
+op p = Zp.p.
 op q : int.
 axiom q_prime : prime q.
 
+clone ZModPStar as ZPS
+with op p = p,
+     theory Zp <= Zp
+proof ge2_p.
+  (* TODO proof* *)
+realize ge2_p. admit. qed.
 
-type zmods.
+(* G := ZPS.zmods is the group with operate in *)
+  
+op g : ZPS.zmods.
+  
+clone import Abstract_SchnorrProtocol as LSP with
+  op q <- q,
+  theory CG <- ZPS.Zps.
+  (* TODO proof* *)
+  
+type statement = LSP.statement.           (* statement *)
+type witness  = LSP.witness.          (* witness *)
+type commitment = LSP.commitment.            (* commitment *)
+type response = LSP.response.          (* response *)
+type challenge = LSP.challenge.          (* challenge *)
+type secret  = EG.zmod.
 
-clone Subtype as Sub with
-  type T <- zp, type sT <- zmods,
-  pred P (x : zp) <- unit x.
-
-op g : zp.
-clone import  Abstract_SchnorrProtocol as LSP with type CG.group <- zmods,
-                                            type EG.zmod <- int,
-                                            op g <- Sub.insubd g,
-                                            op CG.inv   <- Sub.Lift.lift1 Zp.inv,
-                                            op CG.( * ) <- Sub.Lift.lift2 Zp.( * ),
-                                            op CG.e <- Sub.insubd Zp.one,
-                                            op q <- q.
-
-type statement = zp.           (* statement *)
-type witness  = int.          (* witness *)
-type commitment = zp.            (* commitment *)
-type response = int.          (* response *)
-type challenge = int.          (* challenge *)
-type secret  = int.
-
-
+  (* Multiplication in Zq *)
+op ( * ) = EG.( * ).
+  (* Addition in Zq *)
+op ( + ) = EG.( + ).
+  (* Multiplication in G = Zq* *)
+op ( ** ) = ZPS.Zps.( * ).
+op ( ^^ ) = ZPS.Zps.( ^ ).
 
 module type ZKProverG = {
   proc commitment() : commitment * secret
@@ -59,7 +64,7 @@ module type ZKVerifierG = {
 module SchnorrProver : ZKProverG = {
   proc commitment() : commitment * secret = {
     var r : secret;
-    r <$ [0..p-2];
+    r <$ (* [0..p-2] *) witness; (* TODO: pick from challenge set *)
     return (g ^^ r, r);
   }
   proc response(w: witness, r:secret, c: challenge) : response = {
@@ -71,11 +76,11 @@ module SchnorrProver : ZKProverG = {
 module SchnorrVerifier : ZKVerifierG = {
   proc challenge() : challenge = {
     var c;
-    c <$ [0..p-2];
+    c <$ (* [0..p-2] *) witness; (* TODO: pick from challenge set *)
     return c;
   }
   proc verify(s: statement, z: commitment, c: challenge, t: response) : bool = {
-    return (z * (s ^^ c) = g ^^ t) /\ s ^^ q = Zp.one;
+    return (z ** (s ^^ c) = g ^^ t) /\ s ^^ q = ZPS.Zps.e;
   }
 }.
 
