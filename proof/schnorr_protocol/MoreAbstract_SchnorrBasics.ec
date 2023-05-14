@@ -26,7 +26,7 @@ op (^^) (g : group)(p : zmod): group = g ^ (asint p).
 (* generator  *)
 op g : group.
 
-axiom g_not_ine : g <> e.
+(* axiom g_not_ine : g <> e. *)
 axiom g_is_generator : g ^ q = e.
 
 (* the language of Schnorr protocol consists of discrete logarithms  *)
@@ -39,7 +39,7 @@ op zk_relation           = IsDL.
 
 (* transcript verification for Honest Vrifier  *)
 op verify_transcript (p : dl_stat) (x : dl_com * dl_chal * dl_resp) = 
- let (z,b,r) = x in ((g ^^ r) = (p ^^ b) * z) /\ (z ^ q = e).
+ (let (c,b,r) = x in ((g ^^ r) = (p ^^ b) * c)) /\ (p ^ q = e).
 
 (* instantiating generic definitions for Schnorr protocol  *)
 clone include GenericSigmaProtocol with 

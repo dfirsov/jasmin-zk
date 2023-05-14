@@ -1,9 +1,4 @@
-require import Int IntDiv.
-require import Real.
-require import Distr.
-
-
-require import StdOrder.
+require import Int IntDiv  Real Distr StdOrder.
 
 
 (* Embedding into ring theory *)

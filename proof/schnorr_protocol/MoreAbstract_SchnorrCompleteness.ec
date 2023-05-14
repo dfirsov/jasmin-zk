@@ -26,6 +26,7 @@ rnd. wp.  rnd.  wp.
 skip. progress.
 rewrite /verify_transcript. simplify.
 rewrite /dl_verify. simplify.   rewrite /(^^).
+pose ch := x2.
 have ->: asint (r0 + ch * w{hr}) = (asint r0 + asint (ch * w{hr})) %% q. smt.
 have <-: g ^ ((asint r0 + asint (ch * w{hr})))
  = g ^ ((asint r0 + asint (ch * w{hr})) %% q). smt (pow_mod).
