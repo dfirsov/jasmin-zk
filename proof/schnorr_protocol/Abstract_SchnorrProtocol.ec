@@ -13,7 +13,7 @@ axiom q_prime : prime q.
 clone import ZModField as EG with op p <- q
 proof prime_p.  realize prime_p. apply q_prime. qed.
 
-print EG.
+
 
 (* synonyms for readability  *)
 type dl_stat = group.            (* statement *)
