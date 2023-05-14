@@ -5,21 +5,42 @@ require import List.
 require import StdOrder.
 import Ring.IntID IntOrder.
 
-require import ZK_SchnorrBasics.
-require import ZK_SchnorrCompleteness.
-require import ZK_SchnorrSpecialSoundness.
-require import ZK_SchnorrExtractability.
+require (*--*) Subtype.
 
+require Abstract_SchnorrProtocol.
+require  Group.
 
-require import Ring_ops_proof Ring_ops_spec.
+require import Ring_ops_spec.
 import Zp.
+import Group.
 
-type statement = zp.
-type witness   = int.
-type commitment = zp.
-type secret    = int.
-type challenge = int.
-type response  = int.
+
+op q : int.
+axiom q_prime : prime q.
+
+
+type zmods.
+
+clone Subtype as Sub with
+  type T <- zp, type sT <- zmods,
+  pred P (x : zp) <- unit x.
+
+op g : zp.
+clone import  Abstract_SchnorrProtocol as LSP with type CG.group <- zmods,
+                                            type EG.zmod <- int,
+                                            op g <- Sub.insubd g,
+                                            op CG.inv   <- Sub.Lift.lift1 Zp.inv,
+                                            op CG.( * ) <- Sub.Lift.lift2 Zp.( * ),
+                                            op CG.e <- Sub.insubd Zp.one,
+                                            op q <- q.
+
+type statement = zp.           (* statement *)
+type witness  = int.          (* witness *)
+type commitment = zp.            (* commitment *)
+type response = int.          (* response *)
+type challenge = int.          (* challenge *)
+type secret  = int.
+
 
 
 module type ZKProverG = {
@@ -54,7 +75,7 @@ module SchnorrVerifier : ZKVerifierG = {
     return c;
   }
   proc verify(s: statement, z: commitment, c: challenge, t: response) : bool = {
-    return (z * (s ^^ c) = g ^^ t);
+    return (z * (s ^^ c) = g ^^ t) /\ s ^^ q = Zp.one;
   }
 }.
 
@@ -71,14 +92,31 @@ module CompletenessG(P : ZKProverG, V : ZKVerifierG) = {
 }.
 
 
-lemma completenessG (s : statement) (w : witness) &m: completeness_relation s w =>
+
+axiom exp_lemma4 : forall (x : zp) (n : int),  (x ^^ n) = Sub.val ((Sub.insubd x) ^^ n).
+lemma bbb : forall (a b : zmods), (Sub.val a = Sub.val b) <=> (a = b). smt. qed.
+
+lemma completenessG (s : statement) (w : witness) &m: LSP.completeness_relation (Sub.insubd s) w =>
   Pr[ CompletenessG(SchnorrProver, SchnorrVerifier).main(s,w)@&m : res] = 1%r.
 proof. progress.
-rewrite - (dl_completeness s w &m). auto.
-byequiv (_: ={arg} ==> _). proc.
+rewrite - (LSP.dl_completeness (Sub.insubd s) w &m). auto.
+byequiv (_: _ ==> _). proc.
 inline*. wp. 
-rnd. wp. rnd.  wp. skip. progress. smt(@Distr @List).
-smt(). auto. auto.
+rnd. wp. rnd.  wp. skip. progress.  admit.
+admit. rewrite /verify_transcript. simplify. rewrite /(^^). 
+have f : ((s{1} ^^ q) = one) =  ((Sub.insubd s{1}) ^^ q = (Sub.insubd one)).
+rewrite exp_lemma4. 
+rewrite - (bbb ( ((Sub.insubd s{1})%Sub ^^ q)) (Sub.insubd one)). 
+have -> : (Sub.val ((Sub.insubd one))%Sub) = one. 
+rewrite Sub.insubdK. smt. auto. auto. simplify.
+have ->: ((g ^^ r0L)%ZModpRing * (s{1} ^^ c0L)%ZModpRing = (g ^^ (r0L + c0L * w{2}))%ZModpRing)  
+
+  = ((Sub.Lift.lift2 Zp.( * ) ((Sub.insubd s{1})%Sub ^^ (EG.asint c0L)%EG)%CG
+    ((Sub.insubd g)%Sub ^^ (EG.asint r0L)%EG)%CG) = ((Sub.insubd g)%Sub ^^ (EG.asint (r0L + c0L * w{2})%EG)%EG)%CG).
+
+rewrite - bbb.
+smt.
+simplify. admit. auto. auto.
 qed.
 
 

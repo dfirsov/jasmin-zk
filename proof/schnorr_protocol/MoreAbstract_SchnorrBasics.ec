@@ -74,6 +74,32 @@ module HP : HonestProver = {
 }.
 
 
+lemma qqq : forall (z a b : group),  (z * a) / (z * b) = (a / b).
+smt(@CG). qed.
+
+lemma jjj : forall i p, 0 < p => i = (i %% p) + p * (i %/ p).
+smt(@IntDiv).
+qed.
+
+
+lemma iii : forall i p, 0 < p => i %% p = 1 => exists k, i = 1 + p * k.
+smt(jjj).
+qed.
+
+
+
+lemma pow_mod (a : int) :  g ^ a  = g ^ (a %% q).
+have ->: g ^ a = g ^ (a %% q + q * (a %/ q)). 
+have : 0 < q. smt.
+smt(jjj). 
+have ->: g ^ (a %% q + q * (a %/ q))
+ = g ^ (a %% q) * (g ^ (q * (a %/ q))). smt(@CG).
+have ->:  g ^ (q * (a %/ q)) = e. 
+smt(@CG @EG @Int g_is_generator).
+smt(@CG).
+qed.
+
+
 (* Honest Verifier is derived automatically from "challenge_set" and "verify_transcript" *)
 
 

@@ -4,18 +4,8 @@ require import Int IntDiv Real Distr StdOrder List.
 
 require import MoreAbstract_SchnorrBasics.
 import CG EG.
+
 section.
-
-(* lemma pow_pow: forall (g : zp) (x y : int), (g ^^ x) ^^ y = g ^^ (x * y). progress.  rewrite /(^^). smt(@ZModpRing). qed. *)
-(* lemma pow_plus (g : zp) (a b : int) : unit g => g ^^ (a + b) = (g ^^ a) * (g ^^ b). progress.  rewrite /(^^). smt(@ZModpRing). qed. *)
-(* lemma pow_inv (g : zp) (a: int) :  g ^^ - a = inv (g ^^ a). progress.  rewrite /(^^). smt(@ZModpRing). qed. *)
-(* lemma nosmt pow_opp: forall (x : zp) (p : int), x ^^ -p = inv (x ^^ p). progress.  rewrite /(^^). smt(@ZModpRing). qed. *)
-
-
-op inv : int -> int.
-axiom inv_lemma a : a <> 0 => a * (inv a) %% q = 1.
-axiom pow_mod  (a : int) : g ^ a  = g ^ (a %% q).  
-
 
 local lemma dl_complete_h (p : dl_stat) (w : dl_wit) : 
   completeness_relation p w =>
