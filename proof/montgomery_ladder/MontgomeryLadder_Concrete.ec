@@ -270,7 +270,6 @@ lemma expm_correct :
              valR x{2} < p /\
              r{2} = R
              ==> asint res{1} = valR{2}%W64xN res{2}].
-
 transitivity ML_Abstract.iterop_spec
  (arg{1}.`1 = arg{2}.`1 /\ arg{1}.`2 = bs2int arg{2}.`2   ==> ={res})
  (ImplZZ m{2} p /\

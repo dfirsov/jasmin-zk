@@ -15,12 +15,14 @@ proof prime_p.  realize prime_p. apply q_prime. qed.
 
 
 
+
 (* synonyms for readability  *)
 type dl_stat = group.            (* statement *)
 type dl_wit  = zmod.              (* witness *)
 type dl_com  = group.            (* commitment *)
 type dl_resp = zmod.              (* response *)
 type dl_chal = zmod.              (* challenge *)
+
 
 op (^^) (g : group)(p : zmod): group = g ^ (asint p).
 
@@ -30,6 +32,7 @@ op g : group.
 
 (* axiom g_not_ine : g <> e. *)
 axiom g_is_generator : g ^ q = e.
+
 
 (* the language of Schnorr protocol consists of discrete logarithms  *)
 op IsDL (p : dl_stat) (w : dl_wit) : bool = g ^^ w = p.

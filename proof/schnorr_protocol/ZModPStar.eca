@@ -1,14 +1,21 @@
 require import AllCore.
-require ZModP Group.
+require  ZModP Group.
 
 op p : int.
 axiom ge2_p: 2 <= p.
 
-clone ZModP.ZModRing as Zp with
+clone ZModP.ZModField as Zp with
   op p <= p
 proof ge2_p.
 (* TODO: proof* *)
 realize ge2_p. apply ge2_p. qed.
+
+require import IntDiv.
+lemma exp_mod':
+    forall (x : Zp.zmod) (n k : int),
+      (Zp.ZModpField.exp x k) = Zp.one =>
+      (Zp.ZModpField.exp x n) = (Zp.ZModpField.exp x (n %% k)).
+proof. smt(@Zp). qed.
 
 type zmod = Zp.zmod.
   
@@ -17,11 +24,14 @@ clone Subtype as Sub with
   pred P = Zp.unit.
 (* TODO: proof* *)
 
+
 type zmods = Sub.sT.
+
+
   
 clone Group.ComGroup as Zps with
   type group <= zmods,
-  op e <= Sub.insubd Zp.zero,
+  op e <= Sub.insubd Zp.one,
   op ( * ) <= Sub.Lift.lift2 Zp.( * ),
   op inv <= Sub.Lift.lift1 Zp.inv
 proof *.
@@ -29,4 +39,5 @@ realize mulcC. admit. qed.
 realize mul1c. admit. qed.
 realize mulcA. admit. qed.
 realize mulVc. admit. qed.
+
 

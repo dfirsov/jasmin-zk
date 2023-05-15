@@ -117,6 +117,7 @@ op samp_t (x : int) : leakages_t = samp_suffix ++ samp_f (x - 1).
 axiom samp_t_inj : injective samp_t.
 
 
+
 lemma rsample_leakages :
    hoare [ M(Syscall).rsample : M.leakages = [] ==> M.leakages = samp_t res.`1].
 proc.
