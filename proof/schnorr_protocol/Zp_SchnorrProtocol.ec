@@ -14,19 +14,18 @@ require import Ring_ops_spec.
 import Zp.
 
 clone ZModPStar as ZPS with op p <- Zp.p,
-                            theory Zp <= Zp
-rename "zmod" as "zp".
+                            theory Zp <= Zp.
 
 
 import ZPS.
 
-op g : ZPS.zp.
+op g : ZPS.zmod.
 op q : int.
 axiom q_prime : prime q.
 axiom g_unit : unit g.
 axiom g_q_assumption: (ZModpField.exp g q) = Zp.one.
 
-lemma lll' (z : zp) : unit z => forall x, 0 <= x => Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
+lemma lll' (z : zmod) : unit z => forall x, 0 <= x => Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
 move => z_unit. apply intind. progress. smt. progress.  timeout 20. smt.
 qed.
 
@@ -42,9 +41,9 @@ realize q_prime.  apply q_prime. qed.
 
 
 
-type statement   = zp.           (* statement *)
+type statement   = zmod.           (* statement *)
 type witness     = int.          (* witness *)
-type commitment  = zp.            (* commitment *)
+type commitment  = zmod.            (* commitment *)
 type response    = int.          (* response *)
 type challenge   = int.          (* challenge *)
 type secret      = int.
@@ -100,7 +99,7 @@ module CompletenessG(P : ZKProverG, V : ZKVerifierG) = {
 op completeness_relationG (s:statement) (w:witness) = (ZModpField.exp g w) = s.
 
 
-lemma exp_lemma6 (z : zp) : unit z => forall n,  unit (z ^^ n).
+lemma exp_lemma6 (z : zmod) : unit z => forall n,  unit (z ^^ n).
 progress. apply ZModpRing.unitrX. auto.
 qed.
 
@@ -109,12 +108,12 @@ qed.
 
 
 
-lemma lll'' (z : zp) : unit z => forall x, x < 0 => Zps.(^) (Sub.insubd z) x = Zps.inv (Zps.(^) (Sub.insubd z) (- x)).
+lemma lll'' (z : zmod) : unit z => forall x, x < 0 => Zps.(^) (Sub.insubd z) x = Zps.inv (Zps.(^) (Sub.insubd z) (- x)).
 smt().
 qed.
 
 
-lemma lll (z : zp) : unit z => forall x, Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
+lemma lll (z : zmod) : unit z => forall x, Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
 move => zu.
 move => x.
 case (0 <= x).  apply lll'. auto.
@@ -124,7 +123,7 @@ rewrite lll'. auto. smt().
 smt(@ZModpField @Sub).       
 qed.
 
-lemma bbb : forall (a b : zps), (Sub.val a = Sub.val b) <=> (a = b). smt. qed.
+lemma bbb : forall (a b : zmods), (Sub.val a = Sub.val b) <=> (a = b). smt. qed.
 
 lemma completeness_relation_compatible : forall s w, completeness_relationG s w => completeness_relation (Sub.insubd s) (EG.inzmod w).
 move => s w h. rewrite /completeness_relationG /completeness_relation /IsDL /=. (* move => eq. *)
@@ -139,10 +138,10 @@ qed.
 
 
 
-lemma llll (x y : zp) : unit x => unit y => (Zps.( * ) (Sub.insubd x)  (Sub.insubd y) )= Sub.insubd (x * y).
+lemma llll (x y : zmod) : unit x => unit y => (Zps.( * ) (Sub.insubd x)  (Sub.insubd y) )= Sub.insubd (x * y).
 progress. smt. qed.
 
-lemma exp_lemma4 : forall (x : zp) (n : int), unit x => (ZModpField.exp x q) = one =>  (x ^^ n) = Sub.val ((Sub.insubd x) ^^ (EG.inzmod n)). 
+lemma exp_lemma4 : forall (x : zmod) (n : int), unit x => (ZModpField.exp x q) = one =>  (x ^^ n) = Sub.val ((Sub.insubd x) ^^ (EG.inzmod n)). 
 proof. progress. rewrite /(^^). rewrite lll. auto.
 rewrite  EG.inzmodK.
 have ->: (ZModpField.exp x (n %% q)) = (ZModpField.exp x n). smt.
@@ -152,7 +151,7 @@ auto.
 qed.
 
 
-lemma exp_lemma5 : forall (z : zp) (n : int), unit z => 0 <= n => (ZModpField.exp z q) = one  => Sub.insubd z ^^ (EG.inzmod n) = (Zps.(^) (Sub.insubd z) n).
+lemma exp_lemma5 : forall (z : zmod) (n : int), unit z => 0 <= n => (ZModpField.exp z q) = one  => Sub.insubd z ^^ (EG.inzmod n) = (Zps.(^) (Sub.insubd z) n).
 progress. rewrite /(^^). 
 rewrite lll. auto. 
 rewrite - bbb.
@@ -362,7 +361,7 @@ progress.
 smt(@Real @RealOrder).
 qed.
 
-lemma extractabilityG &m (s : zp): 
+lemma extractabilityG &m (s : zmod): 
   Pr[ExtractorG(P).extract(s) @ &m : LSP.soundness_relation (Sub.insubd s) (EG.inzmod res) ] >=
   (Pr[SoundnessG(P, SchnorrVerifier).run(s) @ &m : res] ^ 2
        - 1%r / (size EG.DZmodP.Support.enum)%r
