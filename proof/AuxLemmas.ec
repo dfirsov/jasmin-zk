@@ -58,10 +58,10 @@ rewrite H0. clear H0. smt().
 rewrite /predI. rewrite /LessThan.
 have -> : (fun (x : int) => (0 <= x && x < i) /\ x = i)
  = (fun (x : int) => false). smt.
-have ->: mu d (fun (_ : int) => false) = 0%r. smt. simplify.
+have ->: mu d (fun (_ : int) => false) = 0%r. smt(@Distr). simplify.
 congr. 
 rewrite mu1_uni_ll. smt(). 
-auto. smt.
+auto. smt().
 qed.
 
 

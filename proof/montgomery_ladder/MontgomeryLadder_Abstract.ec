@@ -191,7 +191,6 @@ case (ith_bit n{hr} (i{hr} - 1 )). progress.
 rewrite  bs2int_cons.
 rewrite /b2i. simplify.
 simplify.
-print ith_bit.
 have ->: nth false n{hr} (i{hr} - 1) = true. smt().
 simplify.
 have -> : x{hr} ^ (1 + 2 * bs2int (drop i{hr} n{hr}))

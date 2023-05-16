@@ -3,43 +3,67 @@ require import AllCore Distr DInterval List Int IntDiv.
 from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
 
-
 require import W64_SchnorrProtocol.
 require import Zp_SchnorrProtocol.
+
 
 require import Ring_ops_spec.
 import Zp DZmodP.
 import W64xN Sub R. 
 
-import ZK_SchnorrBasics.
+
 require import W64_SchnorrExtract.
 require import Ring_ops_proof.
 
 
 
-(* TODO: think about how to....?  *)
-axiom bn_set_bf_prop : 
-  phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
+(* TODO: to check the constants to be right  *)
+(* lemma bn_set_gg_value :  *)
+(*   phoare[ M.bn_set_gg : true ==> valR res =  1 ] = 1%r. *)
+(* proc. wp. skip. progress. simplify. *)
+(* search bnk. *)
+(* rewrite R.bn2seq. *)
+(* rewrite /to_list. rewrite /mkseq. *)
+(* have -> : (map *)
+(*      (fun (i : int) => *)
+(*         (a{hr}.[0 <- W64.one].[1 <- W64.zero].[2 <- W64.zero].[3 <- W64.zero].[4 <- *)
+(*            W64.zero].[5 <- W64.zero].[6 <- W64.zero].[7 <- W64.zero].[8 <- *)
+(*            W64.zero].[9 <- W64.zero].[10 <- W64.zero].[11 <- W64.zero].[12 <- *)
+(*            W64.zero].[13 <- W64.zero].[14 <- W64.zero].[15 <- W64.zero].[16 <- *)
+(*            W64.zero].[17 <- W64.zero].[18 <- W64.zero].[19 <- W64.zero].[20 <- *)
+(*            W64.zero].[21 <- W64.zero].[22 <- W64.zero].[23 <- W64.zero].[24 <- *)
+(*            W64.zero].[25 <- W64.zero].[26 <- W64.zero].[27 <- W64.zero].[28 <- *)
+(*            W64.zero].[29 <- W64.zero].[30 <- W64.zero].[31 <- W64.zero].[i])%Array32) *)
+(*      (iota_ 0 nlimbs)) = [W64.one;W64.zero]. *)
+
+(* admit. *)
+(* rewrite /bn_seq. simplify. *)
+
+
+axiom bn_set_gg_prop : 
+  phoare[ M.bn_set_gg : true ==> valR res = Sub.val g  ] = 1%r.
+
 axiom bn_set_go_prop : 
   phoare[ M.bn_set_go : true ==> valR res = p  ] = 1%r.
+axiom bn_set_bf_prop : 
+  phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
+
 axiom bn_set_eo_prop : 
   phoare[ M.bn_set_eo : true ==> valR res = p-1  ] = 1%r.
 axiom bn_set_eb_prop : 
   phoare[ M.bn_set_eb : true ==> W64x2N.valR res = Rip  ] = 1%r.
-axiom bn_set_gg_prop : 
-  phoare[ M.bn_set_gg : true ==> valR res = Sub.val g  ] = 1%r.
 
 
 
 lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@Zp). qed.
-lemma zp_mul (z1 z2 : zp) : val (z1 * z2) = (val z1 * val z2) %% p. smt(@Zp). qed.
-lemma inzpKK: forall (z : int), val (inzp z) = z %% p. smt(@Zp). qed.
+lemma zp_mul (z1 z2 : zmod) : val (z1 * z2) = (val z1 * val z2) %% p. smt(@Zp). qed.
+lemma inzpKK: forall (z : int), val (inzmod z) = z %% p. smt(@Zp). qed.
 
   
 module ASpecFp_Schnorr = {
- proc commit(h : zp, w : R) : zp * int = {
+ proc commit(h : zmod, w : R) : zmod * int = {
    var r, q : int;
-   var a : zp;    
+   var a : zmod;    
    r <@ ASpecFp.rsample(p-1);
    a <@ ASpecFp.expm(g,r);
    return (a,  r);

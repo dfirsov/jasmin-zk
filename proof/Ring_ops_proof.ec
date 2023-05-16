@@ -41,17 +41,15 @@ transitivity
     pose Y := (addc _ _ _)%W64.
     have ->: X=Y by smt().
     case: (k = i{2}) => ?.
-     rewrite /hui.
      by rewrite !set_eqiE /#.
-     rewrite /hui.
     by rewrite !set_neqiE /#.
-   move=> k Hk1 Hk2. rewrite /hui.
+   move=> k Hk1 Hk2. 
    by rewrite set_neqiE /#.
   wp; skip => /> &2.
   move=> Hc; split => *.
    split => k *. 
-    by rewrite (_:k=0) 1:/# /hui !set_eqiE /#.
-   by rewrite /hui set_neqiE /#.
+    by rewrite (_:k=0) 1:/# !set_eqiE /#.
+   by rewrite set_neqiE /#.
   by apply ext_eq; smt().
 + proc; simplify.
   transitivity {1}

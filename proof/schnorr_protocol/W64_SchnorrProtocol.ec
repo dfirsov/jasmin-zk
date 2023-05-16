@@ -1,12 +1,13 @@
-require import Int Real Distr.
-from Jasmin require import JModel JBigNum.
+require import AllCore.
+from Jasmin require import JModel.
 require import Array32 Array64 Array128.
-require import Ring_ops_proof ZK_SchnorrBasics.
 
 
 require export W64_SchnorrProver W64_SchnorrVerifier.
 
 type W64xN = W64.t Array32.t.
+
+type sbits.
 
 module type ZKProverJ = {
   proc response (witness0:W64.t Array32.t, secret_power:W64.t Array32.t,
@@ -43,3 +44,4 @@ module type ExtractorJ(P: ZKRewindableMaliciousProverJ) = {
 }.
 
 
+    

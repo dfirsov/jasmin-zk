@@ -226,7 +226,7 @@ rewrite - H.
   have ->: (ZModpField.exp ((ZModpField.exp g w{1})) q) = (((ZModpField.exp g (w{1} * q)))). 
    rewrite - ZModpField.exprM. auto.
   have -> : w{1} * q = q * w{1}. smt().
-  have ->: (ZModpField.exp g (q{1} * w{1})) = (ZModpField.exp ((ZModpField.exp g q{1})) w{1}).
+  have ->: (ZModpField.exp g (q * w{1})) = (ZModpField.exp ((ZModpField.exp g q)) w{1}).
   rewrite  ZModpField.exprM. auto.
   rewrite g_q_assumption. smt(@ZModpField).
 timeout 20. 

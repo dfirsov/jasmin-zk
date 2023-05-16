@@ -14,7 +14,7 @@ import Zp.
 require import ModularMultiplication_Concrete.
 section.
 
-clone import MontgomeryLadder_Abstract as Exp with type R  <- zp,
+clone import MontgomeryLadder_Abstract as Exp with type R  <- zmod,
                                                    op idR <- Zp.one,
                                                    op ( *** ) <-  Zp.( * )
 proof*.
@@ -24,7 +24,7 @@ realize op_id'. smt(@Zp). qed.
 
 
 local module ML_Spec = {
-  proc mladder_1 (x :zp , n : bits ) : zp = {
+  proc mladder_1 (x :zmod , n : bits ) : zmod = {
     var x1 , x2 , i , b, cf;
     (x1,x2) <- (Zp.one , x);
     i <- size n;
@@ -38,7 +38,7 @@ local module ML_Spec = {
     return x1 ;
   } 
 
-  proc mladder_2 (x :zp , n : int) : zp = {
+  proc mladder_2 (x :zmod , n : int) : zmod = {
     var x1 , x2 , i , b, cf;
     (x1,x2) <- (Zp.one , x);
     i <- 32*64;
@@ -52,7 +52,7 @@ local module ML_Spec = {
     return x1 ;
   } 
 
-  proc mladder_3 (x :zp , n : W64xN.R.t) : zp = {
+  proc mladder_3 (x :zmod , n : W64xN.R.t) : zmod = {
     var x1 , x2 , i , b, cf;
     (x1,x2) <- (Zp.one , x);
     i <- 64*nlimbs;
@@ -248,7 +248,7 @@ qed.
 
 
 
-local lemma exp_same_comp (x : zp) : forall n, 0 <= n => (x ^ n)%Ring_ops_spec = (x ^ n)%Exp.
+local lemma exp_same_comp (x : zmod) : forall n, 0 <= n => (x ^ n)%Ring_ops_spec = (x ^ n)%Exp.
 apply intind. progress.
 smt(@Zp @Ring).
 progress.
@@ -269,7 +269,7 @@ lemma expm_correct :
              b{1} = valR n{2}  /\
              valR x{2} < p /\
              r{2} = R
-             ==> asint res{1} = valR{2}%W64xN res{2}].
+             ==> asint res{1} = valR res{2}].
 transitivity ML_Abstract.iterop_spec
  (arg{1}.`1 = arg{2}.`1 /\ arg{1}.`2 = bs2int arg{2}.`2   ==> ={res})
  (ImplZZ m{2} p /\
@@ -277,7 +277,7 @@ transitivity ML_Abstract.iterop_spec
              bs2int n{1} = valR n{2}  /\
              valR x{2} < p /\
              r{2} = R /\ size n{1} = (nlimbs * 64)
-             ==> asint res{1} = valR{2}%W64xN res{2}).
+             ==> asint res{1} = valR res{2}).
 progress.
 exists (arg{1}.`1, int2bs (nlimbs * 64) arg{1}.`2).
 progress.
@@ -308,18 +308,18 @@ lemma bn_expm_correct rr mm xx nn:
                    valR x < p /\
                    r = R ==> (valR res) = ((valR xx) ^ (valR nn)) %% p ] = 1%r.
 bypr. progress.
-have <- : Pr[ASpecFp.expm(inzp (valR x{m}), valR n{m}) @ &m : asint res =  ((valR x{m}) ^ (valR n{m})) %% p ] = 1%r.
-  byphoare (_: arg = (inzp (valR x{m}), valR n{m}) ==> _).
+have <- : Pr[ASpecFp.expm(inzmod (valR x{m}), valR n{m}) @ &m : asint res =  ((valR x{m}) ^ (valR n{m})) %% p ] = 1%r.
+  byphoare (_: arg = (inzmod (valR x{m}), valR n{m}) ==> _).
 proc. inline*. wp. skip. progress.
-rewrite inzpK.
-have -> :  asint (inzp (valR x{m}))  =  (valR x{m} ).
-rewrite inzpK.
+rewrite inzmodK.
+have -> :  asint (inzmod (valR x{m}))  =  (valR x{m} ).
+rewrite inzmodK.
 smt (@W64xN). auto.
 auto. auto.
 byequiv.
 symmetry. conseq expm_correct.
 progress.
-rewrite inzpK.
+rewrite inzmodK.
 smt (@W64xN).
 smt(). auto. auto.
 qed.

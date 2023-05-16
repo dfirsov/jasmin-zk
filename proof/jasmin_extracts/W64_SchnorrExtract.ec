@@ -745,16 +745,41 @@ module M(SC:Syscall_t) = {
   }
   
   proc bn_set_gg (a:W64.t Array32.t) : W64.t Array32.t = {
-    var aux: int;
     
-    var i:int;
+    
     
     a.[0] <- (W64.of_int 1);
-    i <- 1;
-    while (i < 32) {
-      a.[i] <- (W64.of_int 1);
-      i <- i + 1;
-    }
+    a.[1] <- (W64.of_int 0);
+    a.[2] <- (W64.of_int 0);
+    a.[3] <- (W64.of_int 0);
+    a.[4] <- (W64.of_int 0);
+    a.[5] <- (W64.of_int 0);
+    a.[6] <- (W64.of_int 0);
+    a.[7] <- (W64.of_int 0);
+    a.[8] <- (W64.of_int 0);
+    a.[9] <- (W64.of_int 0);
+    a.[10] <- (W64.of_int 0);
+    a.[11] <- (W64.of_int 0);
+    a.[12] <- (W64.of_int 0);
+    a.[13] <- (W64.of_int 0);
+    a.[14] <- (W64.of_int 0);
+    a.[15] <- (W64.of_int 0);
+    a.[16] <- (W64.of_int 0);
+    a.[17] <- (W64.of_int 0);
+    a.[18] <- (W64.of_int 0);
+    a.[19] <- (W64.of_int 0);
+    a.[20] <- (W64.of_int 0);
+    a.[21] <- (W64.of_int 0);
+    a.[22] <- (W64.of_int 0);
+    a.[23] <- (W64.of_int 0);
+    a.[24] <- (W64.of_int 0);
+    a.[25] <- (W64.of_int 0);
+    a.[26] <- (W64.of_int 0);
+    a.[27] <- (W64.of_int 0);
+    a.[28] <- (W64.of_int 0);
+    a.[29] <- (W64.of_int 0);
+    a.[30] <- (W64.of_int 0);
+    a.[31] <- (W64.of_int 0);
     return (a);
   }
   

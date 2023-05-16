@@ -25,9 +25,37 @@ inline fn bn_set_eo(stack u64[nlimbs] a) -> stack u64[nlimbs] {
 inline fn bn_set_gg(stack u64[nlimbs] a) -> stack u64[nlimbs] {
   inline int i;
   a[0] = 1;
-  for i = 1 to nlimbs {
-    a[i] = 1;
-  }
+  a[1] = 0;
+  a[2] = 0;
+  a[3] = 0;
+  a[4] = 0;
+  a[5] = 0;
+  a[6] = 0;
+  a[7] = 0;
+  a[8] = 0;
+  a[9] = 0;
+  a[10] = 0;
+  a[11] = 0;
+  a[12] = 0;
+  a[13] = 0;
+  a[14] = 0;
+  a[15] = 0;
+  a[16] = 0;
+  a[17] = 0;
+  a[18] = 0;
+  a[19] = 0;
+  a[20] = 0;
+  a[21] = 0;
+  a[22] = 0;
+  a[23] = 0;
+  a[24] = 0;
+  a[25] = 0;
+  a[26] = 0;
+  a[27] = 0;
+  a[28] = 0;
+  a[29] = 0;
+  a[30] = 0;
+  a[31] = 0;
   return a;
 }
 
