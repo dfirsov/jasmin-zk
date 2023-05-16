@@ -23,15 +23,15 @@ def main() -> None:
             assert const_value < 2**(nlimbs*limb_size)
             lines = "\n".join([f"  {const_name}[{i}] = {(const_value // 2**(limb_size*i)) % 2**limb_size};" for i in range(0,nlimbs)])
             f.write(f"""
-/* Loads the {comment}. This function has the property:
+/* Loads the {comment}. This function has the property (expressed as an Easycrypt lemma):
 
    op {const_name} : int = {const_value}.
    lemma {proc_name}_correct: hoare [ {proc_name} : true ==> as_int res = {const_name} ].
 */
-inline fn bn_set_gg(stack u64[nlimbs] {const_name}) -> stack u64[nlimbs] {{
+inline fn {proc_name}(stack u64[nlimbs] {const_name}) -> stack u64[nlimbs] {{
 {lines}
+  return {const_name};
 }}
-return {const_name}
 """)
 
 
