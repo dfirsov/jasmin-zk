@@ -16,6 +16,10 @@ require import W64_SchnorrExtract.
 require import Ring_ops_proof.
 
 
+
+
+
+
 axiom bn_set_gg_prop : 
   phoare[ M.bn_set_gg : true ==> valR res = Sub.val g  ] = 1%r.
 axiom bn_set_go_prop : 
@@ -54,6 +58,15 @@ module ASpecFp_Schnorr = {
 axiom q_less_p      : q < p.
 axiom q_val_prop1 x : W64xN.valR x < q * q. 
 axiom p_val_prop2   : 2*p < W64xN.modulusR. 
+
+op g_int : int.
+
+op completeness_relationJ (s: W64xN.R.t) (w:W64xN.R.t) = g_int ^ (W64xN.valR w) %% p = W64xN.valR s %% p.
+op soundness_relationJ (s: W64xN.R.t) (w:W64xN.R.t) = g_int ^ (W64xN.valR w) %% p = W64xN.valR s %% p.
+
+
+
+
 
 lemma p_val_prop1 x : W64xN.valR x < p * p.  
 by smt(q_less_p q_val_prop1 q_prime prime_p). 
@@ -104,6 +117,28 @@ have ->: (x ^ (i + 1))%Ring_ops_spec = x * (x^ i)%Ring_ops_spec.
 have ->: (x ^^ (i + 1)) = x * (x^^i). smt.
 rewrite H0.
 auto.
+qed.
+
+lemma rels_compat s w : (valR s) %% p <> 0 =>
+ soundness_relationJ s w 
+ =  LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod (valR w)).
+move => s_not_zero.
+rewrite /soundness_relationJ /soundness_relation /IsDL.
+ have by_def: g = (inzmod g_int). admit. 
+rewrite by_def.
+rewrite exp_lemma5. rewrite - by_def. apply g_unit. smt(@W64xN).
+rewrite - by_def. rewrite g_q_assumption. auto.
+rewrite  lll. rewrite - by_def. apply g_unit.
+rewrite - bbb.
+rewrite ZPS.Sub.insubdK. rewrite /P. rewrite - by_def. smt(g_unit @ZModpField).
+rewrite ZPS.Sub.insubdK. rewrite /P. 
+apply unitE. rewrite /Zp.zero. smt(@Zp).
+have ->: (ZModpField.exp (inzmod g_int) (valR w)) = ((inzmod g_int) ^^ (valR w)). rewrite /(^^). auto.
+rewrite - exps. smt(@W64xN).
+rewrite /(^).
+rewrite inzmodK.
+have ->: (g_int %% p) = g_int. admit. (* by assumption *)
+smt.
 qed.
 
 

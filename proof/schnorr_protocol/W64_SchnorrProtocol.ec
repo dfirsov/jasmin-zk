@@ -6,8 +6,6 @@ require import Array32 Array64 Array128.
 require export W64_SchnorrProver W64_SchnorrVerifier.
 require import Zp_SchnorrProtocol.
 
-type W64xN = W64.t Array32.t.
-
 
 
 module type ZKProverJ = {
@@ -20,7 +18,6 @@ module type ZKProverJ = {
 module type ZKMaliciousProverJ = {
   proc commitment() : W64.t Array32.t 
   proc response(challenge:W64.t Array32.t) : W64.t Array32.t 
-
 }.
 
 
@@ -44,5 +41,3 @@ module type ExtractorJ(P: ZKRewindableMaliciousProverJ) = {
   proc extract(statement: W64.t Array32.t): W64.t Array32.t
 }.
 
-
-    

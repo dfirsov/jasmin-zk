@@ -39,6 +39,14 @@ module (ExtractorJ : ExtractorJ)(P : ZKRewindableMaliciousProverJ) = {
 }.
 
 
+lemma q x : LSP.EG.asint x < q.
+smt(@LSP.EG).
+qed.
+
+lemma q_less_modulusR x : 0 <= LSP.EG.asint x < modulusR.
+smt(@LSP.EG q_less_p p_val_prop2).
+qed.
+
 lemma extractability_same : forall (P <:  ZKRewindableMaliciousProverJ) s &m,
  Pr[ ExtractorJ(P).extract(s) @&m: LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod (valR res))] 
   = Pr[ ExtractorG(AWrapE(P)).extract((inzmod (valR s))) @&m: LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod res) ].
@@ -49,21 +57,23 @@ call (_: ={glob P}). sim. auto. progress.
 have : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2))) 
  = (special_soundness_extractG result_R.`1 result_R.`2).
 rewrite bn_ofintK. rewrite /special_soundness_extractG.  
-rewrite /special_soundness_extract.  simplify. admit.
+rewrite /special_soundness_extract.  simplify. 
+smt(@IntDiv q_less_modulusR). 
 move => q.
 have <- : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2))) 
  = (special_soundness_extractG result_R.`1 result_R.`2).
 rewrite bn_ofintK. rewrite /special_soundness_extractG. 
 rewrite /special_soundness_extract. simplify.
-admit.
+smt(@IntDiv q_less_modulusR).
 have -> : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2))) 
  = (special_soundness_extractG result_R.`1 result_R.`2).
-rewrite bn_ofintK. rewrite /special_soundness_extractG.  simplify. admit.
+rewrite bn_ofintK. rewrite /special_soundness_extractG.  
+simplify. smt(@IntDiv q_less_modulusR).
 smt. 
 have -> : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2)))
  = (special_soundness_extractG result_R.`1 result_R.`2).
 rewrite bn_ofintK. rewrite /special_soundness_extractG.   
-rewrite /special_soundness_extract.  simplify. admit.
+rewrite /special_soundness_extract.  simplify. smt(@IntDiv q_less_modulusR).
 apply H. auto. auto.
 qed.
 
