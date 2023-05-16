@@ -2,3 +2,4 @@
 *.check.log
 /tmp/
 *.eco
+.idea

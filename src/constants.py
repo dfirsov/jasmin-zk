@@ -31,7 +31,7 @@ class Constant:
    op {self.name} : int = {self.value}.
    lemma {proc_name}_correct: phoare [ {proc_name} : true ==> {self.nlimbs.val_op} res = {self.name} ] = 1%r.
 */
-inline fn {proc_name}(stack u64[nlimbs] {self.name}) -> stack u64[nlimbs] {{
+inline fn {proc_name}(stack u64[{self.nlimbs.number}] {self.name}) -> stack u64[{self.nlimbs.number}] {{
 {lines}
   return {self.name};
 }}
