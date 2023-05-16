@@ -75,8 +75,8 @@ extract_all $(EXTRACTED_FILES) : src/schnorr_protocol.jazz src/constants.jazz Ma
 	mkdir proof/jasmin_extracts
 	$(JASMIN_PROGNAME)     -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract.ec    -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
 	$(JASMIN_PROGNAME) -CT -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
-	$(JASMIN_PROGNAME)     -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/ConstantsExtract.ec      -oecarray proof/jasmin_extracts src/constants.jazz
-	$(JASMIN_PROGNAME) -CT -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/ConstantsExtract_ct.ec   -oecarray proof/jasmin_extracts src/constants.jazz
+	$(JASMIN_PROGNAME)     -ec bn_set_p -ec bn_set_q -ec bn_set_g -ec bn_set_bp -ec bn_set_bq -oec proof/jasmin_extracts/ConstantsExtract.ec      -oecarray proof/jasmin_extracts src/constants.jazz
+	$(JASMIN_PROGNAME) -CT -ec bn_set_p -ec bn_set_q -ec bn_set_g -ec bn_set_bp -ec bn_set_bq -oec proof/jasmin_extracts/ConstantsExtract_ct.ec   -oecarray proof/jasmin_extracts src/constants.jazz
 
 src/constants.jazz : src/constants.py
 	make -C src constants.jazz

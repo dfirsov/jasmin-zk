@@ -7,15 +7,48 @@ require import Ring_ops_spec.
 import Zp.
 import W64xN Sub R. 
 
-require import W64_SchnorrExtract.
+require import ConstantsExtract.
 
-(* to be defined *)
-op p : int     = witness.
-op q : int     = witness.          
-op g_int : int = witness.
 
-axiom bn_set_gg_prop :
-  phoare[ M(Syscall).bn_set_gg : true ==> W64xN.valR res = val (Zp.inzmod g_int)  ] = 1%r.
+print ConstantsExtract.M.
+
+op g = 2.
+
+lemma bn_set_gg_prop :
+  phoare[ ConstantsExtract.M.bn_set_g : true ==> W64xN.valR res = g ] = 1%r.
+proof.
+proc.
+wp.
+skip.
+
+have H: 32 = 31 + 1. by trivial.
+rewrite H.
+clear H.
+rewrite bnkS; 1: trivial.
+rewrite /dig.
+simplify.
+
+have H: 31 = 30 + 1. by trivial.
+rewrite H.
+clear H.
+rewrite bnkS; 1: trivial.
+rewrite /dig.
+simplify.
+
+
+
+rewrite bnkS; 1: trivial.
+progress (rewrite bnkS).
+rewrite bnkS.
+by trivial.
+
+print valR.
+search bnk.
+print bnk.
+
+
+simplify.
+
 axiom bn_set_go_prop : 
   phoare[ M(Syscall).bn_set_go : true ==> W64xN.valR res = p  ] = 1%r.
 axiom bn_set_bf_prop : 
