@@ -1,6 +1,10 @@
 TIMEOUT = 20
 
-EXTRACTED_FILES = proof/jasmin_extracts/W64_SchnorrExtract.ec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec
+EXTRACTED_FILES = \
+    proof/jasmin_extracts/W64_SchnorrExtract.ec \
+    proof/jasmin_extracts/W64_SchnorrExtract_ct.ec \
+    proof/jasmin_extracts/ConstantsExtract.ec \
+    proof/jasmin_extracts/ConstantsExtract_ct.ec
 
 PROOF_FILES += $(EXTRACTED_FILES)
 PROOF_FILES += $(wildcard proof/*.ec)
@@ -66,8 +70,13 @@ update_downloads :
 
 # Check all EasyCrypt files from Jasmin sources
 # If you do not have Jasmin, you can remove this block to skip extraction
-extract_all proof/jasmin_extracts/W64_SchnorrExtract.ec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec : src/schnorr_protocol.jazz Makefile
+extract_all $(EXTRACTED_FILES) : src/schnorr_protocol.jazz src/constants.jazz Makefile
 	rm -rf proof/jasmin_extracts
 	mkdir proof/jasmin_extracts
-	$(JASMIN_PROGNAME)     -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract.ec    -oecarray proof/jasmin_extracts $<
-	$(JASMIN_PROGNAME) -CT -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec -oecarray proof/jasmin_extracts $<
+	$(JASMIN_PROGNAME)     -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract.ec    -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
+	$(JASMIN_PROGNAME) -CT -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
+	$(JASMIN_PROGNAME)     -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/ConstantsExtract.ec      -oecarray proof/jasmin_extracts src/constants.jazz
+	$(JASMIN_PROGNAME) -CT -ec commitment -ec response -ec challenge -ec verify -oec proof/jasmin_extracts/ConstantsExtract_ct.ec   -oecarray proof/jasmin_extracts src/constants.jazz
+
+src/constants.jazz : src/constants.py
+	make -C src constants.jazz
