@@ -248,7 +248,7 @@ qed.
 
 
 
-local lemma exp_same_comp (x : zmod) : forall n, 0 <= n => (x ^ n)%Ring_ops_spec = (x ^ n)%Exp.
+lemma exp_same_comp (x : zmod) : forall n, 0 <= n => (x ^ n)%Ring_ops_spec = (x ^ n)%Exp.
 apply intind. progress.
 smt(@Zp @Ring).
 progress.

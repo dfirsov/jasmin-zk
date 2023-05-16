@@ -69,18 +69,23 @@ lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
 smt(@Int). qed.
 
 
-(* opaque constants to make typechecking faster *)
-op Ri : int = nasty_id (4 ^ (64 * nlimbs) %/ p).
-lemma Ri_def : Ri = (4 ^ (64 * nlimbs) %/ p).
-rewrite /Ri. smt(nasty_id). qed.
+
 
 op oneR : R = (of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero ))%Array32.
 
+  (* TODO: MOVE THIS *)
+op q : int.
+axiom q_prime : prime q.
+op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ q).
+lemma Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ q.
+rewrite /Rip. smt(nasty_id). qed.
+op Ri : int = nasty_id (4 ^ (64 * nlimbs) %/ p).
+lemma Ri_def : Ri = (4 ^ (64 * nlimbs) %/ p).
+rewrite /Ri. smt(nasty_id). qed.
 op R : W64.t Array64.t = W64xN.R2.bn_ofint Ri.
 
-op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ (p-1)).
-lemma Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ (p-1).
-rewrite /Rip. smt(nasty_id). qed.
+
+
 
 
 (* cyclic group generator *)

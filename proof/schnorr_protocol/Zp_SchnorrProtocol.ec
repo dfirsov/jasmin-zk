@@ -20,8 +20,6 @@ clone ZModPStar as ZPS with op p <- Zp.p,
 import ZPS.
 
 op g : ZPS.zmod.
-op q : int.
-axiom q_prime : prime q.
 axiom g_unit : unit g.
 axiom g_q_assumption: (ZModpField.exp g q) = Zp.one.
 
