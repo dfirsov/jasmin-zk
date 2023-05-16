@@ -24,7 +24,7 @@ module  AWrap(A:ZKMaliciousProverJ) : ZKMaliciousProverG = {
   proc commitment() : commitment  = {
      var c;
      c <@ A.commitment();
-     return (inzp (valR c ));
+     return (inzmod (valR c ));
   }
   proc response(c:challenge) : response = {
    var r;
@@ -36,7 +36,7 @@ module  AWrap(A:ZKMaliciousProverJ) : ZKMaliciousProverG = {
 
 lemma soundness_same (s : W64xN) &m : forall (A <: ZKMaliciousProverJ),
    Pr[ SoundnessJ(A,JVerifier).main(s)@&m : res]
-   = Pr[ SoundnessG(AWrap(A),SchnorrVerifier).run(inzp (W64xN.valR s))@&m : res].
+   = Pr[ SoundnessG(AWrap(A),SchnorrVerifier).run(inzmod (W64xN.valR s))@&m : res].
 move => A. byequiv. proc.
 symmetry. call verify_eq.
 inline AWrap(A).response.
