@@ -1695,6 +1695,10 @@ module M(SC:Syscall_t) = {
     var tmp:W64.t Array32.t;
     var v1:W64.t Array32.t;
     var v2:W64.t Array32.t;
+    var result1:W64.t;
+    var v3:W64.t Array32.t;
+    var v4:W64.t Array32.t;
+    var result2:W64.t;
     exp_barrett <- witness;
     exp_order <- witness;
     group_barrett <- witness;
@@ -1703,6 +1707,8 @@ module M(SC:Syscall_t) = {
     tmp <- witness;
     v1 <- witness;
     v2 <- witness;
+    v3 <- witness;
+    v4 <- witness;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ bn_set_eo (exp_order);
     exp_order <- aux;
@@ -1741,6 +1747,18 @@ module M(SC:Syscall_t) = {
     v2 <- aux;
     leakages <- LeakAddr([]) :: leakages;
     aux_1 <@ bn_eq (v1, v2);
+    result1 <- aux_1;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ expm (group_barrett, group_order, statement, exp_order);
+    v3 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_set1 (v4);
+    v4 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_1 <@ bn_eq (v3, v4);
+    result2 <- aux_1;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_1 <- (result1 `&` result2);
     result <- aux_1;
     return (result);
   }

@@ -882,6 +882,10 @@ module M(SC:Syscall_t) = {
     var tmp:W64.t Array32.t;
     var v1:W64.t Array32.t;
     var v2:W64.t Array32.t;
+    var result1:W64.t;
+    var v3:W64.t Array32.t;
+    var v4:W64.t Array32.t;
+    var result2:W64.t;
     exp_barrett <- witness;
     exp_order <- witness;
     group_barrett <- witness;
@@ -890,6 +894,8 @@ module M(SC:Syscall_t) = {
     tmp <- witness;
     v1 <- witness;
     v2 <- witness;
+    v3 <- witness;
+    v4 <- witness;
     exp_order <@ bn_set_eo (exp_order);
     exp_barrett <@ bn_set_eb (exp_barrett);
     group_order <@ bn_set_go (group_order);
@@ -903,7 +909,11 @@ module M(SC:Syscall_t) = {
     tmp <@ expm (group_barrett, group_order, statement, challenge_0);
     v1 <@ mulm (group_barrett, group_order, commitment_0, tmp);
     v2 <@ expm (group_barrett, group_order, group_generator, response_0);
-    result <@ bn_eq (v1, v2);
+    result1 <@ bn_eq (v1, v2);
+    v3 <@ expm (group_barrett, group_order, statement, exp_order);
+    v4 <@ bn_set1 (v4);
+    result2 <@ bn_eq (v3, v4);
+    result <- (result1 `&` result2);
     return (result);
   }
 }.
