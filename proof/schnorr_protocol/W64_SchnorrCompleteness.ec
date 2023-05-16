@@ -3,7 +3,6 @@ require import AllCore Distr DInterval List Int IntDiv.
 from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
 
-require import ZK_SchnorrBasics.
 require import Zp_SchnorrProtocol.
 require import W64_SchnorrProtocol.
 require import W64_Zp_SchnorrIndistinguishability.
@@ -24,7 +23,7 @@ module CompletenessJ(P:ZKProverJ,V:ZKVerifierJ) = {
 
 
 lemma completeness ss ww &m:
- Pr[ CompletenessG(SchnorrProver,SchnorrVerifier).main(inzp (W64xN.valR ss) , (W64xN.valR ww))@&m : res]
+ Pr[ CompletenessG(SchnorrProver,SchnorrVerifier).main(inzmod (W64xN.valR ss) , (W64xN.valR ww))@&m : res]
  = Pr[CompletenessJ(JProver,JVerifier).main(ss,ww)@&m : res].
 proof.
 byequiv.

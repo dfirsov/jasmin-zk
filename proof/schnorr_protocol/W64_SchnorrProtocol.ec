@@ -4,10 +4,11 @@ require import Array32 Array64 Array128.
 
 
 require export W64_SchnorrProver W64_SchnorrVerifier.
+require import Zp_SchnorrProtocol.
 
 type W64xN = W64.t Array32.t.
 
-type sbits.
+
 
 module type ZKProverJ = {
   proc response (witness0:W64.t Array32.t, secret_power:W64.t Array32.t,
@@ -34,8 +35,8 @@ module type ZKRewindableMaliciousProverJ = {
   proc response (challenge:W64.t Array32.t) : W64.t Array32.t
   proc commitment () : W64.t Array32.t 
   (* rewinding interface *)
-  proc getState() : sbits 
-  proc setState(b : sbits) : unit 
+  proc getState() : LSP.sbits 
+  proc setState(b : LSP.sbits) : unit 
 }.
 
 
