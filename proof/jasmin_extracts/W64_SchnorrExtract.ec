@@ -716,7 +716,7 @@ module M(SC:Syscall_t) = {
     return (x1);
   }
   
-  proc bn_set_go (a:W64.t Array32.t) : W64.t Array32.t = {
+  proc bn_set_p (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux: int;
     
     var i:int;
@@ -730,7 +730,7 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_eo (a:W64.t Array32.t) : W64.t Array32.t = {
+  proc bn_set_q (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux: int;
     
     var i:int;
@@ -744,11 +744,11 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_gg (a:W64.t Array32.t) : W64.t Array32.t = {
+  proc bn_set_g (a:W64.t Array32.t) : W64.t Array32.t = {
     
     
     
-    a.[0] <- (W64.of_int 1);
+    a.[0] <- (W64.of_int 2);
     a.[1] <- (W64.of_int 0);
     a.[2] <- (W64.of_int 0);
     a.[3] <- (W64.of_int 0);
@@ -783,7 +783,7 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_bf (a:W64.t Array64.t) : W64.t Array64.t = {
+  proc bn_set_bp (a:W64.t Array64.t) : W64.t Array64.t = {
     var aux: int;
     
     var i:int;
@@ -798,7 +798,7 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_eb (a:W64.t Array64.t) : W64.t Array64.t = {
+  proc bn_set_bq (a:W64.t Array64.t) : W64.t Array64.t = {
     var aux: int;
     
     var i:int;
@@ -827,10 +827,10 @@ module M(SC:Syscall_t) = {
     group_generator <- witness;
     group_order <- witness;
     secret_power <- witness;
-    exp_order <@ bn_set_eo (exp_order);
-    group_order <@ bn_set_go (group_order);
-    group_generator <@ bn_set_gg (group_generator);
-    barrett_parameter <@ bn_set_bf (barrett_parameter);
+    exp_order <@ bn_set_q (exp_order);
+    group_order <@ bn_set_p (group_order);
+    group_generator <@ bn_set_g (group_generator);
+    barrett_parameter <@ bn_set_bp (barrett_parameter);
     secret_power <@ usample (exp_order);
     commitment_0 <@ expm (barrett_parameter, group_order, group_generator,
     secret_power);
@@ -848,8 +848,8 @@ module M(SC:Syscall_t) = {
     exp_order <- witness;
     product <- witness;
     response_0 <- witness;
-    exp_order <@ bn_set_eo (exp_order);
-    exp_barrett <@ bn_set_eb (exp_barrett);
+    exp_order <@ bn_set_q (exp_order);
+    exp_barrett <@ bn_set_bq (exp_barrett);
     challenge_0 <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
     secret_power <@ bn_breduce_small (secret_power, exp_barrett, exp_order);
     witness0 <@ bn_breduce_small (witness0, exp_barrett, exp_order);
@@ -864,7 +864,7 @@ module M(SC:Syscall_t) = {
     var exp_order:W64.t Array32.t;
     challenge_0 <- witness;
     exp_order <- witness;
-    exp_order <@ bn_set_eo (exp_order);
+    exp_order <@ bn_set_q (exp_order);
     challenge_0 <@ usample (exp_order);
     return (challenge_0);
   }
@@ -873,7 +873,7 @@ module M(SC:Syscall_t) = {
                challenge_0:W64.t Array32.t, response_0:W64.t Array32.t) : 
   W64.t = {
     
-    var result:W64.t;
+    var result1:W64.t;
     var exp_order:W64.t Array32.t;
     var exp_barrett:W64.t Array64.t;
     var group_order:W64.t Array32.t;
@@ -882,7 +882,6 @@ module M(SC:Syscall_t) = {
     var tmp:W64.t Array32.t;
     var v1:W64.t Array32.t;
     var v2:W64.t Array32.t;
-    var result1:W64.t;
     var v3:W64.t Array32.t;
     var v4:W64.t Array32.t;
     var result2:W64.t;
@@ -896,11 +895,11 @@ module M(SC:Syscall_t) = {
     v2 <- witness;
     v3 <- witness;
     v4 <- witness;
-    exp_order <@ bn_set_eo (exp_order);
-    exp_barrett <@ bn_set_eb (exp_barrett);
-    group_order <@ bn_set_go (group_order);
-    group_barrett <@ bn_set_bf (group_barrett);
-    group_generator <@ bn_set_gg (group_generator);
+    exp_order <@ bn_set_q (exp_order);
+    exp_barrett <@ bn_set_bq (exp_barrett);
+    group_order <@ bn_set_p (group_order);
+    group_barrett <@ bn_set_bp (group_barrett);
+    group_generator <@ bn_set_g (group_generator);
     statement <@ bn_breduce_small (statement, group_barrett, group_order);
     commitment_0 <@ bn_breduce_small (commitment_0, group_barrett,
     group_order);
@@ -913,8 +912,8 @@ module M(SC:Syscall_t) = {
     v3 <@ expm (group_barrett, group_order, statement, exp_order);
     v4 <@ bn_set1 (v4);
     result2 <@ bn_eq (v3, v4);
-    result <- (result1 `&` result2);
-    return (result);
+    result1 <- (result1 `&` result2);
+    return (result1);
   }
 }.
 

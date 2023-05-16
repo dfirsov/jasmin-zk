@@ -11,7 +11,7 @@ import Zp DZmodP.
 import W64xN Sub R. 
 
 module CompletenessJ(P:ZKProverJ,V:ZKVerifierJ) = {
-  proc main(s:W64xN, w:W64xN) = {
+  proc main(s:W64.t Array32.t, w:W64.t Array32.t) = {
     var z, c, r,t,v;
     (z,r) <@ P.commitment();
     c <@ V.challenge();

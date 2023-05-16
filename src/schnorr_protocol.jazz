@@ -8,10 +8,10 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
   stack u64[nlimbs]  secret_power commitment group_generator group_order exp_order;
   stack u64[dnlimbs] barrett_parameter;
 
-  exp_order         = bn_set_eo(exp_order);
-  group_order       = bn_set_go(group_order);
-  group_generator   = bn_set_gg(group_generator);
-  barrett_parameter = bn_set_bf(barrett_parameter);
+  exp_order         = bn_set_q(exp_order);
+  group_order       = bn_set_p(group_order);
+  group_generator   = bn_set_g(group_generator);
+  barrett_parameter = bn_set_bp(barrett_parameter);
 
   secret_power = usample(exp_order);
   commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
@@ -24,8 +24,8 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
   stack u64[dnlimbs] exp_barrett;
   stack u64[nlimbs]  exp_order response product;
 
-  exp_order   = bn_set_eo(exp_order);
-  exp_barrett = bn_set_eb(exp_barrett);
+  exp_order   = bn_set_q(exp_order);
+  exp_barrett = bn_set_bq(exp_barrett);
 
   challenge    = bn_breduce_small(challenge, exp_barrett, exp_order);
   secret_power = bn_breduce_small(secret_power, exp_barrett, exp_order);
@@ -40,7 +40,7 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
 
 inline fn challenge() -> stack u64[nlimbs]{
   stack u64[nlimbs] challenge exp_order;
-  exp_order = bn_set_eo(exp_order);  
+  exp_order = bn_set_q(exp_order);  
   challenge = usample(exp_order);
   return challenge;
 }
@@ -50,13 +50,13 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
  -> (stack u64){
   stack u64[dnlimbs] exp_barrett group_barrett;
   stack u64[nlimbs]  tmp v1 v2 v3 v4 exp_order group_order group_generator;
-  stack u64 result1 result2 result;
+  reg u64 result1 result2;
 
-  exp_order         = bn_set_eo(exp_order);
-  exp_barrett       = bn_set_eb(exp_barrett);
-  group_order       = bn_set_go(group_order);
-  group_barrett     = bn_set_bf(group_barrett);
-  group_generator   = bn_set_gg(group_generator);
+  exp_order         = bn_set_q(exp_order);
+  exp_barrett       = bn_set_bq(exp_barrett);
+  group_order       = bn_set_p(group_order);
+  group_barrett     = bn_set_bp(group_barrett);
+  group_generator   = bn_set_g(group_generator);
 
   statement  = bn_breduce_small(statement,  group_barrett, group_order);
   commitment = bn_breduce_small(commitment, group_barrett, group_order);
@@ -72,9 +72,9 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
   v4 = bn_set1(v4);
   result2 = bn_eq(v3,v4);
 
-  result = result1 & result2;
+  result1 &= result2;
   
-  return result;
+  return result1;
 }
 
 

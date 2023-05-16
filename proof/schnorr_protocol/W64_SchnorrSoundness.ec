@@ -10,7 +10,7 @@ import Zp DZmodP.
 import W64xN Sub R. 
 
 module SoundnessJ(P:ZKMaliciousProverJ, V:ZKVerifierJ) = {
-  proc main(s:W64xN) = {
+  proc main(s:W64.t Array32.t) = {
     var z, c,t,v;
     z <@ P.commitment();
     c <@ V.challenge();
@@ -34,7 +34,7 @@ module  AWrap(A:ZKMaliciousProverJ) : ZKMaliciousProverG = {
 }.
 
 
-lemma soundness_same (s : W64xN) &m : forall (A <: ZKMaliciousProverJ),
+lemma soundness_same (s : W64.t Array32.t) &m : forall (A <: ZKMaliciousProverJ),
    Pr[ SoundnessJ(A,JVerifier).main(s)@&m : res]
    = Pr[ SoundnessG(AWrap(A),SchnorrVerifier).run(inzmod (W64xN.valR s))@&m : res].
 move => A. byequiv. proc.

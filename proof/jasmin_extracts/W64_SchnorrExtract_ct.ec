@@ -1362,7 +1362,7 @@ module M(SC:Syscall_t) = {
     return (x1);
   }
   
-  proc bn_set_go (a:W64.t Array32.t) : W64.t Array32.t = {
+  proc bn_set_p (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux_0: int;
     var aux: W64.t;
     
@@ -1384,7 +1384,7 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_eo (a:W64.t Array32.t) : W64.t Array32.t = {
+  proc bn_set_q (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux_0: int;
     var aux: W64.t;
     
@@ -1406,13 +1406,13 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_gg (a:W64.t Array32.t) : W64.t Array32.t = {
+  proc bn_set_g (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux: W64.t;
     
     
     
     leakages <- LeakAddr([]) :: leakages;
-    aux <- (W64.of_int 1);
+    aux <- (W64.of_int 2);
     leakages <- LeakAddr([0]) :: leakages;
     a.[0] <- aux;
     leakages <- LeakAddr([]) :: leakages;
@@ -1542,7 +1542,7 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_bf (a:W64.t Array64.t) : W64.t Array64.t = {
+  proc bn_set_bp (a:W64.t Array64.t) : W64.t Array64.t = {
     var aux_0: int;
     var aux: W64.t;
     
@@ -1565,7 +1565,7 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_eb (a:W64.t Array64.t) : W64.t Array64.t = {
+  proc bn_set_bq (a:W64.t Array64.t) : W64.t Array64.t = {
     var aux_0: int;
     var aux: W64.t;
     
@@ -1605,16 +1605,16 @@ module M(SC:Syscall_t) = {
     group_order <- witness;
     secret_power <- witness;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_eo (exp_order);
+    aux <@ bn_set_q (exp_order);
     exp_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_go (group_order);
+    aux <@ bn_set_p (group_order);
     group_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_gg (group_generator);
+    aux <@ bn_set_g (group_generator);
     group_generator <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux_0 <@ bn_set_bf (barrett_parameter);
+    aux_0 <@ bn_set_bp (barrett_parameter);
     barrett_parameter <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ usample (exp_order);
@@ -1640,10 +1640,10 @@ module M(SC:Syscall_t) = {
     product <- witness;
     response_0 <- witness;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_eo (exp_order);
+    aux <@ bn_set_q (exp_order);
     exp_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux_0 <@ bn_set_eb (exp_barrett);
+    aux_0 <@ bn_set_bq (exp_barrett);
     exp_barrett <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
@@ -1671,7 +1671,7 @@ module M(SC:Syscall_t) = {
     challenge_0 <- witness;
     exp_order <- witness;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_eo (exp_order);
+    aux <@ bn_set_q (exp_order);
     exp_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ usample (exp_order);
@@ -1686,7 +1686,7 @@ module M(SC:Syscall_t) = {
     var aux: W64.t Array32.t;
     var aux_0: W64.t Array64.t;
     
-    var result:W64.t;
+    var result1:W64.t;
     var exp_order:W64.t Array32.t;
     var exp_barrett:W64.t Array64.t;
     var group_order:W64.t Array32.t;
@@ -1695,7 +1695,6 @@ module M(SC:Syscall_t) = {
     var tmp:W64.t Array32.t;
     var v1:W64.t Array32.t;
     var v2:W64.t Array32.t;
-    var result1:W64.t;
     var v3:W64.t Array32.t;
     var v4:W64.t Array32.t;
     var result2:W64.t;
@@ -1710,19 +1709,19 @@ module M(SC:Syscall_t) = {
     v3 <- witness;
     v4 <- witness;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_eo (exp_order);
+    aux <@ bn_set_q (exp_order);
     exp_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux_0 <@ bn_set_eb (exp_barrett);
+    aux_0 <@ bn_set_bq (exp_barrett);
     exp_barrett <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_go (group_order);
+    aux <@ bn_set_p (group_order);
     group_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux_0 <@ bn_set_bf (group_barrett);
+    aux_0 <@ bn_set_bp (group_barrett);
     group_barrett <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_gg (group_generator);
+    aux <@ bn_set_g (group_generator);
     group_generator <- aux;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ bn_breduce_small (statement, group_barrett, group_order);
@@ -1759,8 +1758,8 @@ module M(SC:Syscall_t) = {
     result2 <- aux_1;
     leakages <- LeakAddr([]) :: leakages;
     aux_1 <- (result1 `&` result2);
-    result <- aux_1;
-    return (result);
+    result1 <- aux_1;
+    return (result1);
   }
 }.
 

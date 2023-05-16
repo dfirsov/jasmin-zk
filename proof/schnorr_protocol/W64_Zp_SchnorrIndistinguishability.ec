@@ -21,15 +21,15 @@ require import Ring_ops_proof.
 
 
 axiom bn_set_gg_prop : 
-  phoare[ M.bn_set_gg : true ==> valR res = Sub.val g  ] = 1%r.
+  phoare[ M.bn_set_g : true ==> valR res = Sub.val g  ] = 1%r.
 axiom bn_set_go_prop : 
-  phoare[ M.bn_set_go : true ==> valR res = p  ] = 1%r.
+  phoare[ M.bn_set_p : true ==> valR res = p  ] = 1%r.
 axiom bn_set_bf_prop : 
-  phoare[ M.bn_set_bf : true ==> W64x2N.valR res = Ri  ] = 1%r.
+  phoare[ M.bn_set_bp : true ==> W64x2N.valR res = Ri  ] = 1%r.
 axiom bn_set_eo_prop : 
-  phoare[ M.bn_set_eo : true ==> valR res = q  ] = 1%r.
+  phoare[ M.bn_set_q : true ==> valR res = q  ] = 1%r.
 axiom bn_set_eb_prop : 
-  phoare[ M.bn_set_eb : true ==> W64x2N.valR res = Rip  ] = 1%r.
+  phoare[ M.bn_set_bq : true ==> W64x2N.valR res = Rip  ] = 1%r.
 
 
 
@@ -197,18 +197,18 @@ smt(@W64xN).
 smt().
 smt(@Zp).
   have sq_fact: ((ZModpField.exp s{1} q) = ZPS.Zp.one)
-            = (result16 = W64.one). 
+            = (result15 = W64.one). 
   rewrite H58 H56 H15 H5 H3 H57 - H.
   have ->: (ZModpField.exp s{1} q) = s{1} ^^ q. 
     rewrite /(^^). smt(@ZModpField).
     rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPS.Zp.one xxx.  
     smt.
 rewrite sq_fact.
-have ->: (result13 `&` result16 = W64.one) 
-  = (result13 = W64.one /\ result16 = W64.one). 
+have ->: (result12 `&` result15 = W64.one) 
+  = (result12 = W64.one /\ result15 = W64.one). 
 rewrite w64_and. smt(). smt(). auto.
 rewrite  H52 - H48 H51 H39  H3 - H2 H7 H23 H42 H15 H5 - H - H0 H31 H3 - H1.
-case (result16 = W64.one). progress. simplify.
+case (result15 = W64.one). progress. simplify.
 rewrite - (zp_eq (g ^^ t{1}) (s{1} ^^ c{1} * z{1}) ). simplify.
  have ->: (val (g ^^ t{1}) = val (s{1} ^^ c{1} * z{1}))
   = (val (z{1} * s{1} ^^ c{1} ) = val (g ^^ t{1})). smt().
@@ -231,8 +231,8 @@ rewrite (exp_mod g t{1} q). rewrite g_q_assumption. auto.
 auto.
 rewrite - exps'. smt(@IntDiv). rewrite /(^^). rewrite exps_same. auto.
 progress.
-rewrite (w64_and result13 result16). smt(). smt().
-rewrite (w64_and_false result13 result16). 
+rewrite (w64_and result12 result15). smt(). smt().
+rewrite (w64_and_false result12 result15). 
 smt(). smt().
 smt().
 qed.

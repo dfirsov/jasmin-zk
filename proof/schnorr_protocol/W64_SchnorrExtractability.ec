@@ -31,7 +31,7 @@ module  AWrapE(A:ZKRewindableMaliciousProverJ) : ZKRewindableMaliciousProverG = 
 
 module (ExtractorJ : ExtractorJ)(P : ZKRewindableMaliciousProverJ) = {
   module SA = SpecialSoundnessAdversaryG(AWrapE(P))
-  proc extract(p : W64xN) : W64xN = {
+  proc extract(p : W64.t Array32.t) : W64.t Array32.t = {
     var t1,t2;
     (t1,t2) <@ SA.attack(inzmod (valR p));
     return bn_ofint (special_soundness_extractG t1 t2);
