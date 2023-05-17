@@ -1,7 +1,7 @@
 require "uniform_distr.jazz"
 require "ring_ops.jazz"
 
-require "schnorr_constants.jazz"
+require "constants.jazz"
 
 
 inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
