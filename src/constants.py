@@ -77,7 +77,7 @@ bq = Constant(name="bq", comment="barret parameter for q", nlimbs=dnlimbs,
 # We pick an arbitrary number mod q for the witness here.
 # The formula given does not really have any meaning, we use pick us to get some large number.
 ex_w = Constant(name="ex_w", comment="example witness", nlimbs=nlimbs,
-                value = pow(23, 2**(limb_size*nlimbs.number), q.value))
+                value=pow(23, 2**(limb_size*nlimbs.number), q.value))
 # A statement matching the witness ex_w
 ex_s = Constant(name="ex_s", comment="example statement", nlimbs=nlimbs,
                 value=pow(g.value, ex_w.value, p.value))
@@ -104,7 +104,10 @@ def main() -> None:
 require import AllCore Int.
 from Jasmin require JModel JBigNum.
 require import Ring_ops_spec.
-require import ConstantsExtract.
+require W64_SchnorrExtract.
+
+module M = W64_SchnorrExtract.M(W64_SchnorrExtract.Syscall).
+
 """)
         for const in constants:
             f.write("\n")
