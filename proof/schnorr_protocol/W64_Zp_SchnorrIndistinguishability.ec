@@ -55,9 +55,9 @@ module ASpecFp_Schnorr = {
   }
 }.
 
-axiom q_less_p      : q < p.
-axiom q_val_prop1 x : W64xN.valR x < q * q. 
-axiom p_val_prop2   : 2*p < W64xN.modulusR. 
+axiom q_less_p       : q < p.
+axiom q_val_prop1 x  : W64xN.valR x < q * q. 
+axiom p_less_modulusR : p < W64xN.modulusR.
 
 op g_int : int.
 
@@ -326,7 +326,7 @@ lemma response_eq :
     /\  c{1}   %% q  = (valR challenge_0{2})  %% q
     ==> res{1} %% q  = (valR res{2}) ].
 proc. sp. simplify.
-ecall {2} (bn_addm_correct secret_power{2} product{2} exp_order{2}). simplify. 
+ecall {2} (bn_addm2_ph secret_power{2} product{2} exp_order{2}). simplify. 
 ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph witness0{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph secret_power{2} exp_order{2}). simplify.
@@ -354,17 +354,19 @@ smt(@W64xN).
 rewrite H2. smt.
 smt(@W64xN).
 rewrite H2. smt.
-smt(@W64xN).
-rewrite H2. smt (p_val_prop2 q_less_p).
-rewrite - H40.
-rewrite - H33.
-rewrite H2. 
+(* smt(@W64xN). *)
+(* rewrite H2. smt (p_val_prop2 q_less_p). *)
+rewrite - H38.
+rewrite - H33. 
+rewrite H2.
+rewrite H27.
+rewrite  H19 H2. rewrite - H0.
+rewrite  H11 H2. rewrite - H1.
+rewrite - H.
+rewrite modzMml.
+rewrite modzMmr. 
 have -> : (r{1} + c{1} * w{1}) %% q
   = (r{1} %% q + (c{1} * w{1}) %% q ) %% q.
 smt (modzDmr modzDml).
-rewrite  H19 H2. rewrite - H0.
-rewrite  H11 H2. rewrite - H1.
-rewrite  H27 H2. rewrite - H.
-rewrite modzMml.
-rewrite modzMmr. done.
+done.
 qed.

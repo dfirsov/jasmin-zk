@@ -44,7 +44,9 @@ smt(@LSP.EG).
 qed.
 
 lemma q_less_modulusR x : 0 <= LSP.EG.asint x < modulusR.
-smt(@LSP.EG q_less_p p_val_prop2).
+split.
+smt(@LSP.EG). move => pos.
+smt(@LSP.EG q_less_p p_less_modulusR).
 qed.
 
 lemma extractability_same : forall (P <:  ZKRewindableMaliciousProverJ) s &m,

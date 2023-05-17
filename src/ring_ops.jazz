@@ -276,6 +276,20 @@ export fn __expm(reg u64 rp rr pp ap bp)
   bn_store(rp2, c);
 }
 
+export fn __addm(reg u64 rp rr pp ap bp) 
+{ 
+  reg u64 rp2;
+  stack u64[nlimbs] a b c p;
+  stack u64[dnlimbs] r;
+
+  a = bn_load(ap);
+  b = bn_load(bp);
+  p = bn_load(pp);
+  c = addm(p,a,b);
+  bn_store(rp2, c);
+}
+
+
 
 
 export fn zk_expm(reg u64 result_p base_p exp_p barrett_p mod_p) 

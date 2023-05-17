@@ -189,6 +189,31 @@ module M(SC:Syscall_t) = {
     return (cf, a);
   }
   
+  proc dbn_addc (a:W64.t Array64.t, b:W64.t Array64.t) : bool *
+                                                         W64.t Array64.t = {
+    var aux: int;
+    
+    var cf:bool;
+    var x1:W64.t;
+    var x2:W64.t;
+    var i:int;
+    
+    x1 <- a.[0];
+    x2 <- b.[0];
+    (cf, x1) <- adc_64 x1 x2 false;
+    a.[0] <- x1;
+    aux <- (32 * 2);
+    i <- 1;
+    while (i < aux) {
+      x1 <- a.[i];
+      x2 <- b.[i];
+      (cf, x1) <- adc_64 x1 x2 cf;
+      a.[i] <- x1;
+      i <- i + 1;
+    }
+    return (cf, a);
+  }
+  
   proc mul1 (a:W64.t, b:W64.t Array32.t) : W64.t * bool * bool *
                                            W64.t Array64.t = {
     var aux: int;
@@ -568,6 +593,16 @@ module M(SC:Syscall_t) = {
     return (x);
   }
   
+  proc daddm (p:W64.t Array64.t, a:W64.t Array64.t, b:W64.t Array64.t) : 
+  W64.t Array64.t = {
+    
+    var  _0:bool;
+    
+    ( _0, a) <@ dbn_addc (a, b);
+    a <@ dcminusP (p, a);
+    return (a);
+  }
+  
   proc bn_expand (x:W64.t Array32.t) : W64.t Array64.t = {
     var aux: int;
     
@@ -610,6 +645,27 @@ module M(SC:Syscall_t) = {
       i <- i + 1;
     }
     return (r);
+  }
+  
+  proc addm2 (p:W64.t Array32.t, a:W64.t Array32.t, b:W64.t Array32.t) : 
+  W64.t Array32.t = {
+    
+    var d:W64.t Array32.t;
+    var aa:W64.t Array64.t;
+    var bb:W64.t Array64.t;
+    var pp:W64.t Array64.t;
+    var cc:W64.t Array64.t;
+    aa <- witness;
+    bb <- witness;
+    cc <- witness;
+    d <- witness;
+    pp <- witness;
+    aa <@ bn_expand (a);
+    bb <@ bn_expand (b);
+    pp <@ bn_expand (p);
+    cc <@ daddm (pp, aa, bb);
+    d <@ bn_shrink (cc);
+    return (d);
   }
   
   proc div2 (x:W64.t Array128.t, k:int) : W64.t Array64.t = {
@@ -1382,7 +1438,7 @@ module M(SC:Syscall_t) = {
     secret_power <@ bn_breduce_small (secret_power, exp_barrett, exp_order);
     witness0 <@ bn_breduce_small (witness0, exp_barrett, exp_order);
     product <@ mulm (exp_barrett, exp_order, challenge_0, witness0);
-    response_0 <@ addm (exp_order, secret_power, product);
+    response_0 <@ addm2 (exp_order, secret_power, product);
     return (response_0);
   }
   

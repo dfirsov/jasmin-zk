@@ -32,7 +32,7 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
   witness0     = bn_breduce_small(witness0, exp_barrett, exp_order);
 
   product  = mulm(exp_barrett, exp_order, challenge, witness0);
-  response = addm(exp_order, secret_power, product);
+  response = addm2(exp_order, secret_power, product);
  
   return response;
 }
@@ -49,7 +49,7 @@ inline fn challenge() -> stack u64[nlimbs]{
 inline fn verify(stack u64[nlimbs] statement commitment challenge response) 
  -> (stack u64){
   stack u64[dnlimbs] exp_barrett group_barrett;
-  stack u64[nlimbs]  tmp v1 v2 v3 v4 exp_order group_order group_generator;
+  stack u64[nlimbs] tmp v1 v2 v3 v4 exp_order group_order group_generator;
   reg u64 result1 result2;
 
   exp_order         = bn_set_q(exp_order);
@@ -63,7 +63,7 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
   challenge  = bn_breduce_small(challenge,  exp_barrett,   exp_order);
   response   = bn_breduce_small(response,   exp_barrett,   exp_order);
   
-  tmp = expm(group_barrett, group_order, statement, challenge);
+  tmp = expm(group_barrett, group_order, statement, challenge); 
   v1  = mulm(group_barrett, group_order, commitment, tmp);
   v2  = expm(group_barrett, group_order, group_generator, response);
   result1 = bn_eq(v1,v2);
@@ -73,7 +73,7 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
   result2 = bn_eq(v3,v4);
 
   result1 &= result2;
-  
+
   return result1;
 }
 
@@ -82,42 +82,44 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
 export fn __commitment(reg u64 commitment_p random_power_p) 
 { 
   reg u64 commitment_p2 random_power_p2;
-  stack u64[nlimbs] commitment rp;
-  commitment_p2 = commitment_p;   // relax ABI contraints
+  stack u64[nlimbs] commitment random_power;
+
+  commitment_p2   = commitment_p;   // relax ABI contraints
   random_power_p2 = random_power_p; // relax ABI contraints
 
-  commitment, rp = commitment();
+  commitment, random_power = commitment();
 
   bn_store(commitment_p2, commitment);
-  bn_store(random_power_p2, rp);
+  bn_store(random_power_p2, random_power);
 }
 
 
-export fn __response(reg u64 random_power_p challenge_p witness_p response_p) 
+export fn __response(reg u64 random_power_p challenge_p response_p) 
 { 
   reg u64 response_p2;
   stack u64[nlimbs] commitment random_power witness challenge response;
+
   response_p2 = response_p;   // relax ABI contraints 
 
+  witness      = bn_set_ex_w(witness);
   random_power = bn_load(random_power_p);
   challenge    = bn_load(challenge_p);
-  witness      = bn_load(witness_p);
 
   response = response(witness,random_power,challenge);
-  bn_store(response_p2, commitment);
+
+  bn_store(response_p2, response);
 }
 
 
-export fn __verify(reg u64 statement_p commitment_p challenge_p response_p result_p) 
+export fn __verify(reg u64 commitment_p challenge_p response_p result_p) 
 { 
   reg u64 result_p2;
-  reg u64 result2;
   stack u64[nlimbs] statement commitment challenge response;
   stack u64 result;
-  stack u64[nlimbs] confused;
+  
   result_p2 = result_p; // relax ABI contraints 
 
-  statement  = bn_load(statement_p);
+  statement  = bn_set_ex_s(statement);
   commitment = bn_load(commitment_p);
   challenge  = bn_load(challenge_p);
   response   = bn_load(response_p);
@@ -132,6 +134,7 @@ export fn __challenge(reg u64 challenge_p)
 { 
   reg u64 challenge_p2;
   stack u64[nlimbs] challenge;
+
   challenge_p2 = challenge_p;   // relax ABI contraints
 
   challenge = challenge();

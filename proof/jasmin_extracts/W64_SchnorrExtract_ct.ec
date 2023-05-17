@@ -309,6 +309,54 @@ module M(SC:Syscall_t) = {
     return (cf, a);
   }
   
+  proc dbn_addc (a:W64.t Array64.t, b:W64.t Array64.t) : bool *
+                                                         W64.t Array64.t = {
+    var aux_0: bool;
+    var aux_1: int;
+    var aux: W64.t;
+    
+    var cf:bool;
+    var x1:W64.t;
+    var x2:W64.t;
+    var i:int;
+    
+    leakages <- LeakAddr([0]) :: leakages;
+    aux <- a.[0];
+    x1 <- aux;
+    leakages <- LeakAddr([0]) :: leakages;
+    aux <- b.[0];
+    x2 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    (aux_0, aux) <- adc_64 x1 x2 false;
+    cf <- aux_0;
+    x1 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- x1;
+    leakages <- LeakAddr([0]) :: leakages;
+    a.[0] <- aux;
+    leakages <- LeakFor(1,(32 * 2)) :: LeakAddr([]) :: leakages;
+    aux_1 <- (32 * 2);
+    i <- 1;
+    while (i < aux_1) {
+      leakages <- LeakAddr([i]) :: leakages;
+      aux <- a.[i];
+      x1 <- aux;
+      leakages <- LeakAddr([i]) :: leakages;
+      aux <- b.[i];
+      x2 <- aux;
+      leakages <- LeakAddr([]) :: leakages;
+      (aux_0, aux) <- adc_64 x1 x2 cf;
+      cf <- aux_0;
+      x1 <- aux;
+      leakages <- LeakAddr([]) :: leakages;
+      aux <- x1;
+      leakages <- LeakAddr([i]) :: leakages;
+      a.[i] <- aux;
+      i <- i + 1;
+    }
+    return (cf, a);
+  }
+  
   proc mul1 (a:W64.t, b:W64.t Array32.t) : W64.t * bool * bool *
                                            W64.t Array64.t = {
     var aux_3: bool;
@@ -1108,6 +1156,23 @@ module M(SC:Syscall_t) = {
     return (x);
   }
   
+  proc daddm (p:W64.t Array64.t, a:W64.t Array64.t, b:W64.t Array64.t) : 
+  W64.t Array64.t = {
+    var aux: bool;
+    var aux_0: W64.t Array64.t;
+    
+    var  _0:bool;
+    
+    leakages <- LeakAddr([]) :: leakages;
+    (aux, aux_0) <@ dbn_addc (a, b);
+     _0 <- aux;
+    a <- aux_0;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_0 <@ dcminusP (p, a);
+    a <- aux_0;
+    return (a);
+  }
+  
   proc bn_expand (x:W64.t Array32.t) : W64.t Array64.t = {
     var aux: int;
     var aux_0: W64.t;
@@ -1171,6 +1236,39 @@ module M(SC:Syscall_t) = {
       i <- i + 1;
     }
     return (r);
+  }
+  
+  proc addm2 (p:W64.t Array32.t, a:W64.t Array32.t, b:W64.t Array32.t) : 
+  W64.t Array32.t = {
+    var aux_0: W64.t Array32.t;
+    var aux: W64.t Array64.t;
+    
+    var d:W64.t Array32.t;
+    var aa:W64.t Array64.t;
+    var bb:W64.t Array64.t;
+    var pp:W64.t Array64.t;
+    var cc:W64.t Array64.t;
+    aa <- witness;
+    bb <- witness;
+    cc <- witness;
+    d <- witness;
+    pp <- witness;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_expand (a);
+    aa <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_expand (b);
+    bb <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_expand (p);
+    pp <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ daddm (pp, aa, bb);
+    cc <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_0 <@ bn_shrink (cc);
+    d <- aux_0;
+    return (d);
   }
   
   proc div2 (x:W64.t Array128.t, k:int) : W64.t Array64.t = {
@@ -3504,7 +3602,7 @@ module M(SC:Syscall_t) = {
     aux <@ mulm (exp_barrett, exp_order, challenge_0, witness0);
     product <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ addm (exp_order, secret_power, product);
+    aux <@ addm2 (exp_order, secret_power, product);
     response_0 <- aux;
     return (response_0);
   }
