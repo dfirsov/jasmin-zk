@@ -104,12 +104,13 @@ inline fn dcminusP (stack u64[dnlimbs] p x)
 }
 
 
+
 /*  Modular addition  */
-inline fn addm(stack u64[nlimbs] p a b) 
- -> stack u64[nlimbs]
+inline fn daddm(stack u64[dnlimbs] p a b) 
+ -> stack u64[dnlimbs]
 {  
-  _, a = bn_addc (a,b);
-  a = cminusP (p,a);
+  _, a = dbn_addc (a,b);
+  a = dcminusP (p,a);
   return a;
 }
 
@@ -129,6 +130,17 @@ inline fn bn_expand(stack u64[nlimbs] x)
   return r;
 }
 
+
+/*  Modular addition  */
+inline fn addm(stack u64[nlimbs] p a b) 
+ -> stack u64[nlimbs]
+{  
+  _, a = bn_addc (a,b);
+  a = cminusP (p,a);
+  return a;
+}
+
+
 inline fn bn_shrink(stack u64[dnlimbs] x) 
  -> (stack u64[nlimbs])
 {
@@ -139,6 +151,24 @@ inline fn bn_shrink(stack u64[dnlimbs] x)
     r[i] = x[i];
   }  
   return r;
+}
+
+
+
+// ugly hack
+inline fn addm2(stack u64[nlimbs] p a b) 
+ -> (stack u64[nlimbs])
+{
+  stack u64[dnlimbs] aa bb cc dd pp;
+  stack u64[nlimbs] d;
+
+
+  aa = bn_expand(a);
+  bb = bn_expand(b);
+  pp = bn_expand(p);
+  cc = daddm(pp,aa,bb);
+  d   = bn_shrink(cc);
+  return d;
 }
 
 
@@ -153,6 +183,8 @@ inline fn div2(stack u64[2*dnlimbs] x, inline int k)
   }
   return r;
 }
+
+
 
 
 

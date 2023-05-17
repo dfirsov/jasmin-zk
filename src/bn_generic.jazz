@@ -290,6 +290,30 @@ inline fn bn_addc
 }
 
 
+inline fn dbn_addc
+( reg ptr u64[dnlimbs] a b
+) -> reg bool, reg ptr u64[dnlimbs]
+{
+  inline int i;
+  reg bool cf;
+  reg u64 x1 x2;
+
+
+  x1 = a[0];
+  x2 = b[0];
+  cf, x1 = x1 + x2;
+  a[0] =  x1;
+  for i=1 to dnlimbs{ 
+    x1 = a[i];
+    x2 = b[i];
+    cf, x1 = x1 + x2 + cf; 
+    a[i] = x1;
+  }
+
+  return cf, a;
+}
+
+
 /* multiplies a scalar by a reg array (first iteration of mul) */
 /* REGS (params + workspace): (1+nlimbs) + (nlimbs+2) */
 inline fn mul1

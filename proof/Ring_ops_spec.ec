@@ -132,6 +132,13 @@ module ASpecFp = {
     r <- (a + b) %% W64xN.modulusR;
     return (c, r);
   }
+
+  proc daddn(a b: int): bool * int = {
+    var c, r;
+    c <- W64x2N.modulusR <= (a+b);
+    r <- (a + b) %% W64x2N.modulusR;
+    return (c, r);
+  }
   
   proc muln(a b: int): int = {
     var r;
@@ -251,6 +258,14 @@ module CSpecFp = {
   return r;
  }
 
+
+ proc daddm(a b p: int): int = {
+  var c, x, r;
+  (c, x) <@ ASpecFp.daddn(a, b);
+  r <@ ASpecFp.cminus(x, p);
+  return r;
+ }
+
  proc redm(a r k p: int): int = {
    var xr, xrf, xrfn, t, b;
    xr    <@ ASpecFp.muln(a,r);
@@ -319,6 +334,22 @@ progress.
   have ->: (a{2} +  b{2}) %% W64xN.modulusR = (a{2} +  b{2}).
    rewrite modz_small. split. smt. move => H5. 
    have ->: `|W64xN.modulusR| = W64xN.modulusR. smt.
+   smt. done.
+  case: (a{2} + b{2} < p{2}) => H5.
+   rewrite   modz_small. smt(rg_asint). done.
+   smt.
+qed.
+
+
+equiv daddm_eq:
+ ASpecFp.addm ~ CSpecFp.daddm: ={a,b,p} /\ 0 <= a{1} < p{1} /\ 0 <= b{1} < p{1} /\ 0 <= 2*p{1} < W64x2N.modulusR ==> res{1}=res{2}.
+proof.
+proc; simplify.
+ inline*. wp. skip.
+progress.
+  have ->: (a{2} +  b{2}) %% W64x2N.modulusR = (a{2} +  b{2}).
+   rewrite modz_small. split. smt. move => H5. 
+   have ->: `|W64x2N.modulusR| = W64x2N.modulusR. smt.
    smt. done.
   case: (a{2} + b{2} < p{2}) => H5.
    rewrite   modz_small. smt(rg_asint). done.
