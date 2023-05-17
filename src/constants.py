@@ -24,14 +24,13 @@ class Constant:
         assert self.value >= 0
         assert self.value < 2**(self.nlimbs.number * limb_size)
         proc_name = f"bn_set_{self.name}"
-        lines = "\n".join(f"  {self.name}[{i}] = {(self.value // 2**(limb_size*i)) % 2**limb_size};"
+        lines = "\n".join(f"  tmp = {(self.value // 2**(limb_size*i)) % 2**limb_size}; {self.name}[{i}] = tmp;"
                           for i in range(0, self.nlimbs.number))
-        return f"""/* Loads the {self.comment}. This function has the property (expressed as an Easycrypt lemma):
-
-   op {self.name} : int = {self.value}.
-   lemma {proc_name}_correct: phoare [ {proc_name} : true ==> {self.nlimbs.module}.valR res = {self.name} ] = 1%r.
+        return f"""/* Loads the {self.comment}.
+It returns the value {self.name} = {self.value}.
 */
 inline fn {proc_name}(stack u64[{self.nlimbs.number}] {self.name}) -> stack u64[{self.nlimbs.number}] {{
+  reg u64 tmp;
 {lines}
   return {self.name};
 }}
