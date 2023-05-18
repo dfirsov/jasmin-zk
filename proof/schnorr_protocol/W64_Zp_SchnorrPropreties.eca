@@ -1,0 +1,221 @@
+require import AllCore Distr DInterval List Int IntDiv.
+
+from Jasmin require import JModel JBigNum.
+require import Array32 Array64 Array128.
+
+require import W64_SchnorrProtocol.
+require import Ring_ops_spec.
+import W64xN. 
+
+
+require W64_Zp_SchnorrIndistinguishability.
+clone import W64_Zp_SchnorrIndistinguishability as Ind.
+
+import ZPSP.
+
+
+section Completeness.
+
+lemma completeness_same ss ww &m:
+ Pr[ CompletenessG(SchnorrProver,SchnorrVerifier).main(ZpC.inzmod (W64xN.valR ss) , (W64xN.valR ww))@&m : res]
+ = Pr[CompletenessJ(JProver,JVerifier).main(ss,ww)@&m : res].
+proof.
+byequiv.
+proc.
+call verify_eq.
+call response_eq.
+call challenge_eq.
+call commitment_eq.
+simplify. skip. progress.
+smt. smt. rewrite  H. 
+have v : valR result_R.`1 < ZpC.p. rewrite - H. smt(@ZpC).
+have : valR result_R.`1 %% ZpC.p = valR result_R.`1. smt (@IntDiv @ZpC).
+smt().
+rewrite - H2.
+smt.
+smt.
+auto. auto.
+qed.
+
+import MLC. 
+import ZpC.
+lemma qqqq x : 0 <= x => (g ^ x %% ZpC.p) <> 0.
+move => xnonzero.
+case ((g ^ x %% ZpC.p = 0)).
+move => q. simplify.
+  have : unit (ZModpField.exp (inzmod g) x ).
+  smt.
+rewrite /unit. elim. 
+move => y. 
+have  : Sub.val (y * (ZModpField.exp (inzmod g) x) )= ((Sub.val y) * (Sub.val (ZModpField.exp (inzmod g) x)) %% ZpC.p). 
+smt.
+have ->: (Sub.val ((ZModpField.exp (inzmod g) x))) = ((Sub.val (inzmod g)) ^ x) %% ZpC.p.
+ have -> : (ZModpField.exp (inzmod g) x) = (inzmod g) ^^ x. auto.
+rewrite  - exps. assumption.
+timeout 10. smt.
+move => eq1 eq2.
+have o1 : (Sub.val y) * ((Sub.val (inzmod g)) ^ x %% ZpC.p) %% ZpC.p = 0.
+  have -> : (Sub.val (inzmod g)) = g. smt(@Sub g_less_p). rewrite q. simplify. auto.
+have o2 : (Sub.val y) * ((Sub.val (inzmod g)) ^ x %% ZpC.p) %% ZpC.p = 1.
+ rewrite - eq1. rewrite eq2. rewrite  /ZpC.one. 
+rewrite inzpKK. smt(@IntDiv p_less_modulusR).
+smt().
+auto.
+qed.
+
+
+lemma completenessJ ss ww &m: completeness_relationJ ss ww =>
+ Pr[CompletenessJ(JProver,JVerifier).main(ss,ww)@&m : res] = 1%r.
+move => compl_rel.
+rewrite - completeness_same.
+apply  (ZPSP.completenessG (ZpC.inzmod (W64xN.valR ss)) (W64xN.valR ww) &m).
+rewrite - (completness_compat ss ww). auto. 
+qed.
+
+end section Completeness.
+
+section Extractability.
+
+import ZPSP.
+import ZpC DZmodP.
+import W64xN Sub R. 
+
+
+module  AWrapE(A:ZKRewindableMaliciousProverJ) : ZKRewindableMaliciousProverG = {
+  proc commitment() : commitment  = {
+     var c;
+     c <@ A.commitment();
+     return (inzmod (valR c ));
+  }
+  proc response(c:challenge) : response = {
+   var r;
+   r <@ A.response(bn_ofint c);
+   return (valR r);
+  }  
+
+  proc getState = A.getState
+  proc setState = A.setState
+}.
+
+
+
+module (ExtractorJ : ExtractorJ)(P : ZKRewindableMaliciousProverJ) = {
+  module SA = SpecialSoundnessAdversaryG(AWrapE(P))
+  proc extract(p : W64.t Array32.t) : W64.t Array32.t = {
+    var t1,t2;
+    (t1,t2) <@ SA.attack(inzmod (valR p));
+    return bn_ofint (special_soundness_extractG t1 t2);
+ }
+}.
+
+
+lemma q_less_modulusR x : 0 <= LSP.EG.asint x < modulusR.
+split.
+smt(@LSP.EG). move => pos.
+smt(@LSP.EG q_less_p p_less_modulusR).
+qed.
+
+    (* LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod (valR res)) *)
+lemma extractability_same : forall (P <:  ZKRewindableMaliciousProverJ) s &m,
+ Pr[ ExtractorJ(P).extract(s) @&m: completeness_relationJ s res ] 
+  = Pr[ ExtractorG(AWrapE(P)).extract((inzmod (valR s))) @&m: completeness_relationG  (inzmod (valR s)) res ].
+progress. 
+byequiv.
+proc.
+call (_: ={glob P}). sim. auto. progress.
+have : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2))) 
+ = (special_soundness_extractG result_R.`1 result_R.`2).
+rewrite bn_ofintK. rewrite /special_soundness_extractG.  
+rewrite /special_soundness_extract.  simplify. 
+smt(@IntDiv q_less_modulusR). 
+move => q.
+have <- : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2))) 
+ = (special_soundness_extractG result_R.`1 result_R.`2).
+rewrite bn_ofintK. rewrite /special_soundness_extractG. 
+rewrite /special_soundness_extract. simplify.
+smt(@IntDiv q_less_modulusR).
+have -> : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2))) 
+ = (special_soundness_extractG result_R.`1 result_R.`2).
+rewrite bn_ofintK. rewrite /special_soundness_extractG.  
+simplify. smt(@IntDiv q_less_modulusR).
+rewrite - q.
+rewrite -  completness_compat.   
+rewrite /completeness_relationJ.
+rewrite H. auto.
+rewrite completness_compat.
+rewrite bn_ofintK.
+have ->: (special_soundness_extractG result_R.`1 result_R.`2 %% modulusR)
+ = (special_soundness_extractG result_R.`1 result_R.`2).
+rewrite /special_soundness_extractG. smt(@IntDiv q_less_modulusR).
+auto. auto. auto.
+qed.
+
+
+
+section.
+
+
+module  AWrap(A:ZKMaliciousProverJ) : ZKMaliciousProverG = {
+  proc commitment() : commitment  = {
+     var c;
+     c <@ A.commitment();
+     return (inzmod (valR c ));
+  }
+  proc response(c:challenge) : response = {
+   var r;
+   r <@ A.response(bn_ofint c);
+   return (valR r);
+  }  
+}.
+
+
+lemma soundness_same (s : W64.t Array32.t) &m : forall (A <: ZKMaliciousProverJ),
+   Pr[ SoundnessJ(A,JVerifier).main(s)@&m : res]
+   = Pr[ SoundnessG(AWrap(A),SchnorrVerifier).run(inzmod (W64xN.valR s))@&m : res].
+move => A. byequiv. proc.
+symmetry. call verify_eq.
+inline AWrap(A).response.
+wp. call (_:true).
+wp. 
+call challenge_eq.
+inline AWrap(A).commitment.
+wp. call (_:true). simplify. skip.
+progress. smt. smt. smt. smt. auto. auto.
+qed.
+
+
+declare module P <: ZKRewindableMaliciousProverJ{-LSP.HV}.
+declare axiom P_response_ll : islossless P.response.
+declare axiom P_commitment_ll : islossless P.commitment.
+
+declare axiom P_rewindable : exists (f : (glob AWrapE(P)) -> sbits),
+  injective f /\
+  (forall &m0,
+     Pr[AWrapE(P).getState() @ &m0 :
+        (glob AWrapE(P)) = (glob AWrapE(P)){m0} /\
+        res = f (glob AWrapE(P)){m0}] =
+     1%r) /\
+  (forall &m0 (b : sbits) (x : (glob AWrapE(P))),
+     b = f x => Pr[AWrapE(P).setState(b) @ &m0 : (glob AWrapE(P)) = x] = 1%r) /\
+  islossless AWrapE(P).setState.
+
+
+lemma extractabilityJ &m s: 
+  Pr[ExtractorJ(P).extract(s)@&m: completeness_relationJ  s res ] >=
+   (Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res] ^ 2
+       - 1%r / (size LSP.EG.DZmodP.Support.enum)%r
+           * Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res]).
+proof. rewrite (extractability_same P).
+rewrite (soundness_same s &m P).
+have -> : Pr[SoundnessG(AWrap(P), SchnorrVerifier).run(inzmod (valR s)) @ &m : res]
+ = Pr[SoundnessG(AWrapE(P), SchnorrVerifier).run(inzmod (valR s)) @ &m : res].
+byequiv. proc.  sim. auto. auto.
+apply (extractabilityG (AWrapE(P)) _ _ _ &m (inzmod (valR s))).
+proc. call P_response_ll. auto.
+proc. call P_commitment_ll. auto.
+apply P_rewindable.
+qed.
+
+end section.
+
+end section Extractability.
