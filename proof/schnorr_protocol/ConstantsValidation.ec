@@ -79,13 +79,28 @@ proof.
     rewrite /square_and_multiply_state.
     smt(). (* trivial would try to do the exponentiation *)
 qed.
+
+
+lemma generator_is_valid: (Constants.g ^ Constants.q) %% Constants.p = 1.
+proof.
+  have : square_and_multiply_state Constants.g Constants.q 1 Constants.p = 1.
+    rewrite /Constants.q /Constants.p /Constants.g.
+    do (rewrite square_and_multiply_end || (rewrite square_and_multiply_step /=; first by trivial)).
+    by trivial.
+    rewrite /square_and_multiply_state.
+    smt(). 
+qed.
     
+    
+
 
 
 lemma pq_euclid : euclidef Constants.barrett_numerator Constants.p (Constants.barrett_numerator_div_p, Constants.barrett_numerator_mod_p).
 rewrite /euclidef. simplify. rewrite /barrett_numberator.  simplify. split. auto.
 smt().
 qed.
+
+
 
 
 end section.

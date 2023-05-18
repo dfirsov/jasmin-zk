@@ -1,0 +1,396 @@
+require import AllCore Distr DInterval List Int IntDiv.
+require import AuxLemmas.
+
+from Jasmin require import JModel JBigNum.
+require import Array32 Array64 Array128.
+require import W64_SchnorrExtract.
+require import W64_SchnorrProtocol.
+(* require Constants. *)
+require import ModularMultiplication_Concrete.
+require import BarrettReduction_Concrete.
+require import Ring_ops_spec Ring_ops_proof.
+import W64xN R.                 
+
+require Zp_SchnorrProtocol.
+
+op p : int.
+op g : int.
+op q : int.
+op bp : int.
+op bq : int.
+
+
+axiom g_less_p       : 1 <= g < p.
+axiom q_less_p       : 0 < q < p.
+axiom q_val_prop1 x  : W64xN.valR x < q * q. 
+axiom p_less_modulusR : 2 < p < W64xN.modulusR.
+axiom q_prime : prime q.
+axiom p_prime : prime p.
+axiom bp_correct : bp = 4 ^ (64 * nlimbs) %/ p. 
+axiom bq_correct : bq = 4 ^ (64 * nlimbs) %/ q.
+
+axiom bn_set_p_correct : phoare[ M.bn_set_p : true ==> W64xN.valR res = p ] = 1%r.
+axiom bn_set_q_correct : phoare[ M.bn_set_q : true ==> W64xN.valR res = q ] = 1%r.
+axiom bn_set_g_correct : phoare[ M.bn_set_g : true ==> W64xN.valR res = g ] = 1%r.
+axiom bn_set_bp_correct : phoare[ M.bn_set_bp : true ==> W64x2N.valR res = bp ] = 1%r.
+axiom bn_set_bq_correct : phoare[ M.bn_set_bq : true ==> W64x2N.valR res = bq ] = 1%r.
+
+require ZModP.
+clone import ZModP.ZModField as ZpC
+  with op p <= p
+proof prime_p. 
+realize prime_p. apply p_prime. qed.
+
+
+clone import Zp_SchnorrProtocol as ZPSP with op g <- inzmod g,
+                                             type LSP.sbits <- sbits,
+                                             op q <- q,
+                                             theory Zp <- ZpC
+proof LSP.challenge_set_size, LSP.challenge_set_unique.
+realize LSP.challenge_set_size. smt(@EG). qed.
+realize LSP.challenge_set_unique. smt(@EG @List). qed.
+
+
+require MontgomeryLadder_Concrete.
+clone import MontgomeryLadder_Concrete as MLC with theory Zp <- ZpC.
+
+import Zp Zp.DZmodP Sub.
+
+lemma bp_correct' : Ri = bp.  rewrite /Ri. rewrite nasty_id. rewrite bp_correct. smt().
+qed.
+
+
+
+
+
+op completeness_relationJ (s: W64xN.R.t) (w:W64xN.R.t) = g ^ (W64xN.valR w) %% p = W64xN.valR s %% p.
+
+
+op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ q).
+lemma Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ q.
+rewrite /Rip. smt(nasty_id). qed.
+
+
+lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@ZpC). qed.
+lemma zp_mul (z1 z2 : zmod) : val (z1 * z2) = (val z1 * val z2) %% p. 
+by smt(@ZpC). qed.
+lemma inzpKK: forall (z : int), val (inzmod z) = z %% p. smt(@ZpC). qed.
+
+  
+module ASpecFp_Schnorr = {
+ proc commit(h : zmod, w : R) : zmod * int = {
+   var r;
+   var a : zmod;    
+   r <@ ASpecFp.rsample(q);
+   a <@ ML_Spec.expm(inzmod g,r);
+   return (a,  r);
+  } 
+  proc challenge() : int = {
+   var r;
+   r <@ ASpecFp.rsample(q);
+   return r;
+  }
+}.
+
+lemma p_val_prop1 x : W64xN.valR x < p * p.  
+by smt(q_less_p q_val_prop1 q_prime prime_p). 
+qed.
+
+
+lemma xxx:
+  forall (a b : int), (inzmod a) = (inzmod b) <=> a %% p = b %% p.
+smt(@Sub).
+qed.
+
+
+lemma w64_and (x y : W64.t) : (x = W64.one \/ x = W64.zero) 
+ => (y = W64.one \/ y = W64.zero) => (x `&` y = W64.one) = (x = W64.one /\ y = W64.one). smt(@W64).
+qed.
+
+
+lemma w64_and_false (x y : W64.t) : (x = W64.one \/ x = W64.zero) 
+ => (y = W64.one \/ y = W64.zero) => (x `&` y = W64.zero) = ((x = W64.one /\ y = W64.zero)  \/  (x = W64.zero /\ y = W64.one) \/ (x = W64.zero /\ y = W64.zero)). smt(@W64).
+qed.
+
+lemma exps_same (g : zmod) : ZModpField.exp g = ZModpRing.exp g.
+rewrite /ZModpField.exp. rewrite /ZModpRing.exp. auto. qed.
+
+
+lemma exps' (s : zmod) : forall n, 0 <= n => val (ZModpField.exp s n) = (val s ^ n) %% p.
+apply intind. progress. smt(@ZModpField @Sub).
+progress.
+rewrite exprSr. auto.
+rewrite ZModpField.exprSr. auto.
+rewrite zp_mul.
+rewrite H0.
+smt(@IntDiv). 
+qed.
+
+
+lemma exps (x : zmod) : forall n, 0 <= n => (x ^ n) = (x ^^ n). 
+apply intind. progress.
+smt(@ZpC @Ring).
+progress.
+have ->: (x ^ (i + 1)) = x * (x^ i). 
+ rewrite /(^).
+ have ->: asint x ^ (i + 1) = (asint x) * (asint x ^ i). smt.
+ rewrite inzmodM. congr. rewrite asintK. auto.
+have ->: (x ^^ (i + 1)) = x * (x ^^ i). smt.
+rewrite H0.
+auto.
+qed.
+
+
+lemma completness_compat s w : 
+ completeness_relationJ s w
+ =  completeness_relationG (inzmod (valR s)) (valR w).
+(* move => s_not_zero. *)
+rewrite /completeness_relationJ /completeness_relation /IsDL.
+rewrite /completeness_relationG.
+have ->: (ZModpField.exp (inzmod g) (valR w)) = ((inzmod g)  ^^ (valR w)). auto.
+rewrite - exps. smt(@W64xN).
+have ->: inzmod g ^ valR w = inzmod (g ^ valR w). smt.
+rewrite xxx. auto.
+qed.
+
+
+
+
+
+lemma verify_eq : 
+  equiv [ SchnorrVerifier.verify ~ JVerifier.verify :
+          Sub.val(s{1}) = valR statement{2}    %% p
+       /\ Sub.val(z{1}) = valR commitment_0{2} %% p
+       /\ c{1} %% q = (valR (challenge_0{2}))  %% q
+       /\ t{1} %% q = (valR response_0{2})     %% q
+       ==> (res{1} = (res{2} = W64.one)) /\ (res{2} = W64.zero \/ res{2} = W64.one) ].
+proc. sp. simplify. wp.
+ecall {2} (bn_eq_correct v3{2} v4{2}). simplify. 
+ecall {2} (bn_set1_correct). simplify. 
+ecall {2} (bn_expm_correct group_barrett{2} group_order{2} statement{2} exp_order{2}). simplify.      
+ecall {2} (bn_eq_correct v1{2} v2{2}). simplify. 
+ecall {2} (bn_expm_correct group_barrett{2} group_order{2} group_generator{2} response_0{2}). simplify. 
+ecall {2} (bn_mulm_correct commitment_0{2} tmp{2} group_order{2}). simplify.
+ecall {2} (bn_expm_correct group_barrett{2} group_order{2} statement{2} challenge_0{2}). simplify. 
+ecall {2} (bnreduce_small_spec_ph response_0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph commitment_0{2} group_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph statement{2} group_order{2}). simplify.
+call{2} bn_set_g_correct.
+call{2} bn_set_bp_correct.
+call{2} bn_set_p_correct.
+call{2} bn_set_bq_correct.
+call{2} bn_set_q_correct.
+simplify.
+skip. progress.
+rewrite ri_un. rewrite H6. rewrite /ri. rewrite - bp_correct'. rewrite /Ri. rewrite H5. rewrite nasty_id. smt().
+rewrite H5. smt(prime_p).
+smt(@W64xN).
+smt(@W64xN).
+rewrite H5. 
+smt(p_val_prop1).
+smt(prime_p).
+smt(@W64xN).
+smt(@W64xN).
+rewrite H5. 
+smt(p_val_prop1).
+rewrite ri_un. rewrite H4. rewrite /ri. rewrite H3. apply bq_correct.
+smt(q_prime).
+smt(@W64xN).
+smt(@W64xN).
+smt(q_val_prop1).
+smt(q_prime).
+smt(@W64xN).
+smt(@W64xN).
+smt(q_val_prop1).
+smt().
+
+rewrite /R. rewrite  bp_correct'. rewrite - H6.
+rewrite R2.bnK. auto.
+smt(@W64xN).
+smt().
+smt(@W64xN).
+smt().
+rewrite H7. smt(g_less_p).
+  have sq_fact: ((ZModpField.exp s{1} q) = ZPS.Zp.one)
+            = (result15 = W64.one). 
+  rewrite H58. rewrite H56. rewrite H15. rewrite H5. rewrite H3. rewrite H57.
+  have ->: (valR statement{2} %% p) = val s{1}. smt().
+  have ->: (ZModpField.exp s{1} q) = s{1} ^^ q. 
+    rewrite /(^^). smt(@ZModpField).
+    rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPS.Zp.one xxx.  
+    smt.
+rewrite sq_fact.
+have ->: (result12 `&` result15 = W64.one) 
+  = (result12 = W64.one /\ result15 = W64.one). 
+rewrite w64_and. smt(). smt(). auto.
+rewrite  H52 - H48 H51 H39  H3 - H2 H7 H23 H42 H15 H5 - H - H0 H31 H3 - H1.
+case (result15 = W64.one). progress. simplify.
+rewrite - (zp_eq ((inzmod g) ^^ t{1}) (s{1} ^^ c{1} * z{1}) ). simplify.
+ have ->: (val ((inzmod g) ^^ t{1}) = val (s{1} ^^ c{1} * z{1}))
+  = (val (z{1} * s{1} ^^ c{1} ) = val ((inzmod g) ^^ t{1})). smt().
+rewrite zp_mul.
+congr.
+congr.
+congr.
+congr. auto.
+rewrite /(^^).
+have ->: (ZModpRing.exp s{1} c{1}) = (ZModpField.exp s{1} c{1}). 
+rewrite exps_same. auto.
+have  <- : (ZModpField.exp s{1} (c{1} %% q)) = (ZModpField.exp s{1} c{1}). 
+rewrite (exp_mod s{1} c{1} q). rewrite sq_fact. auto. auto.
+rewrite exps'. smt(@IntDiv).
+auto. auto.
+rewrite /(^).
+have ->: val (ZModpField.exp (inzmod g) t{1})  = val (ZModpField.exp (inzmod g) (t{1} %% q)).
+rewrite /(^^).
+rewrite (exp_mod (inzmod g) t{1} q). rewrite g_q_assumption. auto.
+auto.
+rewrite  exps'. smt(@IntDiv). auto. rewrite /g /p. 
+rewrite inzpKK.
+have ->: (g %% p) = g.
+smt(@IntDiv g_less_p).
+auto.
+progress.
+rewrite (w64_and result12 result15). smt(). smt().
+rewrite (w64_and_false result12 result15). 
+smt(). smt().
+smt().
+qed.
+
+
+require import UniformSampling_Concrete.
+
+lemma commit_same1 : 
+  equiv [ JProver.commitment ~ ASpecFp_Schnorr.commit 
+          :   true
+  ==> (val res{2}.`1) = (valR res{1}.`1)
+    /\ res{2}.`2 = (valR res{1}.`2) ].
+proc. 
+symmetry. call expm_correct.
+symmetry.
+call usample_aspec. sp.
+simplify.
+call{1} bn_set_bp_correct.
+call{1} bn_set_g_correct.
+call{1} bn_set_p_correct.
+call{1} bn_set_q_correct.
+skip. move => &1 _ H r qe r2 vr rr iz rp vri.
+split. rewrite qe. simplify. smt(q_prime).
+move => h1. move => rL rR. move => rzrlrr. 
+split. 
+split.  smt. split. rewrite iz. 
+rewrite inzmodK.
+smt(@IntDiv g_less_p).
+split.  smt. split.  rewrite  iz. smt(g_less_p). rewrite /R.
+rewrite bp_correct'.
+rewrite - vri. smt(@W64x2N @R2).
+move => qo. move => rl rrr ai. smt.
+qed.
+
+
+lemma commit_same : 
+  equiv [ SchnorrProver.commitment ~ ASpecFp_Schnorr.commit 
+          : true  ==> ={res} ].
+proc. 
+inline *. wp.  simplify. sp.
+rnd.
+skip. progress.  smt(@Distr).  
+rewrite - zp_eq.
+rewrite exps. smt(@DInterval).
+rewrite /(^^) /(^).
+auto.
+qed.
+
+lemma commitment_eq : 
+  equiv [ SchnorrProver.commitment ~ JProver.commitment :
+  true
+  ==> (val res{1}.`1) = (valR res{2}.`1)
+    /\ res{1}.`2 = (valR res{2}.`2) ].
+transitivity ASpecFp_Schnorr.commit
+  (true ==> ={res})
+  (true
+  ==> (val res{1}.`1) = (valR res{2}.`1)
+    /\ res{1}.`2 = (valR res{2}.`2)). auto. auto.
+apply commit_same.
+symmetry. apply commit_same1.
+qed.
+     
+
+
+
+
+lemma challenge_same : 
+  equiv [ SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
+          : true  ==> ={res} ].
+proc. inline*. wp. rnd. wp. skip.
+progress.
+qed.
+
+lemma challenge_eq : 
+  equiv [ SchnorrVerifier.challenge ~ JVerifier.challenge :
+  true ==> res{1} = (valR res{2}) ].
+transitivity ASpecFp_Schnorr.challenge
+  (true ==> ={res})
+  (true
+  ==> (res{1}) = (valR res{2})). auto. auto.
+apply challenge_same.
+proc. 
+symmetry. call usample_aspec.
+call{1} bn_set_q_correct. wp. skip. progress.
+smt(q_less_p).
+qed.
+
+
+lemma response_eq : 
+  equiv [ SchnorrProver.response ~ JProver.response :
+        w{1}   %% q  = (valR (witness0{2}) )  %% q
+    /\  r{1}   %% q  = (valR secret_power{2}) %% q
+    /\  c{1}   %% q  = (valR challenge_0{2})  %% q
+    ==> res{1} %% q  = (valR res{2}) ].
+proc. sp. simplify.
+ecall {2} (bn_addm2_ph secret_power{2} product{2} exp_order{2}). simplify. 
+ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph witness0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph secret_power{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
+call{2} bn_set_bq_correct. simplify.
+call{2} bn_set_q_correct. simplify.
+wp.
+skip. 
+progress. rewrite H3. rewrite ri_un. rewrite /ri. rewrite H2. rewrite bq_correct.  smt().
+smt. 
+smt(@W64xN).
+smt(@W64xN).
+rewrite H2.   smt (q_val_prop1).
+smt.
+smt.
+smt(@W64xN).
+smt.
+smt(@W64xN).
+rewrite H2. smt (q_val_prop1).
+smt(@W64xN).
+rewrite H2. smt.
+smt(@W64xN).
+smt.
+smt(@W64xN).
+rewrite H2. smt.
+smt(@W64xN).
+rewrite H2. smt.
+(* smt(@W64xN). *)
+(* rewrite H2. smt (p_val_prop2 q_less_p). *)
+rewrite - H38.
+rewrite - H33. 
+rewrite H2.
+rewrite H27.
+rewrite  H19 H2. rewrite - H0.
+rewrite  H11 H2. rewrite - H1.
+rewrite - H.
+rewrite modzMml.
+rewrite modzMmr. 
+have -> : (r{1} + c{1} * w{1}) %% q
+  = (r{1} %% q + (c{1} * w{1}) %% q ) %% q.
+smt (modzDmr modzDml).
+done.
+qed.
+
