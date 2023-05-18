@@ -5,21 +5,13 @@ from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
 require import W64_SchnorrExtract.
 require import W64_SchnorrProtocol.
-
-
 require Constants.
-
-
 require import ModularMultiplication_Concrete.
 require import BarrettReduction_Concrete.
-
 require import Ring_ops_spec Ring_ops_proof.
 import W64xN R.                 
-(* import Sub  *)
 
 require Zp_SchnorrProtocol.
-
-
 clone import Zp_SchnorrProtocol as ZPSP with op q <= Constants.q,
                                              op Zp.p <= Constants.p,
                                              op g <= Zp.inzmod Constants.g,
@@ -34,10 +26,54 @@ clone import MontgomeryLadder_Concrete as MLC with theory Zp <= Zp.
 axiom q_prime : prime q.
 axiom p_prime : prime p.
 
-
 axiom q_less_p       : q < p.
 axiom q_val_prop1 x  : W64xN.valR x < q * q. 
 axiom p_less_modulusR : p < W64xN.modulusR.
+
+
+lemma bp_correct : Ri = Constants.bp. 
+rewrite /Ri nasty_id.
+simplify.
+rewrite /edivz. simplify. simplify.
+have ->: `|Constants.p| = Constants.p. 
+auto.
+rewrite /edivn. simplify. rewrite /euclidef. simplify.
+have ->: Constants.p < 0 = false. auto. simplify.
+have ->: (Constants.p = 0) = false. auto. simplify.
+pose P := (fun (qr : int * int) =>
+        Constants.barrett_numerator =
+        qr.`1 * Constants.p + qr.`2 /\ 0 <= qr.`2 && qr.`2 < `|Constants.p|).
+have f1 : P (choiceb P (0,0)).
+apply choicebP. exists (Constants.barrett_numerator_div_p,Constants.barrett_numerator_mod_p). rewrite /P. simplify. split. rewrite /ww /barrett_numerator_div_p /Constants.p /barrett_numerator_mod_p. simplify. auto.
+smt(). 
+elim f1. 
+have z: choiceb
+     (fun (qr : int * int) =>
+        Constants.barrett_numerator =
+        qr.`1 * Constants.p + qr.`2 /\ 0 <= qr.`2 && qr.`2 < `|Constants.p|) (0,0) 
+  = (choiceb P (0, 0)). auto.
+progress. rewrite z.
+rewrite /signz. 
+have ->: (Constants.p < 0) = false. auto. simplify.
+have ->: (Constants.p <> 0) = true. auto. 
+have ->: (-1) ^ b2i false = 1. rewrite /b2i. simplify. auto.
+have ->: 1 * b2i true  = 1. rewrite /b2i. simplify.  auto. simplify.
+have ->: (let (q, r) = choiceb P (0, 0) in (q, r)).`1 = (choiceb P (0, 0)).`1.  smt().
+have mem' : 
+  forall (x1 y1 x2 y2 l : int),
+    x1 \in range 0 l =>
+    x2 \in range 0 l => x1 + l * y1 = x2 + l * y2 => y1 = y2 .
+smt(mem_range_add_mul_eq).
+have : (choiceb P (0, 0)).`1 = Constants.barrett_numerator_div_p.
+apply (mem' (choiceb P (0, 0)).`2 (choiceb P (0, 0)).`1  Constants.barrett_numerator_mod_p Constants.barrett_numerator_div_p  Constants.p). 
+smt(@List). smt(@List).
+have ->: (choiceb P (0, 0)).`2 + Constants.p * (choiceb P (0, 0)).`1 = (choiceb P (0, 0)).`1 * Constants.p + (choiceb P (0, 0)).`2.
+smt().
+rewrite - H. simplify. rewrite /Constants.barrett_numerator /Constants.barrett_numerator_mod_p /Constants.barrett_numerator_div_p /Constants.p. simplify. done.  auto.
+qed.
+
+
+op completeness_relationJ (s: W64xN.R.t) (w:W64xN.R.t) = Constants.g ^ (W64xN.valR w) %% p = W64xN.valR s %% p.
 
 
 op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ q).
@@ -52,8 +88,6 @@ lemma inzpKK: forall (z : int), val (inzmod z) = z %% p. smt(@Zp). qed.
 
   
 module ASpecFp_Schnorr = {
-
-
  proc commit(h : zmod, w : R) : zmod * int = {
    var r;
    var a : zmod;    
@@ -61,15 +95,12 @@ module ASpecFp_Schnorr = {
    a <@ ML_Spec.expm(g,r);
    return (a,  r);
   } 
-
   proc challenge() : int = {
    var r;
    r <@ ASpecFp.rsample(q);
    return r;
   }
 }.
-
-op completeness_relationJ (s: W64xN.R.t) (w:W64xN.R.t) = Constants.g ^ (W64xN.valR w) %% p = W64xN.valR s %% p.
 
 lemma p_val_prop1 x : W64xN.valR x < p * p.  
 by smt(q_less_p q_val_prop1 q_prime prime_p). 
@@ -132,81 +163,8 @@ have ->: inzmod Constants.g ^ valR w = inzmod (Constants.g ^ valR w). smt.
 rewrite xxx. auto.
 qed.
 
-(* lemma rels_compat s w : (valR s) %% p <> 0 => *)
-(*  completeness_relationJ s w  *)
-(*  =  LSP.completeness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod (valR w)). *)
-(* move => s_not_zero. *)
-(* rewrite /completeness_relationJ /completeness_relation /IsDL. *)
-(* rewrite exp_lemma5. apply g_unit. smt(@W64xN). *)
-(* rewrite g_q_assumption. auto. *)
-(* rewrite  lll.  apply g_unit. *)
-(* rewrite - bbb. *)
-(* rewrite ZPS.Sub.insubdK. rewrite /P. smt(g_unit @ZModpField). *)
-(* rewrite ZPS.Sub.insubdK. rewrite /P.  *)
-(* apply unitE. rewrite /Zp.zero. smt(@Zp). *)
-(* have ->: (ZModpField.exp (inzmod Constants.g) (valR w)) = ((inzmod Constants.g) ^^ (valR w)). rewrite /(^^). auto. *)
-(* rewrite - exps. smt(@W64xN). *)
-(* rewrite /(^). *)
-(* rewrite inzmodK. *)
-(* have ->: (Constants.g %% p) = Constants.g. rewrite /Constants.g. smt(@Zp). *)
-(* rewrite xxx. *)
-(* have ->: (Constants.g %% Constants.p) = Constants.g. rewrite /Constants.g. smt(@Zp). *)
-(* auto. *)
-(* qed. *)
-
-(* TODO: move to constants *)
-op yy : int = 1619143025881598520624761283475402020548391884071535717508227364160250029021913075600233405069001566834683913353926864105451868045119367799203330594939018027579182910491986631752134379672737328627758392039634104925436356398864177945255144950961436710218515919232515425511046597212472673535352725377222373577674557399263766126616709301502213900518108948863077641585338203695018313411734375313490314236425883902205676609966518701386913481608853106992344785426585987776048274548105346527876890352239772208848767741675883443476938540148618750188887210747096545526357760228916139597422735471808664106841641302833036768868.
-
-op zz : int = 32317006071311007301090839450916075672074637894498330470309491614874605269258845429066617750438611497217172998255766216223761011478474532650974905473458381524348224983452534238842699055706528839316900073176359409123413739445397952234623184300460154670470987008412185029124584489601900670931121854398190604800292822877845957165654247519063010445688374293905515743037557007239230573090162415731314434935337651887720640264611889321352234483385341531370885728478742938129783934088697644527630028295616871380503535956364143710134154492766231832072494607343336005619107670188720508364918065676485338559326165037076233303652.
-
-op ww : int = 1044388881413152506691752710716624382579964249047383780384233483283953907971557456848826811934997558340890106714439262837987573438185793607263236087851365277945956976543709998340361590134383718314428070011855946226376318839397712745672334684344586617496807908705803704071284048740118609114467977783598029006686938976881787785946905630190260940599579453432823469303026696443059025015972399867714215541693835559885291486318237914434496734087811872639496475100189041349008417061675093668333850551032972088269550769983616369411933015213796825837188091833656751221318492846368125550225998300412344784862595674492194617023806505913245610825731835380087608622102834270197698202313169017678006675195485079921636419370285375124784014907159135459982790513399611551794271106831134090584272884279791554849782954323534517065223269061394905987693002122963395687782878948440616007412945674919823050571642377154816321380631045902916136926708342856440730447899971901781465763473223850267253059899795996090799469201774624817718449867455659250178329070473119433165550807568221846571746373296884912819520317457002440926616910874148385078411929804522981857338977648103126085903001302413467189726673216491511131602920781738033436090243804708340403154190336.
 
 
-lemma pq_euclid : euclidef ww Constants.p (zz, yy).
-rewrite /euclidef. split. auto.
-smt().
-qed.
-
-
-lemma bp_comp : Ri = Constants.bp. 
-rewrite /Ri. rewrite nasty_id. simplify.
-rewrite /edivz. simplify. simplify.
-have ->: `|Constants.p| = Constants.p. 
-auto.
-rewrite /edivn. simplify. rewrite /euclidef. simplify.
-have ->: Constants.p < 0 = false. auto. simplify.
-have ->: (Constants.p = 0) = false. auto. simplify.
-pose P := (fun (qr : int * int) =>
-        ww =
-        qr.`1 * Constants.p + qr.`2 /\ 0 <= qr.`2 && qr.`2 < `|Constants.p|).
-have f1 : P (choiceb P (0,0)).
-apply choicebP. exists (zz,yy). rewrite /P. simplify. split. rewrite /ww /zz /Constants.p /yy. simplify. auto.
-smt(). 
-elim f1. 
-have z: choiceb
-     (fun (qr : int * int) =>
-        ww =
-        qr.`1 * Constants.p + qr.`2 /\ 0 <= qr.`2 && qr.`2 < `|Constants.p|) (0,0) 
-  = (choiceb P (0, 0)). auto.
-progress. rewrite z.
-rewrite /signz. 
-have ->: (Constants.p < 0) = false. auto. simplify.
-have ->: (Constants.p <> 0) = true. auto. 
-have ->: (-1) ^ b2i false = 1. rewrite /b2i. simplify. auto.
-have ->: 1 * b2i true  = 1. rewrite /b2i. simplify.  auto. simplify.
-have ->: (let (q, r) = choiceb P (0, 0) in (q, r)).`1 = (choiceb P (0, 0)).`1.  smt().
-have mem' : 
-  forall (x1 y1 x2 y2 l : int),
-    x1 \in range 0 l =>
-    x2 \in range 0 l => x1 + l * y1 = x2 + l * y2 => y1 = y2 .
-smt(mem_range_add_mul_eq).
-have : (choiceb P (0, 0)).`1 = zz.
-apply (mem' (choiceb P (0, 0)).`2 (choiceb P (0, 0)).`1  yy zz  Constants.p). 
-smt(@List). smt(@List).
-have ->: (choiceb P (0, 0)).`2 + Constants.p * (choiceb P (0, 0)).`1 = (choiceb P (0, 0)).`1 * Constants.p + (choiceb P (0, 0)).`2.
-smt().
-rewrite - H. simplify. rewrite /ww /yy /zz /Constants.p. simplify. done.  auto.
-qed.
 
 
 lemma verify_eq : 
@@ -257,7 +215,7 @@ smt(@W64xN).
 smt(q_val_prop1).
 smt().
 rewrite /R. 
-rewrite bp_comp.
+rewrite bp_correct.
 rewrite - H6.  
 rewrite R2.bnK. auto.
 smt(@W64xN).
@@ -329,7 +287,7 @@ split. rewrite qe. simplify. smt(q_prime).
 move => h1. move => rL rR. move => rzrlrr. 
 split. 
 split.  smt. split. smt. split.  smt. split.  smt. rewrite /R. 
-rewrite bp_comp.
+rewrite bp_correct.
 rewrite - vri. smt(@W64x2N @R2).
 move => qo. move => rl rrr ai. smt.
 qed.

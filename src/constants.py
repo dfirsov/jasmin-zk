@@ -72,6 +72,9 @@ q = Constant(name="q", comment="order of the generator", nlimbs=nlimbs,
 g = Constant(name="g", comment="generator", nlimbs=nlimbs, value=2)
 bp = Constant(name="bp", comment="barret parameter for p", nlimbs=dnlimbs,
               value=(4 ** (limb_size*nlimbs.number)) // p.value)
+barrett_numerator = (4 ** (limb_size*nlimbs.number))
+barrett_numerator_mod_p = (4 ** (limb_size*nlimbs.number) % p.value)
+barrett_numerator_div_p = (4 ** (limb_size*nlimbs.number) // p.value)
 bq = Constant(name="bq", comment="barret parameter for q", nlimbs=dnlimbs,
               value=(4 ** (limb_size*nlimbs.number)) // q.value)
 # We pick an arbitrary number mod q for the witness here.
@@ -112,6 +115,15 @@ module M = W64_SchnorrExtract.M(W64_SchnorrExtract.Syscall).
         for const in constants:
             f.write("\n")
             f.write(const.get_proof())
+
+        f.write(f"""
+op barrett_numerator : int = {barrett_numerator}.
+
+op barrett_numerator_mod_p : int = {barrett_numerator_mod_p}.
+
+op barrett_numerator_div_p : int = {barrett_numerator_div_p}.
+""")
+            
 
 if __name__ == '__main__':
     main()

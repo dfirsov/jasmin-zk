@@ -22,7 +22,6 @@ realize gt0_nlimbs by done.
 op as_word (x : bool) : W64.t  = x ? W64.one : W64.zero.
 op ith_bitword64 (n : W64.t) (x : int)  : W64.t = as_word (n.[x]).
 
-
 lemma ones64 : (2^64  - 1)  = 18446744073709551615. smt(). qed.
 op as_bool (x : W64.t) : bool  = (x = W64.one).
 op as_w64 (x : bool) : W64.t  = x ? W64.one : W64.zero.
@@ -270,17 +269,4 @@ progress.
    rewrite   modz_small. smt. done.
    smt.
 qed.
-
-
-(* equiv cminusP_eq: *)
-(*  ASpecFp.cminusP ~ CSpecFp.dcminusP:  *)
-(*  ={arg} /\ a{2}<W64x2N.modulusR ==> ={res}. *)
-(* proof. *)
-(* proc; inline*; wp; skip => &1 &2. *)
-(* move => [q1  q2]. *)
-(* case (a{2} < p). auto. move => qq. smt(). rewrite q1. move => qq. rewrite qq. *)
-(* rewrite modz_small. split.  smt(). *)
-(* move => ?. have ->: `|W64x2N.modulusR| = W64x2N.modulusR. rewrite /W64x2N.modulusR. smt(@Ring). *)
-(* smt(P_pos). auto. *)
-(* qed. *)
 

@@ -81,4 +81,11 @@ proof.
 qed.
     
 
+
+lemma pq_euclid : euclidef Constants.barrett_numerator Constants.p (Constants.barrett_numerator_div_p, Constants.barrett_numerator_mod_p).
+rewrite /euclidef. simplify. rewrite /barrett_numberator.  simplify. split. auto.
+smt().
+qed.
+
+
 end section.

@@ -1,12 +1,9 @@
 require import AllCore.
 from Jasmin require import JModel.
 require import Array32 Array64 Array128.
-
-
 require export W64_SchnorrProver W64_SchnorrVerifier.
+
 type sbits.
-
-
 
 module type ZKProverJ = {
   proc response (witness0:W64.t Array32.t, secret_power:W64.t Array32.t,
