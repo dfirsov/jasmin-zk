@@ -4,13 +4,13 @@ import Ring.IntID IntOrder.
 require import BarrettRedInt Ring_ops_spec.
 
 
-equiv mulm_eq:
- CSpecFp.mulm ~ ASpecFp.mulm: 
-  a{1} = Zp.asint a{2} /\ b{1} = Zp.asint b{2} /\ p{1} = Zp.p
-    ==> res{1} = Zp.asint res{2}.
-proof.  proc. inline*. wp.  skip. progress.
-smt(@Zp).
-qed.
+(* equiv mulm_eq: *)
+(*  CSpecFp.mulm ~ ASpecFp.mulm:  *)
+(*   a{1} = Zp.asint a{2} /\ b{1} = Zp.asint b{2} /\ p{1} = Zp.p *)
+(*     ==> res{1} = Zp.asint res{2}. *)
+(* proof.  proc. inline*. wp.  skip. progress. *)
+(* smt(@Zp). *)
+(* qed. *)
 
 
 (* parameter for the Barrett reduction  *)

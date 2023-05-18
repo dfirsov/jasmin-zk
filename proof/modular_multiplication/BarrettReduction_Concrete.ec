@@ -91,7 +91,7 @@ proof.
 rewrite (pmod_small (a{2} %% p{2})) . split.  apply modz_ge0. 
 smt().
 move => q.
-smt(ltz_pmod P_pos).
+smt(ltz_pmod).
 auto.
 symmetry. transitivity ASpecFp.redm
  (={arg} /\ 0 < p{2} && p{2} < W64xN.modulusR ==> res{1} = res{2} %% W64xN.modulusR)

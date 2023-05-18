@@ -56,49 +56,17 @@ lemma D_sup x : x \in D <=> 0 <= x < M. smt(@Distr). qed.
 lemma D_mu x : x \in D => mu1 D x = Real.inv M%r. smt(@Distr). qed.
 
 
-(* Embedding Zp theory *)
-require ZModP.
-clone import ZModP.ZModField as Zp.
-  (* TODO proof* or make this theory abstract *)
-
-
-op (^^) (x : zmod)(n : int) : zmod = ZModpRing.exp x n. 
-op (^) (x : zmod)(n : int) : zmod = inzmod (asint x ^ n).
-
 lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
 smt(@Int). qed.
 
-
-
-
 op oneR : R = (of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero ))%Array32.
 
-  (* TODO: MOVE THIS *)
-op q : int.
-axiom q_prime : prime q.
-op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ q).
-lemma Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ q.
-rewrite /Rip. smt(nasty_id). qed.
-op Ri : int = nasty_id (4 ^ (64 * nlimbs) %/ p).
-lemma Ri_def : Ri = (4 ^ (64 * nlimbs) %/ p).
-rewrite /Ri. smt(nasty_id). qed.
-op R : W64.t Array64.t = W64xN.R2.bn_ofint Ri.
-
-
-
-
-
-(* cyclic group generator *)
-lemma P_pos : 2 <= p. smt(@Zp). qed.
-axiom M_P : p < M.
-
-lemma pmoval:  p - 1 < W64xN.modulusR. by smt(@Int M_P). qed.
         
 (** "Implements" relation *)
 abbrev ImplWord x y = W64.to_uint x = y.
 abbrev ImplZZ x y = W64xN.valR x = y.
 abbrev ImplZZ2 x y = W64xN.valR2 x = y.
-abbrev ImplFp x y = W64xN.valR x = asint y.
+
 
 op zeroR : R = W64xN.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
 
@@ -118,13 +86,7 @@ qed.
 
 
 
-
-(******************************************************************)
-(*                  ABSTRACT SPECIFICATIONS                       *)
-(******************************************************************)
 module ASpecFp = {
-
-  (* Integer Operations  *)
 
   proc addn(a b: int): bool * int = {
     var c, r;
@@ -176,18 +138,7 @@ module ASpecFp = {
     var r;
     r <- (if cond then a else c);
     return r;
-  }
-
-  proc swapr(a : zmod, b : zmod, c : bool) = {
-    return c ? (b,a) : (a, b);
-  }
-
-  proc cminusP(a: int): int = {
-    var r;
-    r <- if a < p then a else a-p;
-    return r;
-  }
-  
+  } 
 
   proc cminus(a p: int): int = {
     var r;
@@ -201,44 +152,15 @@ module ASpecFp = {
     return r;
   }
 
- 
-  (* Finite Ring Ops *)
   proc addm(a b p: int): int = {
     var r;
     r <- a + b;
     return r %% p;
   }
-
-  proc copym(a: zmod): zmod = {
-    var r;
-    r <- a;
-    return r;
-  }
   
-  proc set0m(): zmod = {
-    var r;
-    r <- Zp.zero;
-    return r;
-  }
-
-  proc mulm(a b: zmod): zmod = {
-    var r;
-    r <- a * b;
-    return r;
-  }
-  
-  proc expm(a : zmod,  b: int): zmod = {
-    var r;
-    r <- a ^ b;
-    return r;
-  }
   
 }.
 require import Distr DInterval. 
-(******************************************************************)
-(*                  CONCRETE SPECIFICATIONS                       *)
-(******************************************************************)
-
 require import BitEncoding.
 
 module CSpecFp = {
@@ -247,7 +169,8 @@ module CSpecFp = {
  }
 
  proc ith_bit (r: W64xN.R.t, ctr:int) : W64.t = {
-    return (nth false (BS2Int.int2bs (64 * nlimbs) (W64xN.valR r)) ctr) ? W64.one : W64.zero;
+    return (nth false (BS2Int.int2bs (64 * nlimbs) (W64xN.valR r)) ctr) 
+              ? W64.one : W64.zero;
  }
 
 
@@ -257,7 +180,6 @@ module CSpecFp = {
   r <@ ASpecFp.cminus(x, p);
   return r;
  }
-
 
  proc daddm(a b p: int): int = {
   var c, x, r;
@@ -277,13 +199,6 @@ module CSpecFp = {
    return t;
  }
 
- proc dcminusP(a: int): int = {
-  var c, x, r;
-  (c, x) <@ ASpecFp.dsubn(a, p);
-  r <@ ASpecFp.ctseln(c, x, a);
-  return r;
- }
-
  proc cminus(a p: int): int = {
   var c, x, r;
   (c, x) <@ ASpecFp.subn(a, p);
@@ -298,8 +213,6 @@ module CSpecFp = {
   r <@ ASpecFp.ctseln(c, x, a);
   return r;
  }
-
-
 
  proc mulm(a b p: int): int = {
   var c, z;
@@ -336,7 +249,9 @@ progress.
    have ->: `|W64xN.modulusR| = W64xN.modulusR. smt.
    smt. done.
   case: (a{2} + b{2} < p{2}) => H5.
-   rewrite   modz_small. smt(rg_asint). done.
+   rewrite   modz_small. 
+   smt.
+   done.
    smt.
 qed.
 
@@ -352,20 +267,20 @@ progress.
    have ->: `|W64x2N.modulusR| = W64x2N.modulusR. smt.
    smt. done.
   case: (a{2} + b{2} < p{2}) => H5.
-   rewrite   modz_small. smt(rg_asint). done.
+   rewrite   modz_small. smt. done.
    smt.
 qed.
 
 
-equiv cminusP_eq:
- ASpecFp.cminusP ~ CSpecFp.dcminusP: 
- ={arg} /\ a{2}<W64x2N.modulusR ==> ={res}.
-proof.
-proc; inline*; wp; skip => &1 &2.
-move => [q1  q2].
-case (a{2} < p). auto. move => qq. smt(). rewrite q1. move => qq. rewrite qq.
-rewrite modz_small. split.  smt().
-move => ?. have ->: `|W64x2N.modulusR| = W64x2N.modulusR. rewrite /W64x2N.modulusR. smt(@Ring).
-smt(P_pos). auto.
-qed.
+(* equiv cminusP_eq: *)
+(*  ASpecFp.cminusP ~ CSpecFp.dcminusP:  *)
+(*  ={arg} /\ a{2}<W64x2N.modulusR ==> ={res}. *)
+(* proof. *)
+(* proc; inline*; wp; skip => &1 &2. *)
+(* move => [q1  q2]. *)
+(* case (a{2} < p). auto. move => qq. smt(). rewrite q1. move => qq. rewrite qq. *)
+(* rewrite modz_small. split.  smt(). *)
+(* move => ?. have ->: `|W64x2N.modulusR| = W64x2N.modulusR. rewrite /W64x2N.modulusR. smt(@Ring). *)
+(* smt(P_pos). auto. *)
+(* qed. *)
 

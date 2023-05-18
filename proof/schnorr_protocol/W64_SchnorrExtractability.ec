@@ -4,9 +4,9 @@ from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
 require import W64_Zp_SchnorrIndistinguishability.
 require import W64_SchnorrSoundness.
-require import Zp_SchnorrProtocol.
 require import W64_SchnorrProtocol.
 require import Ring_ops_spec.
+import ZPSP.
 import Zp DZmodP.
 import W64xN Sub R. 
 
@@ -39,19 +39,16 @@ module (ExtractorJ : ExtractorJ)(P : ZKRewindableMaliciousProverJ) = {
 }.
 
 
-lemma q x : LSP.EG.asint x < q.
-smt(@LSP.EG).
-qed.
-
 lemma q_less_modulusR x : 0 <= LSP.EG.asint x < modulusR.
 split.
 smt(@LSP.EG). move => pos.
 smt(@LSP.EG q_less_p p_less_modulusR).
 qed.
 
+    (* LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod (valR res)) *)
 lemma extractability_same : forall (P <:  ZKRewindableMaliciousProverJ) s &m,
- Pr[ ExtractorJ(P).extract(s) @&m: LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod (valR res))] 
-  = Pr[ ExtractorG(AWrapE(P)).extract((inzmod (valR s))) @&m: LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod res) ].
+ Pr[ ExtractorJ(P).extract(s) @&m: completeness_relationJ s res ] 
+  = Pr[ ExtractorG(AWrapE(P)).extract((inzmod (valR s))) @&m: completeness_relationG  (inzmod (valR s)) res ].
 progress. 
 byequiv.
 proc.
@@ -71,12 +68,16 @@ have -> : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2)))
  = (special_soundness_extractG result_R.`1 result_R.`2).
 rewrite bn_ofintK. rewrite /special_soundness_extractG.  
 simplify. smt(@IntDiv q_less_modulusR).
-smt. 
-have -> : (valR (bn_ofint (special_soundness_extractG result_R.`1 result_R.`2)))
+rewrite - q.
+rewrite -  completness_compat.   
+rewrite /completeness_relationJ.
+rewrite H. auto.
+rewrite completness_compat.
+rewrite bn_ofintK.
+have ->: (special_soundness_extractG result_R.`1 result_R.`2 %% modulusR)
  = (special_soundness_extractG result_R.`1 result_R.`2).
-rewrite bn_ofintK. rewrite /special_soundness_extractG.   
-rewrite /special_soundness_extract.  simplify. smt(@IntDiv q_less_modulusR).
-apply H. auto. auto.
+rewrite /special_soundness_extractG. smt(@IntDiv q_less_modulusR).
+auto. auto. auto.
 qed.
 
 section.
@@ -85,20 +86,20 @@ declare module P <: ZKRewindableMaliciousProverJ{-LSP.HV}.
 declare axiom P_response_ll : islossless P.response.
 declare axiom P_commitment_ll : islossless P.commitment.
 
-declare axiom P_rewindable : exists (f : (glob AWrapE(P)) -> LSP.sbits),
+declare axiom P_rewindable : exists (f : (glob AWrapE(P)) -> sbits),
   injective f /\
   (forall &m0,
      Pr[AWrapE(P).getState() @ &m0 :
         (glob AWrapE(P)) = (glob AWrapE(P)){m0} /\
         res = f (glob AWrapE(P)){m0}] =
      1%r) /\
-  (forall &m0 (b : LSP.sbits) (x : (glob AWrapE(P))),
+  (forall &m0 (b : sbits) (x : (glob AWrapE(P))),
      b = f x => Pr[AWrapE(P).setState(b) @ &m0 : (glob AWrapE(P)) = x] = 1%r) /\
   islossless AWrapE(P).setState.
 
 
 lemma extractabilityJ &m s: 
-  Pr[ExtractorJ(P).extract(s)@&m: LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod (valR res)) ] >=
+  Pr[ExtractorJ(P).extract(s)@&m: completeness_relationJ  s res ] >=
    (Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res] ^ 2
        - 1%r / (size LSP.EG.DZmodP.Support.enum)%r
            * Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res]).
@@ -112,3 +113,5 @@ proc. call P_response_ll. auto.
 proc. call P_commitment_ll. auto.
 apply P_rewindable.
 qed.
+
+end section.

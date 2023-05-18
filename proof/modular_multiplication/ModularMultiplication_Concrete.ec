@@ -29,8 +29,8 @@ move => q1 r1 r2 r3 . split. simplify. rewrite - r3.
 smt(@W64xN @W64x2N).
    split.  simplify. smt().
 split. simplify. smt.
-split.  smt (P_pos @W64xN).
-split.  smt (P_pos W64xN.R.bnk_cmp). simplify. smt(@W64x2N).
+split.  smt (@W64xN).
+split.  smt (W64xN.R.bnk_cmp). simplify. smt(@W64x2N).
 qed.
 
 
@@ -45,28 +45,28 @@ smt.
 smt(). smt(). 
 qed.
 
-import Zp.
-equiv mulm_spec:
- M(Syscall).mulm ~ ASpecFp.mulm:
-  valR a{1} = asint a{2}
-  /\ valR b{1} = asint b{2}
-  /\ valR p{1} = p
-  /\ valR r{1} = (4 ^ (64 * nlimbs) %/ p) 
-   ==> valR res{1} = asint res{2} .
-transitivity CSpecFp.mulm
- (valR a{1} = a{2}
-  /\ valR p{1} = p{2}
-  /\ valR b{1} = b{2}
-  /\ valR a{1} < p{2}
-  /\ valR b{1} < p{2}
-  /\ ImplZZ p{1} p{2}
-  /\ valR r{1} = ri_uncompute p{2}
-   ==> valR res{1} =  res{2} )
- (a{1} = asint a{2} /\ b{1} = asint b{2} /\ p{1} =  p{2}  ==> res{1} = asint res{2}).
-move => &1 &2 H1.
-exists (valR a{1}, valR b{1}, valR p{1}).  simplify.
-smt(@Zp ri_un).
-smt(@Zp).
-conseq mulm_cspec.
-conseq mulm_eq.
-qed.
+(* import Zp. *)
+(* equiv mulm_spec: *)
+(*  M(Syscall).mulm ~ ASpecFp.mulm: *)
+(*   valR a{1} = asint a{2} *)
+(*   /\ valR b{1} = asint b{2} *)
+(*   /\ valR p{1} = p *)
+(*   /\ valR r{1} = (4 ^ (64 * nlimbs) %/ p)  *)
+(*    ==> valR res{1} = asint res{2} . *)
+(* transitivity CSpecFp.mulm *)
+(*  (valR a{1} = a{2} *)
+(*   /\ valR p{1} = p{2} *)
+(*   /\ valR b{1} = b{2} *)
+(*   /\ valR a{1} < p{2} *)
+(*   /\ valR b{1} < p{2} *)
+(*   /\ ImplZZ p{1} p{2} *)
+(*   /\ valR r{1} = ri_uncompute p{2} *)
+(*    ==> valR res{1} =  res{2} ) *)
+(*  (a{1} = asint a{2} /\ b{1} = asint b{2} /\ p{1} =  p{2}  ==> res{1} = asint res{2}). *)
+(* move => &1 &2 H1. *)
+(* exists (valR a{1}, valR b{1}, valR p{1}).  simplify. *)
+(* smt(@Zp ri_un). *)
+(* smt(@Zp). *)
+(* conseq mulm_cspec. *)
+(* conseq mulm_eq. *)
+(* qed. *)

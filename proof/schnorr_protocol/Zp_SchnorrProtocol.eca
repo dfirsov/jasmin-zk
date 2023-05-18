@@ -10,8 +10,8 @@ require (*--*) Subtype.
 require Abstract_SchnorrProtocol.
 require ZModPStar.
 
-require import Ring_ops_spec.
-import Zp.
+require ZModP.
+clone import ZModP.ZModField as Zp.
 
 clone ZModPStar as ZPS with op p <- Zp.p,
                             theory Zp <= Zp.
@@ -19,11 +19,15 @@ clone ZModPStar as ZPS with op p <- Zp.p,
 
 import ZPS.
 
+op q : int.
+axiom q_prime : prime q.
+
 op g : ZPS.zmod.
 axiom g_unit : unit g.
 axiom g_q_assumption: (ZModpField.exp g q) = Zp.one.
 
-lemma lll' (z : zmod) : unit z => forall x, 0 <= x => Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
+lemma lll' (z : zmod) : unit z => forall x, 0 <= x 
+  => Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
 move => z_unit. apply intind. progress. smt. progress.  timeout 20. smt.
 qed.
 
@@ -35,7 +39,6 @@ proof g_is_generator, q_prime.
 realize g_is_generator.  rewrite lll'. apply g_unit. smt(q_prime).
 rewrite g_q_assumption. auto. qed.
 realize q_prime.  apply q_prime. qed.
-
 
 
 
@@ -76,7 +79,7 @@ module SchnorrVerifier : ZKVerifierG = {
     return c;
   }
   proc verify(s: statement, z: commitment, c: challenge, t: response) : bool = {
-    return ((ZModpField.exp g t) = (s ^^ c) * z) /\ (ZModpField.exp s q) = Zp.one;
+    return ((ZModpField.exp g t) = (ZModpField.exp s c) * z) /\ (ZModpField.exp s q) = Zp.one;
   }
 }.
 
@@ -93,23 +96,17 @@ module CompletenessG(P : ZKProverG, V : ZKVerifierG) = {
 }.
 
 
-
 op completeness_relationG (s:statement) (w:witness) = (ZModpField.exp g w) = s.
 
 
-lemma exp_lemma6 (z : zmod) : unit z => forall n,  unit (z ^^ n).
+lemma exp_lemma6 (z : zmod) : unit z => forall n,  unit (ZModpField.exp z n).
 progress. apply ZModpRing.unitrX. auto.
 qed.
-
-
-
-
 
 
 lemma lll'' (z : zmod) : unit z => forall x, x < 0 => Zps.(^) (Sub.insubd z) x = Zps.inv (Zps.(^) (Sub.insubd z) (- x)).
 smt().
 qed.
-
 
 lemma lll (z : zmod) : unit z => forall x, Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
 move => zu.
@@ -134,12 +131,29 @@ rewrite - h. auto.
 qed.
 
 
+lemma completeness_relation_compatible' : forall s w, unit s => completeness_relation (Sub.insubd s) (EG.inzmod w) => completeness_relationG s w.
+move => s w su . rewrite /completeness_relation /completeness_relationG /IsDL /=. 
+rewrite /(^^).
+rewrite EG.inzmodK.
+rewrite - pow_mod. 
+rewrite lll. apply g_unit. auto.
+rewrite - bbb.
+rewrite Sub.val_insubd.
+have ->: (Sub.P ((ZModpField.exp g w))). rewrite /P. 
+apply exp_lemma6. apply g_unit. simplify.
+rewrite Sub.insubdK. rewrite /P. 
+assumption. auto.
+qed.
+
+
+
 
 
 lemma llll (x y : zmod) : unit x => unit y => (Zps.( * ) (Sub.insubd x)  (Sub.insubd y) )= Sub.insubd (x * y).
 progress. smt. qed.
 
-lemma exp_lemma4 : forall (x : zmod) (n : int), unit x => (ZModpField.exp x q) = one =>  (x ^^ n) = Sub.val ((Sub.insubd x) ^^ (EG.inzmod n)). 
+
+lemma exp_lemma4 : forall (x : zmod) (n : int), unit x => (ZModpField.exp x q) = one =>  (ZModpField.exp x n) = Sub.val ((Sub.insubd x) ^^ (EG.inzmod n)). 
 proof. progress. rewrite /(^^). rewrite lll. auto.
 rewrite  EG.inzmodK.
 have ->: (ZModpField.exp x (n %% q)) = (ZModpField.exp x n). smt.
@@ -192,12 +206,12 @@ smt(@IntDiv).
 smt(@EG).
 smt(@DInterval @EG).
 smt(@DInterval @EG).
-have -> :((s{1} ^^ q) = one) =  ((Sub.insubd s{1}) ^^ (EG.inzmod q) = (Sub.insubd one)).
+have -> :((ZModpField.exp s{1} q) = one) =  ((Sub.insubd s{1}) ^^ (EG.inzmod q) = (Sub.insubd one)).
 rewrite exp_lemma4. auto. rewrite (dokas s{1} w{1}). rewrite - H. auto. auto.
 rewrite - (bbb ( ((Sub.insubd s{1})%Sub ^^ (EG.inzmod q))) (Sub.insubd one)). 
 have -> : (Sub.val ((Sub.insubd one))%Sub) = one. 
 rewrite Sub.insubdK. smt(@Zp). auto. auto. simplify. rewrite /verify_transcript. simplify.
-have ->: ((g ^^ (r0L + c0L * w{1})) = (s{1} ^^ c0L) * (g ^^ r0L))  
+have ->: ((ZModpField.exp g (r0L + c0L * w{1})) = (ZModpField.exp s{1} c0L) * (ZModpField.exp g r0L))  
   = ((Sub.insubd g)%Sub ^^ (EG.(+) (EG.inzmod r0L) (EG.( * ) (EG.inzmod c0L)  (EG.inzmod w{1})))%EG =
  (Sub.Lift.lift2 Zp.( * ) ((Sub.insubd s{1})%Sub ^^ (EG.inzmod c0L)%EG)
     ((Sub.insubd g)%Sub ^^ (EG.inzmod r0L)%EG))%Sub.Lift ).
@@ -217,7 +231,7 @@ pose x := (Sub.insubd g)%Sub ^^ (EG.(+) (EG.inzmod r0L) (EG.( * ) (EG.inzmod c0L
 pose z := Sub.insubd s{1}.
 pose o := Sub.insubd one.
 rewrite /Zp.( * ).
-pose y := (Sub.Lift.lift2 Ring_ops_spec.Zp.( * ) ((Sub.insubd s{1})%Sub ^^ (EG.inzmod c0L)%EG)
+pose y := (Sub.Lift.lift2 Zp.( * ) ((Sub.insubd s{1})%Sub ^^ (EG.inzmod c0L)%EG)
     ((Sub.insubd g)%Sub ^^ (EG.inzmod r0L)%EG)).
 rewrite exp_lemma5. assumption. smt(@DInterval).
 rewrite - H. 
@@ -237,10 +251,6 @@ rewrite  EG.inzmodK.
   rewrite (dokas s{1} w{1}). rewrite - H. auto. auto. auto.
 auto. auto.
 qed.
-
-
-
-
 
 
 (* Extractability  *)
@@ -360,7 +370,7 @@ smt(@Real @RealOrder).
 qed.
 
 lemma extractabilityG &m (s : zmod): 
-  Pr[ExtractorG(P).extract(s) @ &m : LSP.soundness_relation (Sub.insubd s) (EG.inzmod res) ] >=
+  Pr[ExtractorG(P).extract(s) @ &m : completeness_relationG s res ] >=
   (Pr[SoundnessG(P, SchnorrVerifier).run(s) @ &m : res] ^ 2
        - 1%r / (size EG.DZmodP.Support.enum)%r
            * Pr[SoundnessG(P, SchnorrVerifier).run(s) @ &m : res]).
@@ -391,9 +401,9 @@ case (result_R = Zp.zero).
 move => result_R_zero. smt.
 (* result_R <> zero  *)
 move => commitment_non_zero.
-have f: ((g ^^ result_R0) = (s{1} ^^ c0L) * result_R)
+have f: ((ZModpField.exp g result_R0) = (ZModpField.exp s{1} c0L) * result_R)
              => ((Sub.insubd g)%Sub ^^ (EG.inzmod result_R0)%EG =
- (Sub.Lift.lift2 Ring_ops_spec.Zp.( * ) ((Sub.insubd s{1})%Sub ^^ (EG.inzmod c0L)%EG)
+ (Sub.Lift.lift2 Zp.( * ) ((Sub.insubd s{1})%Sub ^^ (EG.inzmod c0L)%EG)
     ((Sub.insubd result_R)))%Sub.Lift ).
 rewrite /lift2.
 rewrite exp_lemma4. apply g_unit. apply g_q_assumption.
@@ -408,7 +418,7 @@ rewrite /P.
     rewrite Sub.insubdK. apply unitE. assumption. auto.
     smt.
 rewrite - exp_lemma4. apply unitE. assumption. assumption.
-rewrite Sub.insubdK. smt(@Ring_ops_spec.Zp). auto.
+rewrite Sub.insubdK. smt(@Zp). auto.
 apply f. auto.
 rewrite - bbb.
       (* TODO *)
@@ -416,7 +426,7 @@ rewrite -  exp_lemma5. apply unitE. assumption. smt(@DInterval). assumption.
 timeout 20. smt. 
 auto.
 auto.
-have -> : Pr[ExtractorG(P).extract(s) @ &m : soundness_relation (Sub.insubd s)  (EG.inzmod res)] 
+have -> : Pr[ExtractorG(P).extract(s) @ &m : completeness_relationG s  res ] 
  = Pr[Extractor(P').extract(Sub.insubd s) @ &m : soundness_relation (Sub.insubd s) res].
 byequiv (_: _ ==> _). proc.
 inline*. wp. call (_:true). wp. 
@@ -424,22 +434,19 @@ call (_:true). wp.
 rnd EG.inzmod EG.asint. wp. call (_:true). wp.
 call (_:true). rnd EG.inzmod EG.asint. wp.  call (_:true). wp.  skip. progress. 
 smt. smt(@DInterval @EG). smt(@EG @DInterval). smt(@EG @DInterval).
-have -: LSP.soundness_relation ((Sub.insubd p{1}))%Sub
-      ((EG.inzmod
-          (special_soundness_extractG (result_R, c1L, result_R1)
-             (result_R, c2L, result_R2))))%EG.
-auto. clear H9.
-rewrite /soundness_relation /IsDL /special_soundness_extract. simplify.
-rewrite /special_soundness_extractG. simplify. rewrite /special_soundness_extract.
-simplify. smt.
+
+
+have -> : LSP.soundness_relation  =  LSP.completeness_relation. auto.
+rewrite completeness_relation_compatible. simplify.
+rewrite /completeness_relationG. rewrite - H9.  rewrite /special_soundness_extractG /special_soundness_extract. simplify.
+smt.
 have -: soundness_relation ((Sub.insubd p{1}))%Sub
       (special_soundness_extract ((Sub.insubd p{1}))%Sub
          ((Sub.insubd result_R)%Sub, (EG.inzmod c1L)%EG, (EG.inzmod result_R1)%EG)
          ((Sub.insubd result_R)%Sub, (EG.inzmod c2L)%EG, (EG.inzmod result_R2)%EG)). auto.
 rewrite /soundness_relation /IsDL /special_soundness_extract. simplify.
 rewrite /special_soundness_extractG. simplify. rewrite /special_soundness_extract.
-simplify. smt.
-auto. auto.
+simplify. smt. auto. auto.
 have  :   Pr[Soundness(P', HV).run((Sub.insubd s)%Sub) @ &m : res] ^ 2 -
   1%r / (size EG.DZmodP.Support.enum)%r *
   Pr[Soundness(P', HV).run((Sub.insubd s)%Sub) @ &m : res] <=

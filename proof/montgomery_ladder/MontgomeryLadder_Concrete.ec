@@ -9,7 +9,14 @@ require import Ring_ops_proof.
 require import W64_SchnorrExtract.
 
 import W64xN.
-import Zp.
+
+require ZModP.
+clone import ZModP.ZModField as Zp.
+  (* TODO proof* or make this theory abstract *)
+
+
+op (^^) (x : zmod)(n : int) : zmod = ZModpRing.exp x n. 
+op (^) (x : zmod)(n : int) : zmod = inzmod (asint x ^ n).
 
 require import ModularMultiplication_Concrete.
 section.
@@ -23,7 +30,18 @@ realize op_id. smt(@Zp). qed.
 realize op_id'. smt(@Zp). qed.
 
 
-local module ML_Spec = {
+module ML_Spec = {
+
+  proc expm(a : zmod,  b: int): zmod = {
+    var r;
+    r <- a ^ b;
+    return r;
+  }
+
+  proc swapr(a : zmod, b : zmod, c : bool) = {
+    return c ? (b,a) : (a, b);
+  }
+
   proc mladder_1 (x :zmod , n : bits ) : zmod = {
     var x1 , x2 , i , b, cf;
     (x1,x2) <- (Zp.one , x);
@@ -32,8 +50,8 @@ local module ML_Spec = {
     while (0 < i) {
       (cf,i) <@ ASpecFp.subn(i,1);
       b <- ith_bit n i ;
-      (x1,x2) <@ ASpecFp.swapr (x1,x2,b);
-      (x1,x2) <@ ASpecFp.swapr (x1*x1,x1*x2,b);
+      (x1,x2) <@ swapr (x1,x2,b);
+      (x1,x2) <@ swapr (x1*x1,x1*x2,b);
     }
     return x1 ;
   } 
@@ -46,8 +64,8 @@ local module ML_Spec = {
     while (0 < i) {
       (cf,i) <@ ASpecFp.subn(i,1);
       b <- ith_bit (int2bs (32*64) n) i ;
-      (x1,x2) <@ ASpecFp.swapr (x1,x2,b);
-      (x1,x2) <@ ASpecFp.swapr (x1*x1,x1*x2,b);
+      (x1,x2) <@ swapr (x1,x2,b);
+      (x1,x2) <@ swapr (x1*x1,x1*x2,b);
     }
     return x1 ;
   } 
@@ -60,8 +78,8 @@ local module ML_Spec = {
     while (0 < i) {
       (cf,i)  <@ ASpecFp.subn(i,1);
       b       <@ CSpecFp.ith_bit(n, i) ;
-      (x1,x2) <@ ASpecFp.swapr (x1,x2,as_bool b);
-      (x1,x2) <@ ASpecFp.swapr (x1*x1,x1*x2,as_bool b);
+      (x1,x2) <@ swapr (x1,x2,as_bool b);
+      (x1,x2) <@ swapr (x1*x1,x1*x2,as_bool b);
     }
     return x1 ;
   }
@@ -81,7 +99,7 @@ ecall{1} (bn_mulm_correct x11{1} x2{1} m{1}). simplify.
 ecall{1} (bn_mulm_correct x1{1} x1{1} m{1}). simplify.
 ecall{1} (bn_copy_correct x1{1}). simplify.
 ecall{1} (swap_lemma_ph x1{1} x2{1} (as_bool b{1})). simplify.
-inline ASpecFp.swapr.
+inline ML_Spec.swapr.
 wp. simplify.
 call ith_bit_lemma_cspec.
 inline*. wp.  simplify.
@@ -124,7 +142,6 @@ call (_:true). skip. auto.
 call (_:true). skip. auto.
 wp.  call (_:true). sim. skip. progress.
 have <- : n{1} = (int2bs 2048 (bs2int n{1})). 
-search int2bs bs2int .
 rewrite - H.
 rewrite   bs2intK. auto.
 auto.
@@ -161,15 +178,20 @@ qed.
 
 
 require import BarrettRedInt Real RealExp. 
+require import Array64 AuxLemmas.
+op Ri : int = nasty_id (4 ^ (64 * nlimbs) %/ p).
+lemma Ri_def : Ri = (4 ^ (64 * nlimbs) %/ p).
+rewrite /Ri. smt(nasty_id). qed.
+op R : W64.t Array64.t = W64xN.R2.bn_ofint Ri.
 
 lemma R_prop : W64x2N.valR R = 4 ^ (64 * nlimbs) %/ p.
 rewrite /R.
 have q1: 0 <= Ri. rewrite Ri_def.
-rewrite divz_ge0. smt(P_pos). smt(@Ring).
+rewrite divz_ge0. smt(@Zp). smt(@Ring).
 have q2: Ri < W64x2N.modulusR .
   have ->: W64x2N.modulusR = (2^ (64 * dnlimbs)). rewrite /W64x2N.modulusR. smt(@Ring).
   have -> : Ri = (ri p (64 * nlimbs)). rewrite /ri. rewrite Ri_def. smt().
-  have : (ri p (64 * nlimbs))%r <= ((4 ^ (64*nlimbs))%r / p%r).  rewrite - same_ri. smt(P_pos). smt().
+  have : (ri p (64 * nlimbs))%r <= ((4 ^ (64*nlimbs))%r / p%r).  rewrite - same_ri. smt(@Zp). smt().
   rewrite /r.  rewrite - exp_lemma1. smt(). smt(). smt(floor_bound).
   have -> : (4 ^ (64 * nlimbs))%r = ((2 * 2) ^ (64 * nlimbs))%r. smt().
   have -> : ((2 * 2) ^ (64 * nlimbs))%r = ((2 ^ (2 * 64 * nlimbs)))%r. smt(@Ring).
@@ -178,7 +200,7 @@ have q2: Ri < W64x2N.modulusR .
   move => q.
   have : x%r < 2%r ^ (64 * dnlimbs)%r. apply (kok x%r (2%r ^ (64 * dnlimbs)%r) p%r).
   have ->: x = Ri. rewrite /x Ri_def /ri. smt().
-   smt(@RealExp). smt(@RealExp). smt(P_pos). rewrite exp_lemma1. smt(). smt(). apply q.
+   smt(@RealExp). smt(@RealExp). smt(@Zp). rewrite exp_lemma1. smt(). smt(). apply q.
     have ->: 2%r ^ (64 * dnlimbs)%r = (2 ^ (64 * dnlimbs))%r.
     rewrite - exp_lemma1. smt(). smt(). smt().
 smt(@Real).
@@ -210,7 +232,6 @@ auto.
 proc*.
 ecall {2} (mladder_correct_ph x{2} n{2}).
 inline*. wp.  skip. progress. smt().
-
 transitivity ML_Spec.mladder_1
  (={arg} /\ size n{1} < W64xN.modulusR ==> ={res})
  (ImplZZ m{2} p /\
@@ -219,7 +240,6 @@ transitivity ML_Spec.mladder_1
 progress. smt.
 smt().
 conseq ml_equiv_abs_1.
-
 transitivity ML_Spec.mladder_2
   (x{1} = x{2} /\ bs2int n{1} = n{2} /\ size n{1} = nlimbs * 64  ==> ={res})
   (ImplZZ m{2} p /\
@@ -229,7 +249,6 @@ progress.
 exists (x{1},  valR n{2}).
 progress. auto.
 conseq ml_equiv_1_2.
-
 transitivity ML_Spec.mladder_3
   (x{1} = x{2} /\ n{1} =  valR n{2} ==> ={res})
   (ImplZZ m{2} p /\
@@ -248,14 +267,14 @@ qed.
 
 
 
-lemma exp_same_comp (x : zmod) : forall n, 0 <= n => (x ^ n)%Ring_ops_spec = (x ^ n)%Exp.
+lemma exp_same_comp (x : zmod) : forall n, 0 <= n => (x ^ n) = (x ^ n)%Exp.
 apply intind. progress.
 smt(@Zp @Ring).
 progress.
-have ->: (x ^ (i + 1))%Ring_ops_spec = x * (x^ i)%Ring_ops_spec. 
+have ->: (x ^ (i + 1)) = x * (x ^ i).
  rewrite /(^).
  have ->: asint x ^ (i + 1) = (asint x) * (asint x ^ i). smt.
- smt.  
+ smt.
 have ->: (x ^ (i + 1))%Exp = x * (x^ i)%Exp. smt.
 rewrite H0.
 auto.
@@ -263,7 +282,7 @@ qed.
 
 
 lemma expm_correct :
-      equiv[ ASpecFp.expm ~ M(Syscall).expm :
+      equiv[ ML_Spec.expm ~ M(Syscall).expm :
              ImplZZ m{2} p /\
              asint a{1} = valR x{2} /\
              b{1} = valR n{2}  /\
@@ -282,19 +301,17 @@ progress.
 exists (arg{1}.`1, int2bs (nlimbs * 64) arg{1}.`2).
 progress.
 have : b{1} < modulusR. smt(@W64xN).
-search bs2int int2bs.
 rewrite int2bsK. auto. split. rewrite H1. smt(@W64xN). 
 have : 2 ^ 2048  = W64xN.modulusR. ring.
 move => q. rewrite q. smt(R.bnk_cmp). auto.
 have : b{1} < modulusR. smt(@W64xN).
-search bs2int int2bs.
 rewrite int2bsK. auto. split. rewrite H1. smt(@W64xN). 
 have : 2 ^ 2048  = W64xN.modulusR. ring.
 move => q. rewrite q. smt(R.bnk_cmp). auto.
 smt(@BS2Int).
 auto.
 proc. sp. skip. progress. 
-pose N := bs2int n{2}.           
+pose N := bs2int n{2}.
 apply exp_same_comp. smt(@BS2Int).
 conseq ml_equiv_abs_conc.
 progress.
@@ -308,7 +325,7 @@ lemma bn_expm_correct rr mm xx nn:
                    valR x < p /\
                    r = R ==> (valR res) = ((valR xx) ^ (valR nn)) %% p ] = 1%r.
 bypr. progress.
-have <- : Pr[ASpecFp.expm(inzmod (valR x{m}), valR n{m}) @ &m : asint res =  ((valR x{m}) ^ (valR n{m})) %% p ] = 1%r.
+have <- : Pr[ML_Spec.expm(inzmod (valR x{m}), valR n{m}) @ &m : asint res =  ((valR x{m}) ^ (valR n{m})) %% p ] = 1%r.
   byphoare (_: arg = (inzmod (valR x{m}), valR n{m}) ==> _).
 proc. inline*. wp. skip. progress.
 rewrite inzmodK.
@@ -323,5 +340,6 @@ rewrite inzmodK.
 smt (@W64xN).
 smt(). auto. auto.
 qed.
+
 
 end section.

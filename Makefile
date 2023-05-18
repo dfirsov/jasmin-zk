@@ -5,13 +5,13 @@ EXTRACTED_FILES = \
     proof/jasmin_extracts/W64_SchnorrExtract_ct.ec
 
 PROOF_FILES += $(EXTRACTED_FILES)
-PROOF_FILES += $(wildcard proof/*.ec)
 PROOF_FILES += $(wildcard proof/schnorr_protocol/*.ec)
+PROOF_FILES += $(wildcard proof/*.ec)
 PROOF_FILES += $(wildcard proof/modular_multiplication/*.ec)
 PROOF_FILES += $(wildcard proof/montgomery_ladder/*.ec)
-PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
 PROOF_FILES += $(wildcard proof/finite_types/*.ec)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.ec)
+PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
 
 
 JASMIN_PROGNAME = jasminc

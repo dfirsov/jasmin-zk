@@ -5,7 +5,7 @@ from Jasmin require import JModel JBigNum.
 require import W64_SchnorrExtract Array128 Array64 Array32.
 
 require import Ring_ops_spec AuxLemmas.
-import Zp W64xN R.
+import W64xN R.
 
 require import BitEncoding.
 import BS2Int.
@@ -472,7 +472,7 @@ equiv mul1acc_eq :
  (res.`1,res.`2,res.`3,res.`4){1} = (W64.zero,res.`1,res.`2,res.`3){2}.
 proof.
 proc. simplify.
-wp. while ( #pre /\ ={i} /\ (aux,_zero){1}=(nlimbs-1,W64.zero){2} /\ 
+wp. while ( #pre /\ ={i} /\ (aux,_zero){1}=(nlimbs-1,W64.zero) /\ 
             0 <= i{2} <= nlimbs-1 /\ kk{1} = k{2}).
  wp; skip => />; smt(Array64.get_setE Array64.set_set_if).
 wp; skip; smt(Array64.get_setE Array64.set_set_if).
@@ -504,7 +504,7 @@ equiv dmul1acc_eq :
  (res.`1,res.`2,res.`3,res.`4){1} = (W64.zero,res.`1,res.`2,res.`3){2}.
 proof.
 proc. simplify.
-wp. while ( #pre /\ ={i} /\ (aux,_zero){1}=(dnlimbs-1,W64.zero){2} /\ 
+wp. while ( #pre /\ ={i} /\ (aux,_zero){1}=(dnlimbs-1,W64.zero) /\ 
             0 <= i{2} <= dnlimbs-1 /\ kk{1} = k{2}).
  wp; skip => />; smt(Array128.get_setE Array128.set_set_if).
 wp; skip; smt(Array128.get_setE Array128.set_set_if).
@@ -577,72 +577,7 @@ apply modz_small. split. smt(). smt(). smt(). smt(). smt().
 qed.
 
 
-(* equiv dsubc_spec: *)
-(*  M.dbn_subc ~ ASpecFp.dsubn: *)
-(*   W64x2N.valR a{1} = a{2} /\ W64x2N.valR b{1} = b{2} (* /\ W64x2N.valR b{1}  <= W64x2N.valR a{1} *) *)
-(*   ==> res{1}.`1=res{2}.`1 /\ W64x2N.valR res{1}.`2 = res{2}.`2. *)
-(* proof. *)
-(* transitivity  *)
-(*  W64x2N.R.Ops.subcR *)
-(*  ( (a,b,false){1}=(a,b,c){2} ==> ={res} ) *)
-(*  (W64x2N.valR  a{1} = a{2} /\ W64x2N.valR b{1} = b{2} /\ !c{1} (* /\ W64x2N.valR b{1}  <= W64x2N.valR a{1} *) *)
-(*    ==> res{1}.`1 = res{2}.`1 /\ W64x2N.valR res{1}.`2 = res{2}.`2 ). *)
-(* + by move=> /> &1 &2 H1 H2 ; exists (a{1},b{1},false). *)
-(* + by move=> /> *. *)
-(* + proc; simplify. *)
-(*   unroll {2} 3; rcondt {2} 3; first by auto. *)
-(*   exlim a{1}, b{1} => aa bb. *)
-(*   while (={i,b} /\ 1 <= i{2} <= dnlimbs /\  *)
-(*          (cf, aa){1}=(c, a){2} /\ *)
-(*          (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array64 /\ *)
-(*          (forall k, i{2} <= k < dnlimbs => a{1}.[k] = aa.[k])%Array64 /\ aux{1} = 64). *)
-(*    wp; skip => /> &1 &2 Hi1 _ Hh1 Hh2 Hi2. *)
-(*    split => *; first smt(). *)
-(*    split => *; first smt(). *)
-(*    split. *)
-(*     move=> k Hk1 Hk2. *)
-(*     pose X := (subc _ _ _)%W64. *)
-(*     pose Y := (subc _ _ _)%W64. *)
-(*     have ->: X=Y by smt(). *)
-(*     case: (k = i{2}) => ?. *)
-(*      by rewrite !set_eqiE /#. *)
-(*     by rewrite !set_neqiE /#. *)
-(*    move=> k Hk1 Hk2. *)
-(*    by rewrite set_neqiE /#. *)
-(*   wp; skip => />. *)
-(*   split => *. *)
-(*    split => k *. *)
-(*     by rewrite (_:k=0) 1:/# !set_eqiE /#. *)
-(*    by rewrite set_neqiE /#. *)
-(*   by apply Array64.ext_eq; smt(). *)
-(* + proc; simplify. *)
-(*   transitivity {1} *)
-(*    { (c,r) <@ W64x2N.R.Ops.subcR(a,b,c); } *)
-(*    ( ={a,b,c} ==> ={c,r} ) *)
-(*    ( W64x2N.valR a{1} = a{2} /\ W64x2N.valR b{1} = b{2} /\ !c{1}  (* /\ W64x2N.valR b{1}  <= W64x2N.valR a{1} *) ==> ={c}  *)
-(*    /\ W64x2N.valR r{1} = r{2} ). *)
-(*   + by move=> /> &2 H  ; exists a{2} b{2} false. *)
-(*   + by auto. *)
-(*   + by inline*; sim. *)
-(*   + ecall {1} (W64x2N.R.subcR_ph a{1} b{1} c{1}); wp; skip => /> &m Hc [c r] /= -> . *)
-(* progress.  *)
-(*     by rewrite W64x2N.R.bn_borrowE 1:/# b2i0 /bn_modulus /=. *)
-(* qed. *)
-
-
-
-(* lemma dbn_cmov_correct x y z : *)
-(*   phoare[ M.dbn_cmov :  arg = (x,y,z)  ==> res = if x then z else y ] = 1%r. *)
-(* proc. *)
-(* while (cond = x /\ b = z /\ i <= dnlimbs  *)
-(*   /\ (forall j, 0 <= j < i => a.[j] = if cond then z.[j] else y.[j]) *)
-(*   /\ (forall j, i <= j < dnlimbs => a.[j] = y.[j]) /\ aux = 64) (dnlimbs - i). progress. *)
-(* wp.  skip.  progress. smt().   smt(@Array64). smt(@Array64). smt(). wp.  skip. progress. smt(@Array64). smt(). *)
-(* apply Array64.ext_eq. progress. smt(@Array64).  *)
-(* qed. *)
-
-
-    (* TODO: nlimbs specific *)
+(* TODO: nlimbs specific *)
 lemma oneRE: ImplZZ oneR 1.
 rewrite /oneR /valR /bnk.
 do? (rewrite range_ltn; first by trivial ).
@@ -675,19 +610,6 @@ case (x = 0). progress. progress.
 rewrite H2. smt(). 
 rewrite /oneR. smt(@Array32 @List).
 qed.
-
-
-
-(* lemma dbn_copy_correct x : *)
-(*   phoare[ M.dbn_copy :  arg = x  ==> res = x ] = 1%r. *)
-(* proc. *)
-(* while (a = x /\ i <= dnlimbs  *)
-(*   /\ (forall j, 0 <= j < i => r.[j] = x.[j]) *)
-(*   /\ aux  = 64 ) (dnlimbs - i). progress. *)
-(* wp.  skip.  progress. smt(). smt(@Array64). smt(). wp.  skip. progress. smt(). smt(). *)
-(* apply Array64.ext_eq. progress. smt().  *)
-(* qed. *)
-
 
 
 equiv dcminusP_spec:

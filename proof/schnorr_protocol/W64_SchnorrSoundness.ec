@@ -3,9 +3,11 @@ from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
 
 require import W64_Zp_SchnorrIndistinguishability.
-require import Zp_SchnorrProtocol.
 require import W64_SchnorrProtocol.
 require import Ring_ops_spec.
+import ZPSP.
+import Zp.
+
 import Zp DZmodP.
 import W64xN Sub R. 
 
