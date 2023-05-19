@@ -32,8 +32,15 @@ wp. inline*. wp.  rnd. skip. progress. rewrite /RSP.
 skip. progress. auto. auto.
 qed.
 
-  
 
+lemma rsample_pr_out a1 &m xx : ! (RSP a1 xx)
+   =>  Pr[CSpecFp.rsample(a1) @ &m : res.`2 = xx ] = 0%r.
+progress.  byphoare (_: arg = a1 ==> _). hoare.
+simplify. proc. 
+while (a = a1 /\ (b /\ i <> 0 => a <= x) /\ (!b => x < a) ).
+wp. inline ASpecFp.subn. wp. rnd.
+skip. progress. smt(@Distr). wp. skip.  progress.  smt.
+auto. auto. qed.
 
 lemma rsample_pr a1 &m i x : 1 <= i => RSP a1 x =>
     Pr[CSpecFp.rsample(a1) @ &m : res = (i,x) ]
@@ -101,6 +108,18 @@ have xx : Pr[RS.sample(RSP a1, 0) @ &m : RSP a1 res.`2 ] = 1%r.
 apply (Correctness.rj_lossless &m (RSP a1) 0 _) .  auto. 
 smt(@Distr).
 qed.
+
+
+lemma rsample_lossless0 a1 &m P :  mu D (RSP a1) <= 0%r =>
+    Pr[CSpecFp.rsample(a1) @ &m : P res ]
+     = 0%r.
+progress. byphoare (_: arg = a1 ==> _). hoare. simplify.
+proc.
+while(b /\ a = a1 ).  wp.
+inline ASpecFp.subn. wp.  rnd. 
+skip. progress.
+smt(@Distr). auto. auto. 
+auto. qed.
 
 
 lemma rsample_lossless2 a1 &m  : 
