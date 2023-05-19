@@ -4,7 +4,7 @@ require  ZModP Group.
 op p : int.
 axiom ge2_p: 2 <= p.
 
-clone ZModP.ZModField as ZpF with
+clone ZModP.ZModRing as ZpF with
   op p <= p
 proof ge2_p.
 realize ge2_p. apply ge2_p. qed.

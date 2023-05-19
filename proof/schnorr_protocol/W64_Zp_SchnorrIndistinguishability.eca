@@ -66,7 +66,7 @@ realize g_q_assumption. rewrite - zp_eq.
 rewrite exps'. smt(q_less_p).
 have ->: (Sub.val (inzmod g)) = (asint (inzmod g)). auto.
 rewrite inzmodK.
-have ->: g %% p = g. smt(@IntDiv g_less_p). rewrite g_correct.
+ have ->: g %% p = g. smt(@IntDiv g_less_p). rewrite g_correct.
 rewrite /ZPS.ZpF.one /ZpC.one. 
 have ->: (Sub.val (inzmod 1)) = (asint (inzmod 1)). auto.
 rewrite inzmodK. smt(@IntDiv p_less_modulusR). qed.
