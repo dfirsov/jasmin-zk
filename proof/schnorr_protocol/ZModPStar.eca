@@ -9,19 +9,6 @@ clone ZModP.ZModField as ZpF with
 proof ge2_p.
 realize ge2_p. apply ge2_p. qed.
 
- (*  lost in shadows? *)
-require import IntDiv.
-(* lemma exp_mod': *)
-(*     forall (x : ZpF.zmod) (n k : int), *)
-(*       (ZpF.ZModpField.exp x k) = ZpF.one => *)
-(*       (ZpF.ZModpField.exp x n) = (ZpF.ZModpField.exp x (n %% k)). *)
-(* proof. smt(@ZpF). qed. *)
-
-
-(* lemma unitP: forall (x y : ZpF.zmod), (ZpF.( * ) y x) = ZpF.one => (ZpF.unit x). *)
-(* by smt(@ZpF). qed. *)
-
-
 type zmod = ZpF.zmod.
 
   
