@@ -27,7 +27,7 @@ axiom sec_inj : injective sec_to_sbits.
 require ZModP.
 clone import ZModP.ZModField as ZpC 
   with op p <= Constants.p
-proof prime_p.
+proof*.
 realize prime_p. apply p_prime. qed.
 
 
@@ -57,44 +57,44 @@ clone import W64_Zp_SchnorrPropreties as W64_Zp_Props with
   op Ind.ZPSP.LSP.unpair <- unpair,
   op Ind.ZPSP.sec_to_sbits <- sec_to_sbits,
   op Ind.ZPSP.sec_from_sbits <- sec_from_sbits,
-  theory Ind.ZpC <= ZpC.
-(* proof*.  *)
-(* realize Ind.bn_set_p_correct. apply Constants.bn_set_p_correct. qed. *)
-(* realize Ind.bn_set_q_correct. apply Constants.bn_set_q_correct. qed. *)
-(* realize Ind.bn_set_bp_correct. apply Constants.bn_set_bp_correct. qed. *)
-(* realize Ind.bn_set_bq_correct. apply Constants.bn_set_bq_correct. qed. *)
-(* realize Ind.bn_set_g_correct. apply Constants.bn_set_g_correct. qed. *)
-(* realize Ind.g_less_p. split. auto. auto. qed. *)
-(* realize Ind.p_less_modulusR. split. auto. auto. qed. *)
-(* realize Ind.q_val_prop1. move => x. *)
-(*   have fact1 : valR x < modulusR. smt(@W64xN). *)
-(*   have fact2 : modulusR < Constants.q * Constants.q. auto. *)
-(*   smt(). qed. *)
-(* realize Ind.q_less_p. split. auto. auto. qed. *)
-(* realize Ind.q_prime. apply q_prime. qed. *)
-(* realize Ind.p_prime. apply p_prime. qed. *)
-(* realize Ind.bp_correct. *)
-(*  have ->: 4 ^ (dnlimbs * nlimbs) = Constants.barrett_numerator. simplify. auto. *)
-(*  have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid). *)
-(*   smt(@IntDiv). qed. *)
-(* realize Ind.bq_correct. *)
-(*  have ->: 4 ^ (dnlimbs * nlimbs) = Constants.barrett_numerator. simplify. auto. *)
-(*  have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid). *)
-(*   smt(@IntDiv). qed. *)
-(* realize Ind.ZPSP.ZPS.ge2_p. auto. qed. *)
-(* realize Ind.ZPSP.g_unit. rewrite /Constants.g. smt(@ZpC). qed. *)
-(* realize Ind.ZPSP.g_q_assumption.  *)
-(* rewrite - zp_eq. rewrite exps'. auto. *)
-(* have -> : (Sub.val ((inzmod Constants.g))) = Constants.g %% Constants.p. *)
-(* apply inzmodK. *)
-(* have ->: Constants.g %% Constants.p = Constants.g. *)
-(*   have : Constants.g < Constants.p. auto. *)
-(* smt(@IntDiv). *)
-(* rewrite generator_is_valid. smt(@ZpC). qed. *)
-(* realize Ind.ZPSP.LSP.ips. apply pair_sibts_inj. qed. *)
-(* realize Ind.ZPSP.LSP.unpair_pair. apply unpair_pair. qed. *)
-(* realize Ind.ZPSP.sec_enc. progress. apply sec_enc. qed. *)
-(* realize Ind.ZPSP.sec_inj. progress. apply sec_inj. qed. *)
+  theory Ind.ZpC <= ZpC
+proof*.
+realize Ind.bn_set_p_correct. apply Constants.bn_set_p_correct. qed.
+realize Ind.bn_set_q_correct. apply Constants.bn_set_q_correct. qed.
+realize Ind.bn_set_bp_correct. apply Constants.bn_set_bp_correct. qed.
+realize Ind.bn_set_bq_correct. apply Constants.bn_set_bq_correct. qed.
+realize Ind.bn_set_g_correct. apply Constants.bn_set_g_correct. qed.
+realize Ind.g_less_p. split. auto. auto. qed.
+realize Ind.p_less_modulusR. split. auto. auto. qed.
+realize Ind.q_val_prop1. move => x.
+  have fact1 : valR x < modulusR. smt(@W64xN).
+  have fact2 : modulusR < Constants.q * Constants.q. auto.
+  smt(). qed.
+realize Ind.q_less_p. split. auto. auto. qed.
+realize Ind.q_prime. apply q_prime. qed.
+realize Ind.p_prime. apply p_prime. qed.
+realize Ind.bp_correct.
+ have ->: 4 ^ (dnlimbs * nlimbs) = Constants.barrett_numerator. simplify. auto.
+ have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid).
+  smt(@IntDiv). qed.
+realize Ind.bq_correct.
+ have ->: 4 ^ (dnlimbs * nlimbs) = Constants.barrett_numerator. simplify. auto.
+ have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid).
+  smt(@IntDiv). qed.
+realize Ind.ZPSP.ZPS.ge2_p. auto. qed.
+realize Ind.ZPSP.g_unit. rewrite /Constants.g. smt(@ZpC). qed.
+realize Ind.ZPSP.g_q_assumption.
+rewrite - zp_eq. rewrite exps'. auto.
+have -> : (Sub.val ((inzmod Constants.g))) = Constants.g %% Constants.p.
+apply inzmodK.
+have ->: Constants.g %% Constants.p = Constants.g.
+  have : Constants.g < Constants.p. auto.
+smt(@IntDiv).
+rewrite generator_is_valid. smt(@ZpC). qed.
+realize Ind.ZPSP.LSP.ips. apply pair_sibts_inj. qed.
+realize Ind.ZPSP.LSP.unpair_pair. apply unpair_pair. qed.
+realize Ind.ZPSP.sec_enc. progress. apply sec_enc. qed.
+realize Ind.ZPSP.sec_inj. progress. apply sec_inj. qed.
 
 
 lemma completenessJ ss ww &m: W64_Zp_Props.Ind.completeness_relationJ ss ww =>

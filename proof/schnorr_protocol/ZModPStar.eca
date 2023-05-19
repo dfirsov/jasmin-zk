@@ -18,12 +18,13 @@ lemma exp_mod':
 proof. smt(@Zp). qed.
 
 type zmod = Zp.zmod.
+
   
 clone Subtype as Sub with
   type T <- zmod,
-  pred P = Zp.unit.
-(* TODO: proof* *)
-
+  op P = Zp.unit
+proof*. 
+realize inhabited. exists Zp.one. rewrite /P. rewrite /unit. exists Zp.one. smt(@Zp). qed.
 
 type zmods = Sub.sT.
 
@@ -34,10 +35,10 @@ clone Group.ComGroup as Zps with
   op e <= Sub.insubd Zp.one,
   op ( * ) <= Sub.Lift.lift2 Zp.( * ),
   op inv <= Sub.Lift.lift1 Zp.inv
-proof *.
-realize mulcC. admit. qed.
-realize mul1c. admit. qed.
-realize mulcA. admit. qed.
-realize mulVc. admit. qed.
+proof*.
+realize mulcC. rewrite /lift2. smt(@Zp @Sub). qed.
+realize mul1c. rewrite /lift2 /left_id. progress.  smt(@Zp @Sub). qed.
+realize mulcA. rewrite /associative /lift2. progress. smt(@Zp @Sub). qed.
+realize mulVc. rewrite /left_inverse /lift2 /lift1. progress. smt(@Zp @Sub). qed.
 
 

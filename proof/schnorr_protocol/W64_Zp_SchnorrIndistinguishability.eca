@@ -5,7 +5,6 @@ from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
 require import W64_SchnorrExtract.
 require import W64_SchnorrProtocol.
-(* require Constants. *)
 require import ModularMultiplication_Concrete.
 require import BarrettReduction_Concrete.
 require import Ring_ops_spec Ring_ops_proof.
@@ -13,12 +12,7 @@ import W64xN R.
 
 require Zp_SchnorrProtocol.
 
-op p : int.
-op g : int.
-op q : int.
-op bp : int.
-op bq : int.
-
+op p, q, bp, bq, g : int.
 
 axiom g_less_p       : 1 <= g < p.
 axiom q_less_p       : 0 < q < p.
@@ -28,12 +22,24 @@ axiom q_prime : prime q.
 axiom p_prime : prime p.
 axiom bp_correct : bp = 4 ^ (64 * nlimbs) %/ p. 
 axiom bq_correct : bq = 4 ^ (64 * nlimbs) %/ q.
+axiom g_correct : (g ^ q) %% p = 1.
 
-axiom bn_set_p_correct : phoare[ M.bn_set_p : true ==> W64xN.valR res = p ] = 1%r.
-axiom bn_set_q_correct : phoare[ M.bn_set_q : true ==> W64xN.valR res = q ] = 1%r.
-axiom bn_set_g_correct : phoare[ M.bn_set_g : true ==> W64xN.valR res = g ] = 1%r.
+axiom bn_set_p_correct  : phoare[ M.bn_set_p  : true ==> W64xN.valR  res = p  ] = 1%r.
+axiom bn_set_q_correct  : phoare[ M.bn_set_q  : true ==> W64xN.valR  res = q  ] = 1%r.
+axiom bn_set_g_correct  : phoare[ M.bn_set_g  : true ==> W64xN.valR  res = g  ] = 1%r.
 axiom bn_set_bp_correct : phoare[ M.bn_set_bp : true ==> W64x2N.valR res = bp ] = 1%r.
 axiom bn_set_bq_correct : phoare[ M.bn_set_bq : true ==> W64x2N.valR res = bq ] = 1%r.
+
+op pair_sbits : sbits * sbits -> sbits.
+op unpair : sbits -> sbits * sbits.
+axiom pair_sibts_inj : injective pair_sbits.
+axiom unpair_pair: forall (x : sbits * sbits), unpair (pair_sbits x) = x.
+
+op sec_from_sbits : sbits -> int. 
+op sec_to_sbits : int -> sbits.
+axiom sec_enc x : x = sec_from_sbits (sec_to_sbits x).
+axiom sec_inj : injective sec_to_sbits.
+
 
 require ZModP.
 clone import ZModP.ZModField as ZpC
@@ -42,13 +48,43 @@ proof prime_p.
 realize prime_p. apply p_prime. qed.
 
 
+lemma zp_mul (z1 z2 : zmod) : Sub.val (z1 * z2) = (Sub.val z1 * Sub.val z2) %% p. by smt(@ZpC). qed.
+lemma zp_eq z1 z2 : (Sub.val z1 = Sub.val z2) = (z1 = z2). by smt(@ZpC). qed.
+
+lemma exps' (s : zmod) : forall n, 0 <= n => Sub.val (ZModpField.exp s n) = (Sub.val s ^ n) %% p.
+apply intind. progress. smt(@ZModpField @Sub).
+progress. rewrite exprSr. auto.
+rewrite ZModpField.exprSr. auto. rewrite zp_mul H0. smt(@IntDiv). 
+qed.
+
+
 clone import Zp_SchnorrProtocol as ZPSP with op g <- inzmod g,
                                              type LSP.sbits <- sbits,
                                              op q <- q,
+                                             op LSP.pair_sbits <- pair_sbits,
+                                             op LSP.unpair <- unpair,
+                                             op sec_to_sbits <- sec_to_sbits,
+                                             op sec_from_sbits <- sec_from_sbits,
                                              theory Zp <- ZpC
-proof LSP.challenge_set_size, LSP.challenge_set_unique.
-realize LSP.challenge_set_size. smt(@EG). qed.
-realize LSP.challenge_set_unique. smt(@EG @List). qed.
+proof*.
+realize LSP.challenge_set_size. smt(@EG.DZmodP q_less_p). qed.
+realize LSP.challenge_set_unique. smt(@EG.DZmodP @List q_less_p). qed.
+realize g_q_assumption. rewrite - zp_eq.
+rewrite exps'. smt(q_less_p).
+have ->: (Sub.val (inzmod g)) = (asint (inzmod g)). auto.
+rewrite inzmodK.
+have ->: g %% p = g. smt(@IntDiv g_less_p). rewrite g_correct.
+rewrite /ZPS.Zp.one /ZpC.one. 
+have ->: (Sub.val (inzmod 1)) = (asint (inzmod 1)). auto.
+rewrite inzmodK. smt(@IntDiv p_less_modulusR). qed.
+realize q_prime. apply q_prime. qed.
+realize ZPS.ge2_p. smt(p_prime). qed.
+realize g_unit. admit. qed.
+realize LSP.ips. apply pair_sibts_inj. qed.
+realize LSP.unpair_pair. apply unpair_pair. qed.
+realize sec_enc. apply sec_enc. qed.
+realize sec_inj. apply sec_inj. qed.
+
 
 
 require MontgomeryLadder_Concrete.
@@ -72,8 +108,7 @@ rewrite /Rip. smt(nasty_id). qed.
 
 
 lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@ZpC). qed.
-lemma zp_mul (z1 z2 : zmod) : val (z1 * z2) = (val z1 * val z2) %% p. 
-by smt(@ZpC). qed.
+
 lemma inzpKK: forall (z : int), val (inzmod z) = z %% p. smt(@ZpC). qed.
 
   
@@ -377,8 +412,6 @@ smt(@W64xN).
 rewrite H2. smt.
 smt(@W64xN).
 rewrite H2. smt.
-(* smt(@W64xN). *)
-(* rewrite H2. smt (p_val_prop2 q_less_p). *)
 rewrite - H38.
 rewrite - H33. 
 rewrite H2.
