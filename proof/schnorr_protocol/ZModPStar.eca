@@ -4,32 +4,32 @@ require  ZModP Group.
 op p : int.
 axiom ge2_p: 2 <= p.
 
-clone ZModP.ZModField as Zp with
+clone ZModP.ZModField as ZpF with
   op p <= p
 proof ge2_p.
 realize ge2_p. apply ge2_p. qed.
 
  (*  lost in shadows? *)
 require import IntDiv.
-lemma exp_mod':
-    forall (x : Zp.zmod) (n k : int),
-      (Zp.ZModpField.exp x k) = Zp.one =>
-      (Zp.ZModpField.exp x n) = (Zp.ZModpField.exp x (n %% k)).
-proof. smt(@Zp). qed.
+(* lemma exp_mod': *)
+(*     forall (x : ZpF.zmod) (n k : int), *)
+(*       (ZpF.ZModpField.exp x k) = ZpF.one => *)
+(*       (ZpF.ZModpField.exp x n) = (ZpF.ZModpField.exp x (n %% k)). *)
+(* proof. smt(@ZpF). qed. *)
 
 
-lemma unitP: forall (x y : Zp.zmod), (Zp.( * ) y x) = Zp.one => (Zp.unit x).
-by smt(@Zp). qed.
+(* lemma unitP: forall (x y : ZpF.zmod), (ZpF.( * ) y x) = ZpF.one => (ZpF.unit x). *)
+(* by smt(@ZpF). qed. *)
 
 
-type zmod = Zp.zmod.
+type zmod = ZpF.zmod.
 
   
 clone Subtype as Sub with
   type T <- zmod,
-  op P = Zp.unit
+  op P = ZpF.unit
 proof*. 
-realize inhabited. exists Zp.one. rewrite /P. rewrite /unit. exists Zp.one. smt(@Zp). qed.
+realize inhabited. exists ZpF.one. rewrite /P. rewrite /unit. exists ZpF.one. smt(@ZpF). qed.
 
 type zmods = Sub.sT.
 
@@ -37,13 +37,13 @@ type zmods = Sub.sT.
   
 clone Group.ComGroup as Zps with
   type group <= zmods,
-  op e <= Sub.insubd Zp.one,
-  op ( * ) <= Sub.Lift.lift2 Zp.( * ),
-  op inv <= Sub.Lift.lift1 Zp.inv
+  op e <= Sub.insubd ZpF.one,
+  op ( * ) <= Sub.Lift.lift2 ZpF.( * ),
+  op inv <= Sub.Lift.lift1 ZpF.inv
 proof*.
-realize mulcC. rewrite /lift2. smt(@Zp @Sub). qed.
-realize mul1c. rewrite /lift2 /left_id. progress.  smt(@Zp @Sub). qed.
-realize mulcA. rewrite /associative /lift2. progress. smt(@Zp @Sub). qed.
-realize mulVc. rewrite /left_inverse /lift2 /lift1. progress. smt(@Zp @Sub). qed.
+realize mulcC. rewrite /lift2. smt(@ZpF @Sub). qed.
+realize mul1c. rewrite /lift2 /left_id. progress.  smt(@ZpF @Sub). qed.
+realize mulcA. rewrite /associative /lift2. progress. smt(@ZpF @Sub). qed.
+realize mulVc. rewrite /left_inverse /lift2 /lift1. progress. smt(@ZpF @Sub). qed.
 
 

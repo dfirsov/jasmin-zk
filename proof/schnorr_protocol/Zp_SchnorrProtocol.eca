@@ -14,10 +14,11 @@ require ZModP.
 clone import ZModP.ZModField as Zp.
 
 clone ZModPStar as ZPS with op p <- Zp.p,
-                            theory Zp <= Zp.
+                            theory ZpF <= Zp.
 
 
 import ZPS.
+
 
 op q : int.
 axiom q_prime : prime q.
@@ -26,7 +27,7 @@ op g : ZPS.zmod.
 axiom g_q_assumption: (ZModpField.exp g q) = Zp.one.
 
 lemma g_unit : unit g.  
-apply (unitP' g (ZModpField.exp g (q-1))).
+apply (Zp.ComRing.unitP g (ZModpField.exp g (q-1))).
 have ->: (ZModpField.exp g (q - 1)) * g = (ZModpField.exp g (q - 1)) * (ZModpField.exp g 1). smt(@ZModpField).
 have ->: (ZModpField.exp g (q - 1)) * (ZModpField.exp g 1) = (ZModpField.exp g ((q - 1) + 1)).
 rewrite - ZModpField.exprD. 
@@ -179,7 +180,7 @@ rewrite Sub.insubdK. rewrite /P. smt.
 have ->: (EG.asint ((EG.inzmod n))%EG) = n %% q. smt.
 rewrite lll. auto.  
 rewrite Sub.insubdK. smt.
-rewrite  (exp_mod' z n q _). auto. auto.
+rewrite (Zp.exp_mod z n q _). auto. auto.
 qed.
 
 
@@ -263,11 +264,6 @@ qed.
 
 (* Extractability  *)
 import Rew.
-
-op sec_to_sbits : secret -> sbits.
-op sec_from_sbits : sbits -> secret.
-axiom sec_enc x : x = sec_from_sbits (sec_to_sbits x).
-axiom sec_inj : injective sec_to_sbits.
 
 
 (* Remove secret from commitment and response *)
@@ -442,8 +438,6 @@ call (_:true). wp.
 rnd EG.inzmod EG.asint. wp. call (_:true). wp.
 call (_:true). rnd EG.inzmod EG.asint. wp.  call (_:true). wp.  skip. progress. 
 smt. smt(@DInterval @EG). smt(@EG @DInterval). smt(@EG @DInterval).
-
-
 have -> : LSP.soundness_relation  =  LSP.completeness_relation. auto.
 rewrite completeness_relation_compatible. simplify.
 rewrite /completeness_relationG. rewrite - H9.  rewrite /special_soundness_extractG /special_soundness_extract. simplify.
@@ -486,5 +480,6 @@ apply (lles3 q). smt(@Real @RealOrder). smt(@Real @RealOrder).
 auto.
 smt(@Real @RealOrder).
 qed.
+
 
 end section.

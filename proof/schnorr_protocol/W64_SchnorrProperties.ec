@@ -18,11 +18,6 @@ axiom pair_sibts_inj : injective pair_sbits.
 axiom unpair_pair: forall (x : sbits * sbits),
                              unpair (pair_sbits x) = x.
 
-op sec_from_sbits : sbits -> int. 
-op sec_to_sbits : int -> sbits.
-axiom sec_enc x : x = sec_from_sbits (sec_to_sbits x).
-axiom sec_inj : injective sec_to_sbits.
-
 
 require ZModP.
 clone import ZModP.ZModField as ZpC 
@@ -55,8 +50,6 @@ clone import W64_Zp_SchnorrPropreties as W64_Zp_Props with
   op Ind.g <- Constants.g,
   op Ind.pair_sbits <- pair_sbits,
   op Ind.unpair <- unpair,
-  op Ind.sec_to_sbits <- sec_to_sbits,
-  op Ind.sec_from_sbits <- sec_from_sbits,
   theory Ind.ZpC <= ZpC
 proof*.
 realize Ind.bn_set_p_correct. apply Constants.bn_set_p_correct. qed.
@@ -83,8 +76,6 @@ realize Ind.bq_correct.
   smt(@IntDiv). qed.
 realize Ind.pair_sibts_inj. apply pair_sibts_inj. qed.
 realize Ind.unpair_pair. apply unpair_pair. qed.
-realize Ind.sec_enc. progress. apply sec_enc. qed.
-realize Ind.sec_inj. progress. apply sec_inj. qed.
 realize Ind.g_correct. apply generator_is_valid. qed.
 
 

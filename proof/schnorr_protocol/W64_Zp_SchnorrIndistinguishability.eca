@@ -35,11 +35,6 @@ op unpair : sbits -> sbits * sbits.
 axiom pair_sibts_inj : injective pair_sbits.
 axiom unpair_pair: forall (x : sbits * sbits), unpair (pair_sbits x) = x.
 
-op sec_from_sbits : sbits -> int. 
-op sec_to_sbits : int -> sbits.
-axiom sec_enc x : x = sec_from_sbits (sec_to_sbits x).
-axiom sec_inj : injective sec_to_sbits.
-
 
 require ZModP.
 clone import ZModP.ZModField as ZpC
@@ -63,8 +58,6 @@ clone import Zp_SchnorrProtocol as ZPSP with op g <- inzmod g,
                                              op q <- q,
                                              op LSP.pair_sbits <- pair_sbits,
                                              op LSP.unpair <- unpair,
-                                             op sec_to_sbits <- sec_to_sbits,
-                                             op sec_from_sbits <- sec_from_sbits,
                                              theory Zp <- ZpC
 proof*.
 realize LSP.challenge_set_size. smt(@EG.DZmodP q_less_p). qed.
@@ -74,16 +67,13 @@ rewrite exps'. smt(q_less_p).
 have ->: (Sub.val (inzmod g)) = (asint (inzmod g)). auto.
 rewrite inzmodK.
 have ->: g %% p = g. smt(@IntDiv g_less_p). rewrite g_correct.
-rewrite /ZPS.Zp.one /ZpC.one. 
+rewrite /ZPS.ZpF.one /ZpC.one. 
 have ->: (Sub.val (inzmod 1)) = (asint (inzmod 1)). auto.
 rewrite inzmodK. smt(@IntDiv p_less_modulusR). qed.
 realize q_prime. apply q_prime. qed.
 realize ZPS.ge2_p. smt(p_prime). qed.
 realize LSP.ips. apply pair_sibts_inj. qed.
 realize LSP.unpair_pair. apply unpair_pair. qed.
-realize sec_enc. apply sec_enc. qed.
-realize sec_inj. apply sec_inj. qed.
-
 
 
 require MontgomeryLadder_Concrete.
@@ -235,13 +225,13 @@ smt().
 smt(@W64xN).
 smt().
 rewrite H7. smt(g_less_p).
-  have sq_fact: ((ZModpField.exp s{1} q) = ZPS.Zp.one)
+  have sq_fact: ((ZModpField.exp s{1} q) = ZPS.ZpF.one)
             = (result15 = W64.one). 
   rewrite H58. rewrite H56. rewrite H15. rewrite H5. rewrite H3. rewrite H57.
   have ->: (valR statement{2} %% p) = val s{1}. smt().
   have ->: (ZModpField.exp s{1} q) = s{1} ^^ q. 
     rewrite /(^^). smt(@ZModpField).
-    rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPS.Zp.one xxx.  
+    rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPS.ZpF.one xxx.  
     smt.
 rewrite sq_fact.
 have ->: (result12 `&` result15 = W64.one) 
