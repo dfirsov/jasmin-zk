@@ -7,8 +7,8 @@ axiom ge2_p: 2 <= p.
 clone ZModP.ZModField as Zp with
   op p <= p
 proof ge2_p.
-(* TODO: proof* *)
 realize ge2_p. apply ge2_p. qed.
+
 
 require import IntDiv.
 lemma exp_mod':

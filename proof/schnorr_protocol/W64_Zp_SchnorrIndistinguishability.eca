@@ -79,7 +79,6 @@ have ->: (Sub.val (inzmod 1)) = (asint (inzmod 1)). auto.
 rewrite inzmodK. smt(@IntDiv p_less_modulusR). qed.
 realize q_prime. apply q_prime. qed.
 realize ZPS.ge2_p. smt(p_prime). qed.
-realize g_unit. admit. qed.
 realize LSP.ips. apply pair_sibts_inj. qed.
 realize LSP.unpair_pair. apply unpair_pair. qed.
 realize sec_enc. apply sec_enc. qed.
@@ -107,7 +106,6 @@ lemma Rip_def: Rip = 4 ^ (dnlimbs * nlimbs) %/ q.
 rewrite /Rip. smt(nasty_id). qed.
 
 
-lemma zp_eq z1 z2 : (val z1 = val z2) = (z1 = z2). smt(@ZpC). qed.
 
 lemma inzpKK: forall (z : int), val (inzmod z) = z %% p. smt(@ZpC). qed.
 
@@ -150,16 +148,6 @@ qed.
 lemma exps_same (g : zmod) : ZModpField.exp g = ZModpRing.exp g.
 rewrite /ZModpField.exp. rewrite /ZModpRing.exp. auto. qed.
 
-
-lemma exps' (s : zmod) : forall n, 0 <= n => val (ZModpField.exp s n) = (val s ^ n) %% p.
-apply intind. progress. smt(@ZModpField @Sub).
-progress.
-rewrite exprSr. auto.
-rewrite ZModpField.exprSr. auto.
-rewrite zp_mul.
-rewrite H0.
-smt(@IntDiv). 
-qed.
 
 
 lemma exps (x : zmod) : forall n, 0 <= n => (x ^ n) = (x ^^ n). 

@@ -23,12 +23,20 @@ op q : int.
 axiom q_prime : prime q.
 
 op g : ZPS.zmod.
-axiom g_unit : unit g.
 axiom g_q_assumption: (ZModpField.exp g q) = Zp.one.
+
+lemma g_unit : unit g.  
+apply (unitP' g (ZModpField.exp g (q-1))).
+have ->: (ZModpField.exp g (q - 1)) * g = (ZModpField.exp g (q - 1)) * (ZModpField.exp g 1). smt(@ZModpField).
+have ->: (ZModpField.exp g (q - 1)) * (ZModpField.exp g 1) = (ZModpField.exp g ((q - 1) + 1)).
+rewrite - ZModpField.exprD. 
+apply (ZModpField.unitrX_neq0 g q). smt(q_prime). smt(g_q_assumption @ZModpField).
+simplify. auto.
+simplify. apply g_q_assumption. qed.
 
 lemma lll' (z : zmod) : unit z => forall x, 0 <= x 
   => Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
-move => z_unit. apply intind. progress. smt. progress.  timeout 20. smt.
+move => z_unit. apply intind. progress. smt. progress. smt(@Zps @Sub @ZModpField).
 qed.
 
 clone import Abstract_SchnorrProtocol as LSP with
@@ -42,11 +50,11 @@ realize q_prime.  apply q_prime. qed.
 
 
 
-type statement   = zmod.           (* statement *)
-type witness     = int.          (* witness *)
-type commitment  = zmod.            (* commitment *)
-type response    = int.          (* response *)
-type challenge   = int.          (* challenge *)
+type statement   = zmod.           (* statement  *)
+type witness     = int.            (* witness    *)
+type commitment  = zmod.           (* commitment *)
+type response    = int.            (* response   *)
+type challenge   = int.            (* challenge  *)
 type secret      = int.
 
 module type ZKProverG = {

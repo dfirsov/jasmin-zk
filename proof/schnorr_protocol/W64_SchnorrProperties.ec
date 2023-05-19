@@ -53,10 +53,10 @@ clone import W64_Zp_SchnorrPropreties as W64_Zp_Props with
   op Ind.bp <- Constants.bp,
   op Ind.bq <- Constants.bq,
   op Ind.g <- Constants.g,
-  op Ind.ZPSP.LSP.pair_sbits <- pair_sbits,
-  op Ind.ZPSP.LSP.unpair <- unpair,
-  op Ind.ZPSP.sec_to_sbits <- sec_to_sbits,
-  op Ind.ZPSP.sec_from_sbits <- sec_from_sbits,
+  op Ind.pair_sbits <- pair_sbits,
+  op Ind.unpair <- unpair,
+  op Ind.sec_to_sbits <- sec_to_sbits,
+  op Ind.sec_from_sbits <- sec_from_sbits,
   theory Ind.ZpC <= ZpC
 proof*.
 realize Ind.bn_set_p_correct. apply Constants.bn_set_p_correct. qed.
@@ -81,20 +81,12 @@ realize Ind.bq_correct.
  have ->: 4 ^ (dnlimbs * nlimbs) = Constants.barrett_numerator. simplify. auto.
  have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid).
   smt(@IntDiv). qed.
-realize Ind.ZPSP.ZPS.ge2_p. auto. qed.
-realize Ind.ZPSP.g_unit. rewrite /Constants.g. smt(@ZpC). qed.
-realize Ind.ZPSP.g_q_assumption.
-rewrite - zp_eq. rewrite exps'. auto.
-have -> : (Sub.val ((inzmod Constants.g))) = Constants.g %% Constants.p.
-apply inzmodK.
-have ->: Constants.g %% Constants.p = Constants.g.
-  have : Constants.g < Constants.p. auto.
-smt(@IntDiv).
-rewrite generator_is_valid. smt(@ZpC). qed.
-realize Ind.ZPSP.LSP.ips. apply pair_sibts_inj. qed.
-realize Ind.ZPSP.LSP.unpair_pair. apply unpair_pair. qed.
-realize Ind.ZPSP.sec_enc. progress. apply sec_enc. qed.
-realize Ind.ZPSP.sec_inj. progress. apply sec_inj. qed.
+realize Ind.pair_sibts_inj. apply pair_sibts_inj. qed.
+realize Ind.unpair_pair. apply unpair_pair. qed.
+realize Ind.sec_enc. progress. apply sec_enc. qed.
+realize Ind.sec_inj. progress. apply sec_inj. qed.
+realize Ind.g_correct. apply generator_is_valid. qed.
+
 
 
 lemma completenessJ ss ww &m: W64_Zp_Props.Ind.completeness_relationJ ss ww =>
