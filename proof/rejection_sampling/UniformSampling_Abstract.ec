@@ -12,6 +12,7 @@ realize dll. apply D_ll. qed.
 
 
 op RSP (a:int) x =  x < a.
+
 lemma rsample_pr1  a1  &m r : 
   Pr[CSpecFp.rsample(a1) @ &m : res = r]
   =  Pr[RS.sample(RSP a1, 0) @ &m : res = r].
@@ -57,7 +58,7 @@ qed.
 require import AuxLemmas.
 
 (* need to prove what Top.M equals to (W64x2N.modulusR ?) *)
-lemma rsample_uni &m x P : P < M =>  0 <= x =>  RSP P x =>
+lemma rsample_uni &m x P : P < M =>  0 <= x => RSP P x =>
     Pr[CSpecFp.rsample(P) @ &m : res.`2 = x ]
      = 1%r / P%r.
 move => H1 H2 H3.

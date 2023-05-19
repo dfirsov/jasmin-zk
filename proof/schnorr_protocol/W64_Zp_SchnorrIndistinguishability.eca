@@ -282,7 +282,7 @@ lemma commit_same1 :
 proc. 
 symmetry. call expm_correct.
 symmetry.
-call usample_aspec. sp.
+call rsample_aspec. sp.
 simplify.
 call{1} bn_set_bp_correct.
 call{1} bn_set_g_correct.
@@ -349,7 +349,7 @@ transitivity ASpecFp_Schnorr.challenge
   ==> (res{1}) = (valR res{2})). auto. auto.
 apply challenge_same.
 proc. 
-symmetry. call usample_aspec.
+symmetry. call rsample_aspec.
 call{1} bn_set_q_correct. wp. skip. progress.
 smt(q_less_p).
 qed.

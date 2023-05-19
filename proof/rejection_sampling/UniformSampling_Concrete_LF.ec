@@ -314,15 +314,35 @@ qed.
 
 
 
-op g a x l : real 
- = if inv (-1) samp_t l <= 0 \/ valR a <= valR x then 0%r else 
+
+op h a : real = 1%r/(valR a)%r. 
+
+
+lemma leakfree2 &m x a: 
+ Pr[ M1.rsample(a) @ &m : res.`2 = x ] 
+  = if (valR a <= valR x) then 0%r else h a.    
+proof. 
+ have ->: Pr[ M1.rsample(a) @ &m : res.`2 = x ] =
+  Pr[ CSpecFp.rsample(W64xN.valR a) @ &m : res.`2 =  W64xN.valR x ].
+  byequiv. conseq rsample_cspec2. auto. 
+progress. rewrite - H. auto. smt(@W64xN). auto. auto.
+rewrite /h.
+case: (valR a <= valR x). move => alx.
+rewrite rsample_pr_out. smt(). auto.
+move => a_less_x.
+rewrite rsample_uni. smt(@W64xN).
+smt(@W64xN). smt(). auto.
+qed.
+
+
+op g a l : real 
+ = if inv (-1) samp_t l <= 0 then 0%r else 
      mu D (predC (RSP (valR a))) ^ (inv (-1) samp_t l - 1)
-       * (mu1 D (valR x)).
+       * (1%r / Ring_ops_spec.M%r).
 
         
 lemma leakfree1 &m x a l: (glob M1){m} = [] 
-  => Pr[ M1.rsample(a) @ &m : M1.leakages = l  /\ res.`2 = x  ]
-    = g a x l.
+  => Pr[ M1.rsample(a) @ &m : M1.leakages = l  /\ res.`2 = x  ] = if (valR a <= valR x) then 0%r else (g a l).
       progress.
    rewrite  (qqq a x l &m);auto.
 case (inv (-1) samp_t l <= 0). 
@@ -341,9 +361,11 @@ case (valR x < valR a) => case1.
 rewrite zzz.
 rewrite rsample_pr.   smt().
 rewrite /RSP. auto.
-rewrite /z. smt().
-rewrite /g. 
-have ->: (valR a <= valR x) = true. smt(). simplify.
+rewrite /z. 
+have ->: mu1 D (W64xN.valR x) = 1%r / Ring_ops_spec.M%r.
+rewrite duniform1E_uniq. smt(@List).
+ have f1 : 0 <= W64xN.valR x < Ring_ops_spec.M. smt(@W64xN).  smt(@Distr @List). 
+rewrite /g.   smt().
 have : Pr[W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).rsample(a) @ &m :
    res.`2 = x] = 0%r.
   have -> : Pr[W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).rsample(a) @ &m :
@@ -354,4 +376,26 @@ smt(@Distr).
 qed.
 
 
+op f a l = h a / g a l.
+
+lemma rsample_leakfree pin l a &m: (glob M1){m} = [] 
+ =>  let v = Pr[ M1.rsample(pin) @ &m : res.`2 = a  ] in 
+     let w = Pr[ M1.rsample(pin) @ &m : M1.leakages = l  /\ res.`2 = a  ] in 
+  0%r < w => v/w 
+  = f pin l.
+move => l_empty v w f1.
+have : (valR a < valR pin).
+ case (valR pin <= valR a) => h.
+ have : w <= 0%r.
+ rewrite /w.  
+ rewrite (leakfree1 &m a pin l _). auto.
+ rewrite h. auto.
+ smt(). 
+ smt().
+move => a_less_pin.
+rewrite /f.
+rewrite  (leakfree1 &m a pin l _). auto.
+rewrite  (leakfree2 &m a pin ). auto. 
+smt().
 qed.
+

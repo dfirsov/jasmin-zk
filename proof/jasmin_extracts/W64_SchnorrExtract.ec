@@ -1405,6 +1405,7 @@ module M(SC:Syscall_t) = {
     var group_order:W64.t Array32.t;
     var group_generator:W64.t Array32.t;
     var barrett_parameter:W64.t Array64.t;
+    var  _0:int;
     barrett_parameter <- witness;
     commitment_0 <- witness;
     exp_order <- witness;
@@ -1415,7 +1416,7 @@ module M(SC:Syscall_t) = {
     group_order <@ bn_set_p (group_order);
     group_generator <@ bn_set_g (group_generator);
     barrett_parameter <@ bn_set_bp (barrett_parameter);
-    secret_power <@ usample (exp_order);
+    ( _0, secret_power) <@ rsample (exp_order);
     commitment_0 <@ expm (barrett_parameter, group_order, group_generator,
     secret_power);
     return (commitment_0, secret_power);
@@ -1446,10 +1447,11 @@ module M(SC:Syscall_t) = {
     
     var challenge_0:W64.t Array32.t;
     var exp_order:W64.t Array32.t;
+    var  _0:int;
     challenge_0 <- witness;
     exp_order <- witness;
     exp_order <@ bn_set_q (exp_order);
-    challenge_0 <@ usample (exp_order);
+    ( _0, challenge_0) <@ rsample (exp_order);
     return (challenge_0);
   }
   

@@ -13,7 +13,7 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
   group_generator   = bn_set_g(group_generator);
   barrett_parameter = bn_set_bp(barrett_parameter);
 
-  secret_power = usample(exp_order);
+  _, secret_power = rsample(exp_order);
   commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
   return (commitment, secret_power);
 }
@@ -41,7 +41,7 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
 inline fn challenge() -> stack u64[nlimbs]{
   stack u64[nlimbs] challenge exp_order;
   exp_order = bn_set_q(exp_order);  
-  challenge = usample(exp_order);
+  _, challenge = rsample(exp_order);
   return challenge;
 }
 

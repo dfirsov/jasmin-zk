@@ -3533,6 +3533,7 @@ module M(SC:Syscall_t) = {
   }
   
   proc commitment () : W64.t Array32.t * W64.t Array32.t = {
+    var aux_1: int;
     var aux: W64.t Array32.t;
     var aux_0: W64.t Array64.t;
     
@@ -3542,6 +3543,7 @@ module M(SC:Syscall_t) = {
     var group_order:W64.t Array32.t;
     var group_generator:W64.t Array32.t;
     var barrett_parameter:W64.t Array64.t;
+    var  _0:int;
     barrett_parameter <- witness;
     commitment_0 <- witness;
     exp_order <- witness;
@@ -3561,7 +3563,8 @@ module M(SC:Syscall_t) = {
     aux_0 <@ bn_set_bp (barrett_parameter);
     barrett_parameter <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ usample (exp_order);
+    (aux_1, aux) <@ rsample (exp_order);
+     _0 <- aux_1;
     secret_power <- aux;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ expm (barrett_parameter, group_order, group_generator,
@@ -3608,17 +3611,20 @@ module M(SC:Syscall_t) = {
   }
   
   proc challenge () : W64.t Array32.t = {
+    var aux_0: int;
     var aux: W64.t Array32.t;
     
     var challenge_0:W64.t Array32.t;
     var exp_order:W64.t Array32.t;
+    var  _0:int;
     challenge_0 <- witness;
     exp_order <- witness;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ bn_set_q (exp_order);
     exp_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ usample (exp_order);
+    (aux_0, aux) <@ rsample (exp_order);
+     _0 <- aux_0;
     challenge_0 <- aux;
     return (challenge_0);
   }
