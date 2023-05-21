@@ -3532,6 +3532,47 @@ module M(SC:Syscall_t) = {
     return (ex_s);
   }
   
+  proc commitment_indexed () : int * W64.t Array32.t * W64.t Array32.t = {
+    var aux_1: int;
+    var aux: W64.t Array32.t;
+    var aux_0: W64.t Array64.t;
+    
+    var i:int;
+    var commitment_0:W64.t Array32.t;
+    var secret_power:W64.t Array32.t;
+    var exp_order:W64.t Array32.t;
+    var group_order:W64.t Array32.t;
+    var group_generator:W64.t Array32.t;
+    var barrett_parameter:W64.t Array64.t;
+    barrett_parameter <- witness;
+    commitment_0 <- witness;
+    exp_order <- witness;
+    group_generator <- witness;
+    group_order <- witness;
+    secret_power <- witness;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_set_q (exp_order);
+    exp_order <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_set_p (group_order);
+    group_order <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_set_g (group_generator);
+    group_generator <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_0 <@ bn_set_bp (barrett_parameter);
+    barrett_parameter <- aux_0;
+    leakages <- LeakAddr([]) :: leakages;
+    (aux_1, aux) <@ rsample (exp_order);
+    i <- aux_1;
+    secret_power <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ expm (barrett_parameter, group_order, group_generator,
+    secret_power);
+    commitment_0 <- aux;
+    return (i, commitment_0, secret_power);
+  }
+  
   proc commitment () : W64.t Array32.t * W64.t Array32.t = {
     var aux_1: int;
     var aux: W64.t Array32.t;

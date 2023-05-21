@@ -342,4 +342,22 @@ smt(). auto. auto.
 qed.
 
 
+lemma bn_expm_correct_hoare:
+  forall rr mm xx nn,
+    hoare[ M(Syscall).expm :
+             r = rr /\
+             m = mm /\
+             x = xx /\
+             n = nn /\
+             ImplZZ m p /\ (W64xN.valR x) < p /\ r = R ==>
+             ImplZZ res ((W64xN.valR xx) ^ (W64xN.valR nn) %% p)]. 
+progress.
+hoare. bypr. progress.
+have : Pr[M(Syscall).expm(r{m}, m{m}, x{m}, n{m}) @ &m :
+   valR res = valR x{m} ^ valR n{m} %% p] = 1%r.
+byphoare (_: arg = (r{m}, m{m}, x{m}, n{m}) ==> _).
+conseq (bn_expm_correct r{m} m{m} x{m} n{m}). auto. auto. auto.
+smt(@Distr).
+qed.
+
 end section.

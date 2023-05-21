@@ -67,6 +67,7 @@ realize Ind.q_less_p. split. auto. auto. qed.
 realize Ind.q_prime. apply q_prime. qed.
 realize Ind.p_prime. apply p_prime. qed.
 realize Ind.bp_correct.
+
  have ->: 4 ^ (dnlimbs * nlimbs) = Constants.barrett_numerator. simplify. auto.
  have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid).
   smt(@IntDiv). qed.

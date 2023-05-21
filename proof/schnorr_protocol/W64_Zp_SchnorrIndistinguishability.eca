@@ -162,7 +162,7 @@ rewrite /completeness_relationJ /completeness_relation /IsDL.
 rewrite /completeness_relationG.
 have ->: (ZModpField.exp (inzmod g) (valR w)) = ((inzmod g)  ^^ (valR w)). auto.
 rewrite - exps. smt(@W64xN).
-have ->: inzmod g ^ valR w = inzmod (g ^ valR w). smt.
+have ->: inzmod g ^ valR w = inzmod (g ^ valR w). timeout 10. smt.
 rewrite xxx. auto.
 qed.
 
@@ -327,6 +327,14 @@ transitivity ASpecFp_Schnorr.commit
     /\ res{1}.`2 = (valR res{2}.`2)). auto. auto.
 apply commit_same.
 symmetry. apply commit_same1.
+qed.
+
+
+lemma commitment_pr_eq P &m : 
+  Pr[ SchnorrProver.commitment() @&m : P res ] = Pr[ JProver.commitment() @&m : P (inzmod (W64xN.valR res.`1), (W64xN.valR res.`2)) ].
+byequiv. bypr (res{1}) (inzmod (W64xN.valR res{2}.`1), (W64xN.valR res{2}.`2)).
+auto. progress. byequiv.
+conseq commitment_eq. progress. smt. smt. auto. auto. auto. auto.
 qed.
      
 

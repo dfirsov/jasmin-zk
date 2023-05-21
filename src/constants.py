@@ -53,6 +53,16 @@ skip.
 rewrite {self.nlimbs.module}.R.bnk0 /{self.name}.
 trivial.
 qed.
+
+lemma {proc_name}_correct_hoare : hoare[ M.{proc_name} : true ==> {self.nlimbs.module}.valR res = {self.name} ].
+proof.
+proc.
+wp.
+skip.
+{subblocks}
+rewrite {self.nlimbs.module}.R.bnk0 /{self.name}.
+trivial.
+qed.
 """
 
 

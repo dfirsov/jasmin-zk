@@ -3,6 +3,21 @@ require "ring_ops.jazz"
 
 require "constants.jazz"
 
+inline fn commitment_indexed() -> (inline int, stack u64[nlimbs], stack u64[nlimbs]){
+  stack u64[nlimbs]  secret_power commitment group_generator group_order exp_order;
+  stack u64[dnlimbs] barrett_parameter;
+  inline int i;
+
+  exp_order         = bn_set_q(exp_order);
+  group_order       = bn_set_p(group_order);
+  group_generator   = bn_set_g(group_generator);
+  barrett_parameter = bn_set_bp(barrett_parameter);
+
+  i, secret_power = rsample(exp_order);
+  commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
+  return (i, commitment, secret_power);
+}
+
 
 inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
   stack u64[nlimbs]  secret_power commitment group_generator group_order exp_order;

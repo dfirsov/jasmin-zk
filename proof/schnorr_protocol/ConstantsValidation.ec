@@ -101,6 +101,9 @@ smt().
 qed.
 
 
-
+lemma bp_correct : Constants.bp = 4 ^ (64 * 32) %/ Constants.p.
+ have ->: 4 ^ (64 * 32) = Constants.barrett_numerator. simplify. auto.
+ have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid).
+smt(@IntDiv). qed.
 
 end section.

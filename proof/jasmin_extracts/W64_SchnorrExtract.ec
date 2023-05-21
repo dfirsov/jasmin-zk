@@ -1397,6 +1397,31 @@ module M(SC:Syscall_t) = {
     return (ex_s);
   }
   
+  proc commitment_indexed () : int * W64.t Array32.t * W64.t Array32.t = {
+    
+    var i:int;
+    var commitment_0:W64.t Array32.t;
+    var secret_power:W64.t Array32.t;
+    var exp_order:W64.t Array32.t;
+    var group_order:W64.t Array32.t;
+    var group_generator:W64.t Array32.t;
+    var barrett_parameter:W64.t Array64.t;
+    barrett_parameter <- witness;
+    commitment_0 <- witness;
+    exp_order <- witness;
+    group_generator <- witness;
+    group_order <- witness;
+    secret_power <- witness;
+    exp_order <@ bn_set_q (exp_order);
+    group_order <@ bn_set_p (group_order);
+    group_generator <@ bn_set_g (group_generator);
+    barrett_parameter <@ bn_set_bp (barrett_parameter);
+    (i, secret_power) <@ rsample (exp_order);
+    commitment_0 <@ expm (barrett_parameter, group_order, group_generator,
+    secret_power);
+    return (i, commitment_0, secret_power);
+  }
+  
   proc commitment () : W64.t Array32.t * W64.t Array32.t = {
     
     var commitment_0:W64.t Array32.t;
