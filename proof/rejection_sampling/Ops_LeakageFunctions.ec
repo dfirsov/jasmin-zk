@@ -1,7 +1,10 @@
-require import W64_SchnorrExtract_ct.
-require import List Int AllCore.
+require import List Int AllCore Distr.
 
 from Jasmin require import JModel.
+
+require import AuxLemmas.
+require import W64_SchnorrExtract_ct.
+
 
 (* SUBTRACTION LEAKAGES  *)
 op sub_prefix : leakages_t = 
@@ -168,7 +171,7 @@ sp. elim*. progress.
 exists* c1. elim*. move => c1_var.
 call (ith_bit64_leakages (LeakAddr [] :: LeakAddr [to_uint  c1_var   ] :: LeakAddr [] :: LeakAddr [] :: 
   LeakAddr [] :: LeakAddr [] :: start_l)).
-skip. progress. 
+skip. rewrite /ith_bit_t. progress.  
 qed.
 
 
@@ -719,5 +722,348 @@ skip. auto.
 progress.
 rewrite /suf2 /suf1.
 do? rewrite catA.
+rewrite /mulm_t.
 auto.
+qed.
+
+
+op bn_set_q_t : leakages_t = LeakAddr [31] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [30] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [29] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [28] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [27] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [26] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [25] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [24] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [23] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [22] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [21] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [20] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [19] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [18] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [17] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [16] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [15] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [14] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [13] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [12] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [11] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [10] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [9] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [8] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [7] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [6] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [5] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [4] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [3] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [2] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [1] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: 
+LeakAddr [] :: [].
+lemma bn_set_q_leakages l :
+  hoare [ M(Syscall).bn_set_q : M.leakages = l
+     ==> M.leakages = bn_set_q_t ++ l].
+proc. wp. skip. progress. qed.
+
+
+op bn_set_p_t : leakages_t = bn_set_q_t.
+lemma bn_set_p_leakages l :
+  hoare [ M(Syscall).bn_set_p : M.leakages = l
+     ==> M.leakages = bn_set_p_t ++ l].
+proc. wp. skip. progress. qed.
+
+
+op bn_set_g_t : leakages_t = bn_set_q_t.
+lemma bn_set_g_leakages l :
+  hoare [ M(Syscall).bn_set_g : M.leakages = l
+     ==> M.leakages = bn_set_g_t ++ l].
+proc. wp. skip. progress. qed.
+
+
+op bn_set_bp_t : leakages_t = LeakAddr [63] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [62] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [61] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [60] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [59] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [58] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [57] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [56] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [55] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [54] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [53] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [52] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [51] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [50] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [49] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [48] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [47] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [46] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [45] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [44] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [43] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [42] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [41] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [40] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [39] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [38] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [37] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [36] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [35] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [34] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [33] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [32] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [31] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [30] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [29] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [28] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [27] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [26] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [25] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [24] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [23] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [22] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [21] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [20] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [19] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [18] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [17] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [16] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [15] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [14] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [13] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [12] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [11] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [10] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [9] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [8] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [7] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [6] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [5] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [4] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [3] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [2] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [1] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [0] :: 
+LeakAddr [] :: LeakAddr [] :: [].
+lemma bn_set_bp_leakages l :
+  hoare [ M(Syscall).bn_set_bp : M.leakages = l
+     ==> M.leakages = bn_set_bp_t ++ l].
+proc. wp. skip. progress. qed.
+
+op bn_set_bq_t = bn_set_bp_t.
+lemma bn_set_bq_leakages l :
+  hoare [ M(Syscall).bn_set_bq : M.leakages = l
+     ==> M.leakages = bn_set_bq_t ++ l].
+proc. wp. skip. progress. qed.
+
+
+ 
+op samp_prefix : leakages_t = 
+  LeakCond (! set0_64_.`2) :: LeakAddr [] :: LeakAddr [] :: (set0_f 32 ++
+                                                           [LeakAddr [];
+                                                              LeakAddr []]).
+op samp_step  : leakages_t = LeakCond true :: LeakAddr [] :: LeakAddr [] :: (sub_f 32 ++
+                                                LeakAddr [] :: (copy_f 32 ++
+                                                                LeakAddr [] :: 
+                                                                LeakAddr [] :: [])) .
+
+
+op samp_g (x : int) : leakages_t = if (x < 0) then [(LeakAddr [x])] else iteri x (fun i r => samp_step  ++ r) []. 
+lemma samp_g_comp_1 x : x = 0 => samp_g x = [].  rewrite /samp_g.
+smt(@Int). qed.
+lemma samp_g_comp_2 x : 0 <  x  => samp_g x = samp_step  ++ samp_g (x - 1). 
+rewrite /samp_g. move => q.
+have ->: x < 0 = false. smt().
+have ->: x - 1 < 0 = false. smt(). simplify.
+smt(@Int). qed.
+
+
+op samp_suffix : leakages_t = 
+ LeakCond false :: LeakAddr [] :: LeakAddr [] 
+   :: (sub_f 32 ++ LeakAddr [] :: 
+      (copy_f 32 ++ LeakAddr [] :: LeakAddr [] :: [])).
+
+op samp_f (x : int) : leakages_t = samp_g x ++ samp_prefix.
+op samp_t (x : int) : leakages_t = samp_suffix ++ samp_f (x - 1).
+
+lemma samp_t_inj : injective samp_t.
+
+ have fact1 : size (samp_t 1)  = size samp_suffix + size samp_prefix.
+  rewrite /samp_t. rewrite /samp_f. simplify. rewrite samp_g_comp_1.   auto. simplify.
+  rewrite size_cat. simplify. 
+  smt(@Int).
+
+ have fact2 : forall x, x <= 0 => size (samp_t x) = 1 + size samp_suffix + size samp_prefix.
+  progress.  rewrite /samp_t. 
+  rewrite /samp_f /samp_g.
+  have ->: x - 1 < 0. smt(). simplify.
+  rewrite size_cat. simplify.
+   smt(@Int).
+  
+
+ have fact3 : forall x, 0 <= x => size (samp_g x) = x * (size samp_step).
+   apply intind. progress.
+    rewrite /samp_f /samp_prefix. rewrite samp_g_comp_1. auto. auto.
+   progress.
+    rewrite samp_g_comp_2. smt(). 
+    rewrite size_cat. simplify. smt(@Int).
+ 
+ have fact4: forall x, 1 <= x => size (samp_t x) = (x - 1) * (size samp_step) + size samp_suffix + size samp_prefix . progress. rewrite /samp_t. rewrite size_cat. rewrite /samp_f.
+   rewrite size_cat. rewrite fact3. smt(). smt(@Int).
+
+ have fact5 : 1 <= size samp_step. rewrite /samp_step. simplify. smt(@List).
+ clear fact3.
+    
+ have fact6 : forall x y, x <> y => samp_t x <> samp_t y. 
+  move => x y xneqy. 
+    case (x <= 0) => xh.
+    case (y <= 0) => yh.  
+    rewrite /samp_t. rewrite /samp_f.  rewrite /samp_f. rewrite /samp_g.
+     have ->: x - 1 < 0 = true. smt().
+     have ->: y - 1 < 0 = true. smt(). 
+    simplify. 
+     smt(@List).
+
+  rewrite /samp_t. rewrite /samp_f. rewrite /samp_g.
+     have ->: x - 1 < 0 = true. smt().
+     have ->: y - 1 < 0 = false. smt(). simplify.
+     case (y - 1 = 0) => y0. rewrite iteri0. smt(). simplify. smt(@List).
+     rewrite iteri_red. smt(). simplify. rewrite /samp_step. smt(@List).
+
+  case (y <= 0) => yh.  
+  rewrite /samp_t. rewrite /samp_f. rewrite /samp_g.
+     have ->: x - 1 < 0 = false. smt().
+     have ->: y - 1 < 0 = true. smt(). simplify.
+     case (x - 1 = 0) => x0. rewrite iteri0. smt(). simplify. smt(@List).
+     rewrite iteri_red. smt(). simplify. rewrite /samp_step. smt(@List).
+
+  have : size (samp_t x) <> size (samp_t y).
+   rewrite fact4. smt().
+   rewrite fact4. smt().
+  smt(@Int).
+  smt().
+smt().
+qed.
+ 
+
+
+
+lemma rsample_leakages l :
+  hoare [ M(Syscall).rsample : M.leakages = l 
+     ==> M.leakages = samp_t res.`1 ++ l].
+proc.
+seq 17 :  (M.leakages = samp_prefix ++ l /\ i = 0  /\ cf = false ).
+wp. ecall (bn_set0_leakages M.leakages). wp. skip. progress.  
+rewrite /set0_64. rewrite /samp_prefix. simplify. smt(@List).
+while (0 <= i /\ (cf = false => M.leakages = samp_f i ++ l) 
+              /\ (cf = true => M.leakages = samp_t i ++ l)).
+wp.  ecall (bn_subc_leakages M.leakages). simplify.
+wp.  ecall (bn_copy_leakages M.leakages). simplify.
+wp. inline Syscall.randombytes_256. wp. rnd.  wp.
+skip. progress. smt().  rewrite H4.  rewrite H0. rewrite H2. auto. simplify.
+rewrite /samp_f. rewrite (samp_g_comp_2 (i{hr} + 1)). smt().
+simplify.
+rewrite /samp_step. simplify. 
+have ->: (copy_f 32 ++
+                LeakAddr [] :: LeakAddr [] :: (samp_g i{hr} ++ samp_prefix ++
+                                               l))
+ = (copy_f 32 ++ [LeakAddr []; LeakAddr []]) ++
+samp_g i{hr} ++ samp_prefix ++ l.
+smt(@List). smt(@List).
+rewrite /samp_t. simplify.
+rewrite /samp_suffix.  simplify.  split. rewrite H4. auto.
+rewrite H0. rewrite H2. auto. smt(@List).
+skip. progress. rewrite /samp_prefix. rewrite /samp_f. rewrite samp_g_comp_1.
+auto. rewrite /samp_prefix. auto.
+rewrite H2. rewrite H. auto.
+auto.
+qed.
+
+
+
+op expm_t_prefix : leakages_t = LeakCond true :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: (copy_f 32 ++
+                                                               [LeakAddr []] ++
+                                                               copy_g 32 ++
+                                                               copy_prefix ++
+                                                               [LeakAddr []] ++
+                                                               set1_g 32 ++
+                                                               set1_prefix ++
+                                                               [LeakAddr []]).
+op expm_step_acc i = 
+  LeakCond (W64.zero \ult i) :: LeakAddr [] :: (swapr_f 32 ++
+                                                  ([LeakAddr []] ++ mulm_t ++
+                                                   ([LeakAddr []] ++ mulm_t ++
+                                                    ([LeakAddr []] ++
+                                                     copy_f 32 ++
+                                                     ([LeakAddr []] ++
+                                                      swapr_f 32 ++
+                                                      ([LeakAddr []] ++
+                                                       ith_bit_t
+                                                         (i + W64.one -
+                                                          W64.one) ++
+                                                       (LeakAddr [] ::
+                                                        LeakAddr [] ::
+                                                        []))))))).
+
+
+op [opaque] expm_step (i : int) : leakages_t = iteri i (fun i r => expm_step_acc (W64.of_int (2048 - (i + 1))) ++ r) []. 
+
+lemma expm_step0 : expm_step 0 = []. smt(@Int). qed.
+lemma expm_stepS i : 0 < i =>  expm_step i 
+ =  expm_step_acc (W64.of_int (2048 - i))
+    ++ expm_step (i-1). rewrite /expm_step. 
+progress. 
+search iteri.
+have ->: i = (i-1)+1. smt().
+rewrite iteriS. smt(). simplify. auto. qed.
+
+lemma expm_stepSS i : 0 <= i < 2048 =>  expm_step (2048 -  i)
+  = expm_step_acc (W64.of_int i) ++ expm_step (2048 - (i + 1)).
+progress.
+case ((2048 - i) = 0).
+progress.
+have : i = 0. smt().
+progress. rewrite expm_stepS. auto. simplify. auto.
+move => q.
+rewrite expm_stepS. smt().
+simplify. smt().
+qed.
+  
+
+op [opaque] expm_t : leakages_t = expm_step 2048 ++ expm_t_prefix.
+
+lemma expm_leakages l :
+  hoare [ M(Syscall).expm : M.leakages = l 
+     ==> M.leakages = expm_t ++ l].
+proc.
+seq 19 : (M.leakages = expm_t_prefix ++ l /\ i = (W64.of_int (32 * 64)) ). 
+
+pose suf1 :=  [LeakAddr []] ++ l.
+seq 6 : (M.leakages = set1_f 32 ++ suf1 ).
+wp.  call (bn_set1_leakages suf1). simplify. wp. skip. progress.
+
+pose suf2 :=  [LeakAddr []] ++ set1_f 32 ++ suf1.
+seq 3 : (M.leakages = copy_f 32 ++ suf2).
+wp.  call (bn_copy_leakages suf2). simplify. wp. skip. progress.
+
+pose suf3 :=  [LeakAddr []] ++ copy_f 32 ++ suf2.
+seq 3 : (M.leakages = copy_f 32 ++ suf3).
+wp.  call (bn_copy_leakages suf3). simplify. wp. skip. progress.
+wp. skip. progress.
+rewrite /suf3 /suf2 /suf1.
+rewrite /expm_t_prefix.
+do ? rewrite catA. simplify. smt(@List).
+while (W64.zero \ult (i + W64.one) /\ ( M.leakages = expm_step (2048 - (to_uint i)) ++ expm_t_prefix ++ l)  /\ (i <> W64.zero => (i - W64.one) \ult (W64.of_int 2048))  ).
+exists* i. elim*. move => i_var.
+pose suf1 :=  LeakAddr [] :: LeakAddr [] ::  expm_step (2048 - to_uint (i_var)) ++ expm_t_prefix ++ l.
+seq 6 : (M.leakages = (ith_bit_t (i_var - W64.one)) ++ suf1 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
+wp.  call (ith_bit_leakages suf1 (i_var - W64.one)). simplify.
+wp. skip. progress. smt(@W64).  smt(@W64).
+pose suf2 :=  [LeakAddr []]  ++ ith_bit_t (i_var - W64.one) ++ suf1.
+seq 4 : (M.leakages = (swapr_f 32) ++ suf2 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
+wp.  call (swapr_leakages suf2). 
+wp. skip. progress. 
+pose suf3 :=  [LeakAddr []]  ++ swapr_f 32 ++ suf2.
+seq 3 : (M.leakages = copy_f 32 ++ suf3 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
+wp.  call (bn_copy_leakages suf3). 
+wp. skip. progress. 
+pose suf4 :=  [LeakAddr []]  ++ copy_f 32 ++ suf3.
+seq 3 : (M.leakages = mulm_t ++ suf4 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
+wp.  call (mulm_leakages suf4). 
+wp. skip. progress.    
+pose suf5 :=  [LeakAddr []]  ++ mulm_t ++ suf4.
+seq 3 : (M.leakages = mulm_t ++ suf5 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
+wp.  call (mulm_leakages suf5). 
+wp. skip. progress.    
+pose suf6 :=  [LeakAddr []]  ++ mulm_t ++ suf5.
+seq 3 : (M.leakages = swapr_f 32 ++ suf6 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
+wp.  call (swapr_leakages suf6). 
+wp. skip. progress.    
+wp.  skip. progress.
+rewrite /suf6 /suf5 /suf4 /suf3 /suf2 /suf1. 
+rewrite (expm_stepSS (to_uint i{hr})). 
+split. smt(@W64). smt(@W64).
+rewrite /expm_step_acc.
+have ->: (W64.of_int (to_uint i{hr})) = i{hr}. 
+smt(@W64).
+have -> :  (to_uint i{hr} + 1) = to_uint (i{hr} + W64.one). smt(@W64).
+do ? rewrite  catA.
+simplify.
+pose xxx := swapr_f 32 ++ [LeakAddr []] ++ mulm_t ++ [LeakAddr []] ++ mulm_t.
+pose yyy := xxx ++ [LeakAddr []] ++ copy_f 32 ++ [LeakAddr []] ++
+swapr_f 32 ++ [LeakAddr []] ++ ith_bit_t (i{hr} + W64.one - W64.one).
+pose www := expm_step (2048 - to_uint (i{hr} + W64.one)) .
+congr. congr. 
+have ->: yyy ++ [LeakAddr []; LeakAddr []] ++ www
+   = yyy ++ ([LeakAddr []; LeakAddr []] ++ www). rewrite catA. auto.
+have ->: ([LeakAddr []; LeakAddr []] ++ www) = (LeakAddr [] :: LeakAddr [] :: www). smt(@List).
+auto.
+smt(@W64).
+skip.
+progress.
+rewrite expm_step0. simplify. auto.
+have : i0 = W64.zero.  smt(@W64).
+progress.
+rewrite /expm_t. auto.
 qed.
