@@ -10,25 +10,45 @@ require import Ops_LeakageAnalysis.
 require import W64_SchnorrExtract_ct.
 module M1 = W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).
 
-op commitment_prefix : leakages_t.
-op commitment_g (x : int) : leakages_t.
-op commitment_step (i : int) : leakages_t.
- 
-axiom commitment_g_comp_1 x : x <= 0 => commitment_g x = [].
-axiom commitment_g_comp_2 x : 0 <  x  => commitment_g x = commitment_step (x-1) ++ commitment_g (x - 1).
+require import Ops_LeakageFunctions.
 
-op commitment_suffix : leakages_t.
-
-op commitment_f (x : int) : leakages_t = commitment_g x ++ commitment_prefix.
-op commitment_t (x : int) : leakages_t = commitment_suffix ++ commitment_f (x - 1).
+op commitment_t (i_var : int) : leakages_t = 
+ expm_t ++
+([LeakAddr []] ++ samp_t i_var ++
+ ([LeakAddr []] ++ bn_set_bp_t ++
+  ([LeakAddr []] ++ bn_set_g_t ++
+   ([LeakAddr []] ++ bn_set_g_t ++
+    ([LeakAddr []] ++ bn_set_q_t ++ [LeakAddr []]))))).
 
 axiom commitment_t_inj : injective commitment_t.
-
 
 lemma commitment_leakages1 :
   hoare [ M(Syscall).commitment_indexed : M.leakages = [] 
      ==> M.leakages = commitment_t res.`1].
-admitted.
+proc.
+pose suf1 := [LeakAddr []].
+seq 9 : (M.leakages = bn_set_q_t ++ suf1).
+wp.  call (bn_set_q_leakages suf1). wp.  skip. progress.
+pose suf2 :=  [LeakAddr []] ++ bn_set_q_t ++ suf1.
+seq 3 : (M.leakages =  bn_set_p_t ++ suf2).
+wp.  call (bn_set_p_leakages suf2). wp.  skip. progress.
+pose suf3 :=  [LeakAddr []] ++ bn_set_g_t ++ suf2.
+seq 3 : (M.leakages =  bn_set_g_t ++ suf3).
+wp.  call (bn_set_g_leakages suf3). wp.  skip. progress.
+pose suf4 :=  [LeakAddr []] ++ bn_set_g_t ++ suf3.
+seq 3 : (M.leakages = bn_set_bp_t ++ suf4).
+wp.  call (bn_set_bp_leakages suf4). wp.  skip. progress.
+pose suf5 := [LeakAddr []]  ++ bn_set_bp_t ++ suf4.
+seq 3 : (M.leakages = (samp_t i) ++ suf5).
+wp. call (rsample_leakages suf5). wp. skip. progress.
+exists* i. elim*. move => i_var.
+pose suf6 := [LeakAddr []]  ++ samp_t i_var ++ suf5.
+seq 3 : (M.leakages = expm_t ++ suf6 /\ i_var = i).
+wp. call (expm_leakages suf6). wp. skip. progress.
+wp. skip. progress.
+qed.
+
+
 
 lemma commitment_leakages2 &m : (glob M1){m} = [] =>
   Pr[ M1.commitment_indexed() @ &m : M1.leakages <> commitment_t res.`1 ] = 0%r.

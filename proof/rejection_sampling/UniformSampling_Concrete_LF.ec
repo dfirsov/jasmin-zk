@@ -3,74 +3,19 @@ require import List Int AllCore Distr.
 from Jasmin require import JModel.
 
 require import AuxLemmas.
-require import Ops_LeakageAnalysis.
-
+require import Ops_LeakageFunctions.
 
 (* SAMPLING LEAKAGES  *)
 require import W64_SchnorrExtract_ct.
 module M1 = W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).
 
-op samp_prefix : leakages_t = 
-  LeakCond (! set0_64_.`2) :: LeakAddr [] :: LeakAddr [] :: (set0_f 32 ++
-                                                           [LeakAddr [];
-                                                              LeakAddr []]).
-op samp_g (x : int) : leakages_t.
-op samp_step (i : int) : leakages_t = LeakCond true :: LeakAddr [] :: LeakAddr [] :: (sub_f 32 ++
-                                                LeakAddr [] :: (copy_f 32 ++
-                                                                LeakAddr [] :: 
-                                                                LeakAddr [] :: [])) .
- 
-axiom samp_g_comp_1 x : x <= 0 => samp_g x = [].
-axiom samp_g_comp_2 x : 0 <  x  => samp_g x = samp_step (x-1) ++ samp_g (x - 1).
-
-op samp_suffix : leakages_t = 
- LeakCond false :: LeakAddr [] :: LeakAddr [] 
-   :: (sub_f 32 ++ LeakAddr [] :: 
-      (copy_f 32 ++ LeakAddr [] :: LeakAddr [] :: [])).
-
-op samp_f (x : int) : leakages_t = samp_g x ++ samp_prefix.
-op samp_t (x : int) : leakages_t = samp_suffix ++ samp_f (x - 1).
-
-axiom samp_t_inj : injective samp_t.
-
-
-lemma rsample_leakages1 l :
-  hoare [ M(Syscall).rsample : M.leakages = l 
-     ==> M.leakages = samp_t res.`1 ++ l].
-proc.
-seq 17 :  (M.leakages = samp_prefix ++ l /\ i = 0  /\ cf = false ).
-wp. ecall (bn_set0_leakages M.leakages). wp. skip. progress.  
-rewrite /set0_64. rewrite /samp_prefix. simplify. smt(@List).
-while (0 <= i /\ (cf = false => M.leakages = samp_f i ++ l) 
-              /\ (cf = true => M.leakages = samp_t i ++ l)).
-wp.  ecall (bn_subc_leakages M.leakages). simplify.
-wp.  ecall (bn_copy_leakages M.leakages). simplify.
-wp. inline Syscall.randombytes_256. wp. rnd.  wp.
-skip. progress. smt().  rewrite H4.  rewrite H0. rewrite H2. auto. simplify.
-rewrite /samp_f. rewrite (samp_g_comp_2 (i{hr} + 1)). smt().
-simplify.
-rewrite /samp_step. simplify. 
-have ->: (copy_f 32 ++
-                LeakAddr [] :: LeakAddr [] :: (samp_g i{hr} ++ samp_prefix ++
-                                               l))
- = (copy_f 32 ++ [LeakAddr []; LeakAddr []]) ++
-samp_g i{hr} ++ samp_prefix ++ l.
-smt(@List). smt(@List).
-rewrite /samp_t. simplify.
-rewrite /samp_suffix.  simplify.  split. rewrite H4. auto.
-rewrite H0. rewrite H2. auto. smt(@List).
-skip. progress. rewrite /samp_prefix. rewrite /samp_f. rewrite samp_g_comp_1.
-auto. rewrite /samp_prefix. auto.
-rewrite H2. rewrite H. auto.
-auto.
-qed.
 
 
 lemma rsample_leakages2 a  &m : (glob M1){m} = [] =>
   Pr[ M1.rsample(a) @ &m : M1.leakages <> samp_t res.`1 ] = 0%r.
 progress. byphoare (_: glob M1 = [] ==> _).
 hoare. simplify.
-conseq (rsample_leakages1 []). auto. smt(@List).  auto. auto.
+conseq (rsample_leakages []). auto. smt(@List).  auto. auto.
 qed.
 
 
