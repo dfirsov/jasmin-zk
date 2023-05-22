@@ -20,7 +20,16 @@ op commitment_t (i_var : int) : leakages_t =
    ([LeakAddr []] ++ bn_set_g_t ++
     ([LeakAddr []] ++ bn_set_q_t ++ [LeakAddr []]))))).
 
-axiom commitment_t_inj : injective commitment_t.
+lemma commitment_t_inj : injective commitment_t.
+move => x y.
+have : x <> y => commitment_t x <> commitment_t y.
+move => xneqy.
+rewrite /commitment_t.
+have : samp_t x <> samp_t y. smt(samp_t_inj).
+smt(@List).
+smt().
+qed.
+
 
 lemma commitment_leakages1 :
   hoare [ M(Syscall).commitment_indexed : M.leakages = [] 

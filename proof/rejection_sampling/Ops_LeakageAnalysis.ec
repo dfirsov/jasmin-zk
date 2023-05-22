@@ -49,7 +49,7 @@ progress. rewrite /copy_g. smt(@Int). qed.
 lemma copy_g_comp_2 x : 0 <  x => copy_g x = copy_step (x-1) ++ copy_g (x - 1).
 progress. rewrite /copy_g. smt(@Int). qed.
 
-op copy_f (x : int) : leakages_t = copy_g x ++ copy_prefix.
+op [opaque] copy_f (x : int) : leakages_t = copy_g x ++ copy_prefix.
 
 lemma bn_copy_leakages start_l :
    hoare [ M(Syscall).bn_copy : M.leakages = start_l 
@@ -155,7 +155,7 @@ lemma ith_bit64_leakages start_l :
 proc. wp. skip. progress. qed.
 
 (* ith_bit LEAKAGES  *)
-op ith_bit_t (x : W64.t) :  leakages_t = 
+op [opaque] ith_bit_t (x : W64.t) :  leakages_t = 
  ith_bit64_t ++ LeakAddr [] :: LeakAddr [to_uint (x `>>` (of_int 6)%W8)] :: LeakAddr [] ::  LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: [].
 
 lemma ith_bit_leakages start_l c :
@@ -182,7 +182,7 @@ op swapr_g (x : int) : leakages_t = iteri x (fun i r => swapr_step i ++ r) [].
 lemma swapr_g_comp_1 x : x = 0 => swapr_g x = []. by smt(@Int). qed.
 lemma swapr_g_comp_2 x : 0 <  x => swapr_g x = swapr_step (x-1) ++ swapr_g (x - 1). by smt(@Int). qed.
 
-op swapr_f (x : int) : leakages_t = swapr_g x ++ swapr_prefix.
+op [opaque] swapr_f (x : int) : leakages_t = swapr_g x ++ swapr_prefix.
 
 lemma swapr_leakages start_l :
    hoare [ M(Syscall).swapr : M.leakages = start_l 
@@ -702,7 +702,7 @@ auto.
 qed.
 
 (* mulm LEAKAGES  *)
-op mulm_t : leakages_t = bn_breduce_f ++ [LeakAddr []] ++ bn_muln_g 32 ++ bn_muln_prefix ++
+op [opaque] mulm_t : leakages_t = bn_breduce_f ++ [LeakAddr []] ++ bn_muln_g 32 ++ bn_muln_prefix ++
 [LeakAddr []] .
 lemma mulm_leakages start_l : 
    hoare [ M(Syscall).mulm : M.leakages = start_l 
