@@ -32,17 +32,106 @@ admitted.
 
 lemma commitment_leakages2 &m : (glob M1){m} = [] =>
   Pr[ M1.commitment_indexed() @ &m : M1.leakages <> commitment_t res.`1 ] = 0%r.
-admitted.
+progress. byphoare (_: glob M1 = [] ==> _).
+hoare. simplify.
+conseq commitment_leakages1. auto. auto. auto. qed.
 
 lemma commitment_leakages3 l x &m : (glob M1){m} = [] =>
   Pr[ M1.commitment_indexed() @ &m : M1.leakages = l  /\ res.`3 = x ]
   = Pr[ M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x ].
-admitted.
+move => H.
+have ->: Pr[ M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x ]
+ = Pr[ M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages = commitment_t res.`1  ].
+  have -> : Pr[M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x]
+   = Pr[M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages = commitment_t res.`1]
+   + Pr[M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1].
+   rewrite Pr[mu_split (M1.leakages = commitment_t res.`1)]. smt(). 
+  have ->: Pr[M1.commitment_indexed() @ &m :
+   l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1] = 0%r.
+    have : Pr[M1.commitment_indexed() @ &m :
+       l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1]
+     <= Pr[ M1.commitment_indexed() @ &m : M1.leakages <> commitment_t res.`1 ]. smt(@Distr).
+    rewrite (commitment_leakages2  &m). auto. smt(@Distr). 
+auto.
+have -> : Pr[ M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages = commitment_t res.`1  ]
+ = Pr[ M1.commitment_indexed() @ &m : res.`3 = x /\  l = M1.leakages /\ M1.leakages = commitment_t res.`1  ].
+rewrite Pr[mu_eq]. move => &hr. split.  smt().  smt(). auto.
+have -> : Pr[ M1.commitment_indexed() @ &m : res.`3 = x /\ l = M1.leakages /\ M1.leakages = commitment_t res.`1  ]
+ = Pr[ M1.commitment_indexed() @ &m :  l = M1.leakages /\ res.`3 = x ].
+  have : Pr[ M1.commitment_indexed() @ &m :  l = M1.leakages /\ res.`3 = x ] 
+   = Pr[ M1.commitment_indexed() @ &m :  l = M1.leakages /\ res.`3 = x /\ M1.leakages = commitment_t res.`1  ]
+   + Pr[ M1.commitment_indexed() @ &m :  l = M1.leakages /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1  ].
+ rewrite Pr[mu_split (M1.leakages = commitment_t res.`1 )]. smt().
+   have : Pr[ M1.commitment_indexed() @ &m :  l = M1.leakages /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1  ]
+    = 0%r.
+     have : Pr[ M1.commitment_indexed() @ &m :  l = M1.leakages /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1  ] 
+         <= Pr[ M1.commitment_indexed() @ &m : M1.leakages <> commitment_t res.`1 ].
+       rewrite Pr[mu_sub]. auto. auto.
+    rewrite (commitment_leakages2 &m). auto. smt(@Distr).
+    move => h. rewrite h. simplify. progress. rewrite H0.
+rewrite Pr[mu_eq]. smt(). auto. 
+rewrite Pr[mu_eq]. smt(). auto.
+qed.  
+
 
 lemma commitment_leakages_inv x l &m : (glob M1){m} = [] 
  => Pr[ M1.commitment_indexed() @ &m : M1.leakages = l /\ res.`3 = x  ]
   = Pr[ M1.commitment_indexed() @ &m :  (inv (-1) commitment_t) l = res.`1  /\ res.`3 = x  ].
-admitted.
+move => ic (* ic' *). rewrite  (commitment_leakages3 l x &m). auto. auto.
+simplify. 
+have -> : 
+  Pr[M1.commitment_indexed() @ &m :
+   l = commitment_t res.`1 /\ res.`3 = x]
+  =   Pr[M1.commitment_indexed() @ &m :
+   l = commitment_t res.`1 /\ res.`3 = x /\ 0 <= res.`1]. 
+byequiv. proc. 
+wp. call (_:true). sim.
+wp. call(_: ={arg} ==> ={res} /\ 0 <= res{1}.`1). 
+proc.  wp. simplify.
+while (0 <= i{1} /\ ={i,byte_p, byte_z}). wp.  simplify.
+call (_:true). wp. sim. wp.
+call (_:true). wp. sim. wp.
+call (_:true). wp. sim. wp.
+skip. progress. smt(). wp.
+call (_:true). wp. sim. wp.  skip. progress.
+wp. call(_:true). sim.
+wp. call(_:true). sim.
+wp. call(_:true). sim.
+wp. call(_:true). sim.
+wp. skip. progress.
+auto. auto.
+have -> : Pr[M1.commitment_indexed() @ &m :
+   inv (-1) commitment_t l = res.`1 /\ res.`3 = x] 
+ = Pr[M1.commitment_indexed() @ &m :
+   inv (-1) commitment_t l = res.`1 /\ res.`3 = x /\ 0 <= res.`1].
+byequiv. proc. 
+wp. call (_:true). sim.
+wp. call(_: ={arg} ==> ={res} /\ 0 <= res{1}.`1). 
+proc.  wp. simplify.
+while (0 <= i{1} /\ ={i,byte_p, byte_z}). wp.  simplify.
+call (_:true). wp. sim. wp.
+call (_:true). wp. sim. wp.
+call (_:true). wp. sim. wp.
+skip. progress. smt(). wp.
+call (_:true). wp. sim. wp.  skip. progress.
+wp. call(_:true). sim.
+wp. call(_:true). sim.
+wp. call(_:true). sim.
+wp. call(_:true). sim.
+wp. skip. progress.
+auto. auto.
+rewrite Pr[mu_eq].
+progress.
+rewrite invP. apply commitment_t_inj. auto.  
+have : exists z, (commitment_t z) = l.
+apply (choiceEx (-1) commitment_t l res{hr}.`1) . apply H. smt().
+elim. progress.
+rewrite - H.
+rewrite invP.
+apply commitment_t_inj. auto.
+auto.
+qed.
+
 
 require import W64_SchnorrExtract.
 module M2 = W64_SchnorrExtract.M(W64_SchnorrExtract.Syscall).  
@@ -460,7 +549,7 @@ lemma commitment_indexed_leakfree l a &m: (glob M1){m} = []
  =>  let v = Pr[ M1.commitment_indexed() @ &m : (res.`2, res.`3) = a  ] in 
      let w = Pr[ M1.commitment_indexed() @ &m : M1.leakages = l  /\ (res.`2, res.`3) = a  ] in 
   0%r < w => v/w 
-  = f  l.
+  = f l.
 move => l_empty v w f1.
 pose a1_val := W64xN.R.bn_ofint (Constants.g ^ (W64xN.valR a.`2) %% Constants.p).  
 have fact1 : a.`1 = a1_val.
@@ -487,7 +576,6 @@ have fact1 : a.`1 = a1_val.
     have : w <= 0%r. rewrite - G1.
     rewrite /w. rewrite Pr[mu_sub]. smt(). auto.
 smt().
-
 have fact2 : valR a.`2 < Constants.q.
  have : v <= Pr[M1.commitment_indexed() @ &m : res.`3 = a.`2]. rewrite  /v Pr[mu_sub]. auto. auto.
  have -> : Pr[M1.commitment_indexed() @ &m : res.`3 = a.`2] = Pr[ CSpecFp.rsample(Constants.q) @ &m : res.`2 = valR a.`2 ].   byequiv. conseq rsample_cspec_equiv. auto. progress.
@@ -503,12 +591,39 @@ rewrite  /v Pr[mu_eq]. smt(). auto.
 have ->:  w = Pr[M1.commitment_indexed() @ &m :
            M1.leakages = l /\ (res.`2, res.`3) = (a1_val, a.`2)].
 rewrite  /w Pr[mu_eq]. smt(). auto.
-
 rewrite /a1_val.
-
 rewrite (leakfree1 &m a.`2 l _).  auto.
 rewrite  (leakfree2 &m a.`2 ).  auto.
-
 rewrite fact2. simplify. auto.
 qed.
 
+
+lemma commitment_leakfree l a &m: (glob M1){m} = [] 
+ =>  let v = Pr[ M1.commitment() @ &m : res = a  ] in 
+     let w = Pr[ M1.commitment() @ &m : M1.leakages = l  /\ res = a  ] in 
+  0%r < w => v/w 
+  = f l.
+move => glob_empty.
+have ->: Pr[M1.commitment() @ &m : res = a] 
+         =  Pr[ M1.commitment_indexed() @ &m : (res.`2, res.`3) = a  ].
+byequiv. proc.  simplify. 
+wp. call (_:true). sim. progress.
+wp. call (_:true). sim. progress.
+wp. call (_:true). sim. progress.
+wp. call (_:true). sim. progress.
+wp. call (_:true). sim. progress.
+wp. call (_:true). sim. progress.
+wp. skip. progress. auto. auto.
+have ->: Pr[M1.commitment() @ &m : M1.leakages = l /\ res = a] 
+         =  Pr[ M1.commitment_indexed() @ &m :  M1.leakages = l /\ (res.`2, res.`3) = a  ].
+byequiv. proc.  simplify. 
+wp. call (_: ={glob M1}). sim. progress.
+wp. call (_: ={glob M1}). sim. progress.
+wp. call (_: ={glob M1}). sim. progress.
+wp. call (_: ={glob M1}). sim. progress.
+wp. call (_: ={glob M1}). sim. progress.
+wp. call (_: ={glob M1}). sim. progress.
+wp. skip. progress. auto. auto.
+progress. apply (commitment_indexed_leakfree l a &m).
+auto. auto.
+qed.

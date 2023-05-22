@@ -34,22 +34,28 @@ op samp_t (x : int) : leakages_t = samp_suffix ++ samp_f (x - 1).
 axiom samp_t_inj : injective samp_t.
 
 
-lemma rsample_leakages1 :
-  hoare [ M(Syscall).rsample : M.leakages = [] 
-     ==> M.leakages = samp_t res.`1].
+lemma rsample_leakages1 l :
+  hoare [ M(Syscall).rsample : M.leakages = l 
+     ==> M.leakages = samp_t res.`1 ++ l].
 proc.
-seq 17 :  (M.leakages = samp_prefix /\ i = 0  /\ cf = false ).
+seq 17 :  (M.leakages = samp_prefix ++ l /\ i = 0  /\ cf = false ).
 wp. ecall (bn_set0_leakages M.leakages). wp. skip. progress.  
-rewrite /set0_64. simplify.
-while (0 <= i /\ (cf = false => M.leakages = samp_f i) 
-              /\ (cf = true => M.leakages = samp_t i)).
+rewrite /set0_64. rewrite /samp_prefix. simplify. smt(@List).
+while (0 <= i /\ (cf = false => M.leakages = samp_f i ++ l) 
+              /\ (cf = true => M.leakages = samp_t i ++ l)).
 wp.  ecall (bn_subc_leakages M.leakages). simplify.
 wp.  ecall (bn_copy_leakages M.leakages). simplify.
 wp. inline Syscall.randombytes_256. wp. rnd.  wp.
 skip. progress. smt().  rewrite H4.  rewrite H0. rewrite H2. auto. simplify.
 rewrite /samp_f. rewrite (samp_g_comp_2 (i{hr} + 1)). smt().
 simplify.
-rewrite /samp_step. simplify. smt(@List).
+rewrite /samp_step. simplify. 
+have ->: (copy_f 32 ++
+                LeakAddr [] :: LeakAddr [] :: (samp_g i{hr} ++ samp_prefix ++
+                                               l))
+ = (copy_f 32 ++ [LeakAddr []; LeakAddr []]) ++
+samp_g i{hr} ++ samp_prefix ++ l.
+smt(@List). smt(@List).
 rewrite /samp_t. simplify.
 rewrite /samp_suffix.  simplify.  split. rewrite H4. auto.
 rewrite H0. rewrite H2. auto. smt(@List).
@@ -64,7 +70,7 @@ lemma rsample_leakages2 a  &m : (glob M1){m} = [] =>
   Pr[ M1.rsample(a) @ &m : M1.leakages <> samp_t res.`1 ] = 0%r.
 progress. byphoare (_: glob M1 = [] ==> _).
 hoare. simplify.
-conseq rsample_leakages1. auto. auto. auto.
+conseq (rsample_leakages1 []). auto. smt(@List).  auto. auto.
 qed.
 
 
