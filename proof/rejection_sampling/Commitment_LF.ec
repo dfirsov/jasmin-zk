@@ -35,13 +35,13 @@ lemma commitment_leakages2 &m : (glob M1){m} = [] =>
 admitted.
 
 lemma commitment_leakages3 l x &m : (glob M1){m} = [] =>
-  Pr[ M1.commitment_indexed() @ &m : M1.leakages = l  /\ res.`2 = x ]
-  = Pr[ M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`2 = x ].
+  Pr[ M1.commitment_indexed() @ &m : M1.leakages = l  /\ res.`3 = x ]
+  = Pr[ M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x ].
 admitted.
 
 lemma commitment_leakages_inv x l &m : (glob M1){m} = [] 
- => Pr[ M1.commitment_indexed() @ &m : M1.leakages = l /\ res.`2 = x  ]
-  = Pr[ M1.commitment_indexed() @ &m :  (inv (-1) commitment_t) l = res.`1  /\ res.`2 = x  ].
+ => Pr[ M1.commitment_indexed() @ &m : M1.leakages = l /\ res.`3 = x  ]
+  = Pr[ M1.commitment_indexed() @ &m :  (inv (-1) commitment_t) l = res.`1  /\ res.`3 = x  ].
 admitted.
 
 require import W64_SchnorrExtract.
@@ -371,9 +371,55 @@ op g l : real
         
 lemma leakfree1 &m x l: (glob M1){m} = [] 
   => Pr[ M1.commitment_indexed() @ &m : M1.leakages = l  /\ 
-   (res.`2, res.`3) = (W64xN.R.bn_ofint (Constants.q ^ (W64xN.valR x) %% Constants.p), x) ] 
+   (res.`2, res.`3) = (W64xN.R.bn_ofint (Constants.g ^ (W64xN.valR x) %% Constants.p), x) ] 
       = if W64xN.valR x < Constants.q then g l else 0%r.
-admitted.
+have ->:
+ Pr[M1.commitment_indexed() @ &m :
+   M1.leakages = l /\
+   (res.`2, res.`3) = ((R.bn_ofint (Constants.g ^ valR x %% Constants.p))%R, x)]
+ = Pr[M1.commitment_indexed() @ &m :
+   M1.leakages = l /\ res.`3 = x]. 
+  have ->: Pr[M1.commitment_indexed() @ &m : M1.leakages = l /\ res.`3 = x] =
+    Pr[M1.commitment_indexed() @ &m : M1.leakages = l /\ res.`3 = x /\ res.`2 = (R.bn_ofint (Constants.g ^ valR res.`3 %% Constants.p))]
+   + Pr[M1.commitment_indexed() @ &m : M1.leakages = l /\ res.`3 = x /\ res.`2 <> (R.bn_ofint (Constants.g ^ valR res.`3 %% Constants.p))].
+    rewrite Pr[mu_split ( res.`2 = (R.bn_ofint (Constants.g ^ valR x %% Constants.p))) ].
+    smt().
+   have ->: Pr[M1.commitment_indexed() @ &m :
+   M1.leakages = l /\
+   res.`3 = x /\ res.`2 <> (R.bn_ofint (Constants.g ^ valR res.`3 %% Constants.p))%R] = 0%r.
+     have : Pr[M1.commitment_indexed() @ &m :
+           res.`2 <> (R.bn_ofint (Constants.g ^ valR res.`3 %% Constants.p))%R]  = 0%r.
+     apply (commitment_cspec_pr2 &m).
+      smt(@Distr).
+    simplify. progress. rewrite Pr[mu_eq]. smt(). auto. 
+move => glob_empty. 
+rewrite (commitment_leakages_inv x l &m glob_empty).
+case (inv (-1) commitment_t l <= 0). 
+move => q. rewrite /g. rewrite q.  simplify. 
+  have : Pr[M1.commitment_indexed() @ &m :
+   (inv (-1) commitment_t l = res.`1) /\ res.`3 = x] 
+    <= Pr[M1.commitment_indexed() @ &m : res.`1 <= 0 ]. simplify. rewrite Pr[mu_sub]. smt().
+   auto. smt(commitment_index_pos @Distr).
+move => q.
+rewrite /g.
+have ->: (inv (-1) commitment_t l <= 0) = false. smt(). simplify.  
+have ->: Pr[W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).commitment_indexed
+   () @ &m : inv (-1) commitment_t l = res.`1 /\ res.`3 = x]
+ = Pr[W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).commitment_indexed
+   () @ &m : res.`1 = inv (-1) commitment_t l /\ res.`3 = x]. rewrite Pr[mu_eq]. smt(). auto.
+rewrite commitment_cspec_pr1.
+case (valR x < Constants.q) => case1.
+rewrite rsample_pr. smt().
+auto. 
+have ->: mu1 D (W64xN.valR x) = 1%r / Ring_ops_spec.M%r.
+rewrite duniform1E_uniq. smt(@List).
+ have f1 : 0 <= W64xN.valR x < Ring_ops_spec.M. smt(@W64xN).  smt(@Distr @List). 
+smt().
+have : Pr[CSpecFp.rsample(Constants.q) @ &m :
+                   res.`2 = valR x] = 0%r.
+apply rsample_pr_out. smt().
+smt(@Distr).
+qed.
 
 
 op h  : real = 1%r/Constants.q%r. 
@@ -416,14 +462,42 @@ lemma commitment_indexed_leakfree l a &m: (glob M1){m} = []
   0%r < w => v/w 
   = f  l.
 move => l_empty v w f1.
-
-pose a1_val := W64xN.R.bn_ofint (Constants.q ^ (W64xN.valR a.`2) %% Constants.p).  
-  
+pose a1_val := W64xN.R.bn_ofint (Constants.g ^ (W64xN.valR a.`2) %% Constants.p).  
 have fact1 : a.`1 = a1_val.
-admit.
-have fact2 : valR a.`2 < Constants.q.
-admit.
+   case (a.`1 = a1_val). auto.
+   move => q.
+   have : Pr[M1.commitment_indexed() @ &m :
+                 res.`2  = a.`1 /\ res.`3 = a.`2 ] = Pr[M1.commitment_indexed() @ &m :
+                 res.`2  = a.`1 /\ res.`3 = a.`2 /\ res.`2 <> a1_val ].
+   rewrite Pr[mu_eq]. smt(). auto.
+   have : Pr[M1.commitment_indexed() @ &m : res.`2 = a.`1 /\ res.`3 = a.`2 /\ res.`2 <> a1_val] = 0%r.
+     have : Pr[M1.commitment_indexed() @ &m : res.`2 = a.`1 /\ res.`3 = a.`2 /\ res.`2 <> a1_val] <=
+             Pr[M1.commitment_indexed() @ &m : res.`2 <> a1_val /\ res.`3 = a.`2 ]. 
+      rewrite Pr[mu_sub]. auto. auto.
+     have : Pr[M1.commitment_indexed() @ &m : res.`2 <> a1_val /\ res.`3 = a.`2] = 0%r.
+     rewrite /a1_val. 
+     have : Pr[M1.commitment_indexed() @ &m :
+   res.`2 <> (R.bn_ofint (Constants.g ^ valR a.`2 %% Constants.p))%R /\
+   res.`3 = a.`2] <= Pr[M1.commitment_indexed() @ &m :
+   res.`2 <> (R.bn_ofint (Constants.g ^ valR res.`3 %% Constants.p))%R ].
+   rewrite Pr[mu_sub]. smt(). auto.
+    rewrite  (commitment_cspec_pr2 &m). smt(@Distr). smt(@Distr).
+    move => qq. rewrite qq. clear qq q.
+    move => G1.
+    have : w <= 0%r. rewrite - G1.
+    rewrite /w. rewrite Pr[mu_sub]. smt(). auto.
+smt().
 
+have fact2 : valR a.`2 < Constants.q.
+ have : v <= Pr[M1.commitment_indexed() @ &m : res.`3 = a.`2]. rewrite  /v Pr[mu_sub]. auto. auto.
+ have -> : Pr[M1.commitment_indexed() @ &m : res.`3 = a.`2] = Pr[ CSpecFp.rsample(Constants.q) @ &m : res.`2 = valR a.`2 ].   byequiv. conseq rsample_cspec_equiv. auto. progress.
+smt(). smt(@W64xN). auto. auto.
+case (valR a.`2 < Constants.q). auto.
+move => q.
+rewrite rsample_pr_out.  smt().
+have : 0%r < v. 
+   have : w <= v. rewrite /v /w Pr[mu_sub]. smt(). auto. smt().
+smt().
 have -> : v = Pr[M1.commitment_indexed() @ &m : (res.`2, res.`3) = (a1_val, a.`2)].
 rewrite  /v Pr[mu_eq]. smt(). auto.
 have ->:  w = Pr[M1.commitment_indexed() @ &m :
