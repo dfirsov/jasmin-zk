@@ -3651,6 +3651,25 @@ module M(SC:Syscall_t) = {
     return (response_0);
   }
   
+  proc challenge_indexed () : int * W64.t Array32.t = {
+    var aux_0: int;
+    var aux: W64.t Array32.t;
+    
+    var i:int;
+    var challenge_0:W64.t Array32.t;
+    var exp_order:W64.t Array32.t;
+    challenge_0 <- witness;
+    exp_order <- witness;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_set_q (exp_order);
+    exp_order <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    (aux_0, aux) <@ rsample (exp_order);
+    i <- aux_0;
+    challenge_0 <- aux;
+    return (i, challenge_0);
+  }
+  
   proc challenge () : W64.t Array32.t = {
     var aux_0: int;
     var aux: W64.t Array32.t;

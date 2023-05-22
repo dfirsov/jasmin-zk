@@ -74,7 +74,7 @@ update_downloads :
 
 # Check all EasyCrypt files from Jasmin sources
 # If you do not have Jasmin, you can remove this block to skip extraction
-EXTRACTED_FUNCTIONS = -ec commitment_indexed -ec usample -ec addm -ec addm2 -ec commitment -ec response -ec challenge -ec verify -ec bn_set_ex_w -ec bn_set_ex_s
+EXTRACTED_FUNCTIONS = -ec challenge_indexed -ec commitment_indexed -ec usample -ec addm -ec addm2 -ec commitment -ec response -ec challenge -ec verify -ec bn_set_ex_w -ec bn_set_ex_s
 extract_all $(EXTRACTED_FILES) : src/schnorr_protocol.jazz src/constants.jazz Makefile
 	rm -rf proof/jasmin_extracts
 	mkdir proof/jasmin_extracts

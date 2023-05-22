@@ -3,6 +3,7 @@ require "ring_ops.jazz"
 
 require "constants.jazz"
 
+// only needed to analyze leakage-freeness
 inline fn commitment_indexed() -> (inline int, stack u64[nlimbs], stack u64[nlimbs]){
   stack u64[nlimbs]  secret_power commitment group_generator group_order exp_order;
   stack u64[dnlimbs] barrett_parameter;
@@ -53,12 +54,24 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
 }
 
 
+
+inline fn challenge_indexed() -> (inline int, stack u64[nlimbs]){
+  stack u64[nlimbs] challenge exp_order;
+  inline int i;
+  exp_order = bn_set_q(exp_order);  
+  i, challenge = rsample(exp_order);
+  return (i, challenge);
+}
+
+
 inline fn challenge() -> stack u64[nlimbs]{
   stack u64[nlimbs] challenge exp_order;
   exp_order = bn_set_q(exp_order);  
   _, challenge = rsample(exp_order);
   return challenge;
 }
+
+
 
 
 inline fn verify(stack u64[nlimbs] statement commitment challenge response) 
