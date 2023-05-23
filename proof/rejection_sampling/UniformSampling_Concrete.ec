@@ -159,7 +159,8 @@ clone import SurjFromInj as GetSurj with type a <- t,
                                          type b <- W64.t Array32.t,
                                          op f <- h,
                                          op alist <- all_256words,
-                                         op blist <- all_w64xN.
+                                         op blist <- all_w64xN
+proof*.
 
 lemma h_surj : surjective h.    
 apply f_surj. 

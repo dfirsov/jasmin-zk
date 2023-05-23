@@ -1,6 +1,9 @@
 pragma Goals:printall.
 require import AllCore Distr Real List.
-require import RejectionSamplingModule.
+
+require RejectionSamplingModule.
+
+clone import RejectionSamplingModule as RSM.
 
 
 lemma rj_eq1 : 

@@ -1,15 +1,15 @@
 require import Core Int IntDiv Ring IntDiv StdOrder List Distr Real.
 require import Ring_ops_spec.
 
-require RejectionSampling.
-clone import RejectionSampling as RS with type X <- int,
-                                          op d <- D,
-                                          op defX <- 0
-proof*. 
-realize dll. apply D_ll. qed.
+require RejectionSamplingProperties.
 
+clone import RejectionSamplingProperties as RSP with type RSM.X <- int,
+                                                     op RSM.d <- D,
+                                                     op RSM.defX <- 0
+proof*.
+realize RSM.dll. apply D_ll. qed.
 
-
+import RSM.
 
 op RSP (a:int) x =  x < a.
 
@@ -51,7 +51,7 @@ rewrite rsample_pr1.
 have ->: Pr[RS.sample(RSP a1, 0) @ &m  : res = (i, x)] 
  = Pr[RS.sample(RSP a1, 0) @ &m : res.`2 = x /\ res.`1 = i]. 
 rewrite Pr[mu_eq]. smt(). auto.
-rewrite   (Indexed.prob  &m (RSP a1) (fun z => z = x) _ (i - 1) _).
+rewrite   (RSI.prob  &m (RSP a1) (fun z => z = x) _ (i - 1) _).
 progress.  auto. smt(). congr. simplify. smt(@Distr).
 qed.
 
@@ -64,7 +64,7 @@ lemma rsample_uni &m x P : P < M =>  0 <= x => RSP P x =>
 move => H1 H2 H3.
 rewrite  (rsample_pr2 P &m (fun (rres : int * int) => rres.`2 = x)). 
 simplify.
-rewrite (Correctness.ph_main  &m (RSP P)  (fun rres => rres = x) ). smt().
+rewrite (RSC.rsample_pmf  &m (RSP P)  (fun rres => rres = x) ). smt().
  have -> : mu D (predC (RSP P)) = 1%r - mu D (RSP P).
 rewrite mu_not.  smt. 
  have q : mu D (RSP P) > 0%r. 
@@ -106,7 +106,7 @@ wp. inline*. wp.  rnd. skip. progress. rewrite /RSP.
     skip. progress. auto. auto.
 progress.
 have xx : Pr[RS.sample(RSP a1, 0) @ &m : RSP a1 res.`2 ] = 1%r.
-apply (Correctness.rj_lossless &m (RSP a1) 0 _) .  auto. 
+apply (RSC.rj_lossless &m (RSP a1) 0 _) .  auto. 
 smt(@Distr).
 qed.
 
@@ -149,7 +149,7 @@ lemma rsample_lossless4 P &m  : 0 < P < M =>
     Pr[CSpecFp.rsample(P) @ &m : LessThan P res.`2  ]
      = 1%r.
 move => PP.
-rewrite - (Correctness.rj_lossless &m (RSP P) 0 _ ).  
+rewrite - (RSC.rj_lossless &m (RSP P) 0 _ ).  
  apply witness_support.
   exists 0. split. rewrite /RSP. smt. smt.
 rewrite -   (rsample_pr2 P &m (fun (rres : int * int) => RSP P rres.`2)).

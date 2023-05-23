@@ -4,6 +4,8 @@ EXTRACTED_FILES = \
     proof/jasmin_extracts/W64_SchnorrExtract.ec \
     proof/jasmin_extracts/W64_SchnorrExtract_ct.ec
 
+PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
+PROOF_FILES += $(wildcard proof/rejection_sampling/*.eca)
 PROOF_FILES += $(EXTRACTED_FILES)
 PROOF_FILES += $(wildcard proof/schnorr_protocol/*.ec)
 PROOF_FILES += $(wildcard proof/schnorr_protocol/*.eca)
@@ -16,8 +18,7 @@ PROOF_FILES += $(wildcard proof/finite_types/*.ec)
 PROOF_FILES += $(wildcard proof/finite_types/*.eca)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.ec)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.eca)
-PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
-PROOF_FILES += $(wildcard proof/rejection_sampling/*.eca)
+PROOF_FILES += $(wildcard proof/leakage_functions/*.ec)
 
 
 JASMIN_PROGNAME = jasminc
@@ -70,7 +71,7 @@ update_downloads :
 
 %.eco : %.ec $(PROOF_FILES)
 	echo Checking "$<"
-	easycrypt -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I Jasmin:./proof/eclib -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/finite_types -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr_protocol -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<" 
+	easycrypt -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof -I Jasmin:./proof/eclib  -I ./proof/leakage_functions -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/finite_types -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr_protocol -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<" 
 
 # Check all EasyCrypt files from Jasmin sources
 # If you do not have Jasmin, you can remove this block to skip extraction
