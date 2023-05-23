@@ -89,7 +89,7 @@ have -> :
   =   Pr[M1.challenge_indexed() @ &m :
    l = challenge_t res.`1 /\ res.`2 = x /\ 0 <= res.`1]. 
 byequiv.
-proc. inline M(Syscall).rsample. wp.
+proc. inline M(Syscall).bn_rsample. wp.
 while (0 <= i0{1} /\ ={i0,byte_p, byte_z}). wp.  simplify.
 call (_: true).  wp. sim. wp. 
 call (_:true). sim. wp. 
@@ -103,7 +103,7 @@ have -> : Pr[M1.challenge_indexed() @ &m :
  = Pr[M1.challenge_indexed() @ &m :
    inv (-1) challenge_t l = res.`1 /\ res.`2 = x /\ 0 <= res.`1].
 byequiv.
-proc. inline M(Syscall).rsample. wp.
+proc. inline M(Syscall).bn_rsample. wp.
 while (0 <= i0{1} /\ ={i0,byte_p, byte_z}). wp.  simplify.
 call (_: true).  wp. sim. wp. 
 call (_:true). sim. wp. 
@@ -179,7 +179,7 @@ qed.
 lemma challenge_index_pos &m  : Pr[M1.challenge_indexed() @ &m : res.`1 <= 0 ] = 0%r.
 byphoare (_: true ==> _);auto. hoare.
 proc.  simplify.
-inline W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).rsample.
+inline W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).bn_rsample.
 unroll 25. rcondt 25. wp. wp. 
 call (_:true). wp. auto. wp. 
 call (_:true). wp. auto. wp. skip. auto.

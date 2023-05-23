@@ -878,7 +878,7 @@ module M(SC:Syscall_t) = {
     return (_zero, of_0, cf, r);
   }
   
-  proc rsample (byte_z:W64.t Array32.t) : int * W64.t Array32.t = {
+  proc bn_rsample (byte_z:W64.t Array32.t) : int * W64.t Array32.t = {
     var aux_5: bool;
     var aux_4: bool;
     var aux_3: bool;
@@ -3549,7 +3549,7 @@ module M(SC:Syscall_t) = {
     aux_0 <@ bn_set_bp (barrett_parameter);
     barrett_parameter <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
-    (aux_1, aux) <@ rsample (exp_order);
+    (aux_1, aux) <@ bn_rsample (exp_order);
     i <- aux_1;
     secret_power <- aux;
     leakages <- LeakAddr([]) :: leakages;
@@ -3590,7 +3590,7 @@ module M(SC:Syscall_t) = {
     aux_0 <@ bn_set_bp (barrett_parameter);
     barrett_parameter <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
-    (aux_1, aux) <@ rsample (exp_order);
+    (aux_1, aux) <@ bn_rsample (exp_order);
      _0 <- aux_1;
     secret_power <- aux;
     leakages <- LeakAddr([]) :: leakages;
@@ -3650,7 +3650,7 @@ module M(SC:Syscall_t) = {
     aux <@ bn_set_q (exp_order);
     exp_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    (aux_0, aux) <@ rsample (exp_order);
+    (aux_0, aux) <@ bn_rsample (exp_order);
     i <- aux_0;
     challenge_0 <- aux;
     return (i, challenge_0);
@@ -3669,7 +3669,7 @@ module M(SC:Syscall_t) = {
     aux <@ bn_set_q (exp_order);
     exp_order <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    (aux_0, aux) <@ rsample (exp_order);
+    (aux_0, aux) <@ bn_rsample (exp_order);
      _0 <- aux_0;
     challenge_0 <- aux;
     return (challenge_0);

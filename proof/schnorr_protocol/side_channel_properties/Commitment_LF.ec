@@ -3,7 +3,7 @@ require import List Int AllCore Distr.
 from Jasmin require import JModel.
 
 require import AuxLemmas.
-require import Ops_LeakageAnalysis.
+(* require import Ops_LeakageAnalysis. *)
 
 
 (* SAMPLING LEAKAGES  *)
@@ -74,7 +74,14 @@ have ->: Pr[ M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = 
   have -> : Pr[M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x]
    = Pr[M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages = commitment_t res.`1]
    + Pr[M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1].
-   rewrite Pr[mu_split (M1.leakages = commitment_t res.`1)]. smt(). 
+   rewrite Pr[mu_split (M1.leakages = commitment_t res.`1)]. 
+      have ->: Pr[M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1]
+          = Pr[M1.commitment_indexed() @ &m : (l = commitment_t res.`1 /\ res.`3 = x) /\ M1.leakages <> commitment_t res.`1].
+          rewrite Pr[mu_eq]. auto. auto.
+      have ->: Pr[M1.commitment_indexed() @ &m : l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages = commitment_t res.`1]
+          = Pr[M1.commitment_indexed() @ &m : (l = commitment_t res.`1 /\ res.`3 = x) /\ M1.leakages = commitment_t res.`1].
+          rewrite Pr[mu_eq]. auto. auto.
+   auto.
   have ->: Pr[M1.commitment_indexed() @ &m :
    l = commitment_t res.`1 /\ res.`3 = x /\ M1.leakages <> commitment_t res.`1] = 0%r.
     have : Pr[M1.commitment_indexed() @ &m :
@@ -284,7 +291,7 @@ wp. skip. progress.
 qed.
 
 lemma M1_M2_rsample :
-  equiv  [ M1.rsample ~ M2.rsample
+  equiv  [ M1.bn_rsample ~ M2.bn_rsample
     : ={arg} ==> ={res}  ].
 proc. sim. call(_:true). wp. 
 while(={i,a}). wp. skip. auto. wp. skip. auto.
@@ -331,7 +338,7 @@ qed.
 
 
 equiv commitment_rsample_equiv:
- M2.commitment_indexed ~ M2.rsample:
+ M2.commitment_indexed ~ M2.bn_rsample:
    Constants.q = W64xN.valR byte_z{2}
   ==> res{1}.`3 = res{2}.`2 /\ res{1}.`1 = res{2}.`1.
 proc*.
@@ -370,7 +377,7 @@ transitivity M2.commitment_indexed
   ==> W64xN.valR res{1}.`3 = res{2}.`2 /\ res{1}.`1 = res{2}.`1).
 auto. auto.
 conseq M1_M2_commitment. 
-transitivity M2.rsample
+transitivity M2.bn_rsample
   (Constants.q = W64xN.valR byte_z{2}
   ==> res{1}.`3 = res{2}.`2 /\ res{1}.`1 = res{2}.`1)
   (W64xN.valR byte_z{1} = a{2}
@@ -467,7 +474,7 @@ byphoare (_: true ==> _);auto. hoare.
 proc.  simplify.
 wp. call (_:true). auto.
 wp. seq 19 : (true). auto.
-inline W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).rsample.
+inline W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).bn_rsample.
 unroll 19. rcondt 19. wp. wp. 
 call (_:true). wp. auto. wp. skip. auto.
 wp. while (0 < i0). wp. call (_:true). auto. wp.  call (_:true). auto.  wp. 

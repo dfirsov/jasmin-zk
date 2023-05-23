@@ -439,7 +439,7 @@ module WW = {
 
 require import Ring_ops_proof.
 equiv rsample_cspec:
- M.rsample ~ CSpecFp.rsample:
+ M.bn_rsample ~ CSpecFp.rsample:
   W64xN.valR byte_z{1} = a{2}
   ==> W64xN.valR res{1}.`2 = res{2}.`2 /\ res{1}.`1 = res{2}.`1.
   transitivity WW.rsample
@@ -481,17 +481,17 @@ qed.
 require import UniformSampling_Abstract.
 
 import RSP.
-lemma jrsample_spec &m a y: 0 <= W64xN.valR y < W64xN.valR a
-  => Pr[ M.rsample(a)@&m: res.`2 = y ] 
+lemma bn_rsample_spec &m a y: 0 <= W64xN.valR y < W64xN.valR a
+  => Pr[ M.bn_rsample(a)@&m: res.`2 = y ] 
      = Pr[ RSM.RS.sample(fun x => x < W64xN.valR a,0)@&m: res.`2 = W64xN.valR y ].
-  have ->: Pr[ M.rsample(a)@&m: res.`2 = y ] = Pr[CSpecFp.rsample(W64xN.valR a) @ &m : res.`2 = W64xN.valR y ].
+  have ->: Pr[ M.bn_rsample(a)@&m: res.`2 = y ] = Pr[CSpecFp.rsample(W64xN.valR a) @ &m : res.`2 = W64xN.valR y ].
   byequiv. conseq rsample_cspec. smt(). smt(@W64xN). auto. auto.
 move => interval.
 apply (rsample_pr2 (W64xN.valR a) &m (fun (x : int * int) => x.`2 = (W64xN.valR y))).
 qed.
 
 equiv rsample_aspec:
- M.rsample ~ ASpecFp.rsample:
+ M.bn_rsample ~ ASpecFp.rsample:
   W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
   ==> W64xN.valR res{1}.`2 = res{2}.
 proof.
@@ -513,8 +513,8 @@ progress.
 qed.
 
 
-lemma jrsample_pmf &m a y: 0 <= W64xN.valR y < W64xN.valR a
-  => Pr[ M.rsample(a)@&m: res.`2 = y ] = 1%r/(W64xN.valR a)%r.
+lemma bn_rsample_pmf &m a y: 0 <= W64xN.valR y < W64xN.valR a
+  => Pr[ M.bn_rsample(a)@&m: res.`2 = y ] = 1%r/(W64xN.valR a)%r.
 proof. move => interval.
   have ->: 1%r/(W64xN.valR a)%r = Pr[CSpecFp.rsample(W64xN.valR a) @ &m : res.`2 = W64xN.valR y ].
   rewrite - (rsample_uni &m (W64xN.valR y) (W64xN.valR a)).

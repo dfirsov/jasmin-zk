@@ -19,6 +19,7 @@ PROOF_FILES += $(wildcard proof/finite_types/*.eca)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.ec)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.eca)
 PROOF_FILES += $(wildcard proof/leakage_functions/*.ec)
+PROOF_FILES += $(wildcard proof/schnorr_protocol/side_channel_properties/*.ec)
 
 
 JASMIN_PROGNAME = jasminc

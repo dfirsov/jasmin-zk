@@ -439,7 +439,7 @@ module M(SC:Syscall_t) = {
     return (_zero, of_0, cf, r);
   }
   
-  proc rsample (byte_z:W64.t Array32.t) : int * W64.t Array32.t = {
+  proc bn_rsample (byte_z:W64.t Array32.t) : int * W64.t Array32.t = {
     var aux: W8.t Array256.t;
     
     var i:int;
@@ -1407,7 +1407,7 @@ module M(SC:Syscall_t) = {
     group_order <@ bn_set_p (group_order);
     group_generator <@ bn_set_g (group_generator);
     barrett_parameter <@ bn_set_bp (barrett_parameter);
-    (i, secret_power) <@ rsample (exp_order);
+    (i, secret_power) <@ bn_rsample (exp_order);
     commitment_0 <@ expm (barrett_parameter, group_order, group_generator,
     secret_power);
     return (i, commitment_0, secret_power);
@@ -1432,7 +1432,7 @@ module M(SC:Syscall_t) = {
     group_order <@ bn_set_p (group_order);
     group_generator <@ bn_set_g (group_generator);
     barrett_parameter <@ bn_set_bp (barrett_parameter);
-    ( _0, secret_power) <@ rsample (exp_order);
+    ( _0, secret_power) <@ bn_rsample (exp_order);
     commitment_0 <@ expm (barrett_parameter, group_order, group_generator,
     secret_power);
     return (commitment_0, secret_power);
@@ -1467,7 +1467,7 @@ module M(SC:Syscall_t) = {
     challenge_0 <- witness;
     exp_order <- witness;
     exp_order <@ bn_set_q (exp_order);
-    (i, challenge_0) <@ rsample (exp_order);
+    (i, challenge_0) <@ bn_rsample (exp_order);
     return (i, challenge_0);
   }
   
@@ -1479,7 +1479,7 @@ module M(SC:Syscall_t) = {
     challenge_0 <- witness;
     exp_order <- witness;
     exp_order <@ bn_set_q (exp_order);
-    ( _0, challenge_0) <@ rsample (exp_order);
+    ( _0, challenge_0) <@ bn_rsample (exp_order);
     return (challenge_0);
   }
   

@@ -910,7 +910,7 @@ qed.
 
 
 lemma rsample_leakages l :
-  hoare [ M(Syscall).rsample : M.leakages = l 
+  hoare [ M(Syscall).bn_rsample : M.leakages = l 
      ==> M.leakages = samp_t res.`1 ++ l].
 proc.
 seq 17 :  (M.leakages = samp_prefix ++ l /\ i = 0  /\ cf = false ).

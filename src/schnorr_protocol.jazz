@@ -14,7 +14,7 @@ inline fn commitment_indexed() -> (inline int, stack u64[nlimbs], stack u64[nlim
   group_generator   = bn_set_g(group_generator);
   barrett_parameter = bn_set_bp(barrett_parameter);
 
-  i, secret_power = rsample(exp_order);
+  i, secret_power = bn_rsample(exp_order);
   commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
   return (i, commitment, secret_power);
 }
@@ -29,7 +29,7 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
   group_generator   = bn_set_g(group_generator);
   barrett_parameter = bn_set_bp(barrett_parameter);
 
-  _, secret_power = rsample(exp_order);
+  _, secret_power = bn_rsample(exp_order);
   commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
   return (commitment, secret_power);
 }
@@ -59,7 +59,7 @@ inline fn challenge_indexed() -> (inline int, stack u64[nlimbs]){
   stack u64[nlimbs] challenge exp_order;
   inline int i;
   exp_order = bn_set_q(exp_order);  
-  i, challenge = rsample(exp_order);
+  i, challenge = bn_rsample(exp_order);
   return (i, challenge);
 }
 
@@ -67,7 +67,7 @@ inline fn challenge_indexed() -> (inline int, stack u64[nlimbs]){
 inline fn challenge() -> stack u64[nlimbs]{
   stack u64[nlimbs] challenge exp_order;
   exp_order = bn_set_q(exp_order);  
-  _, challenge = rsample(exp_order);
+  _, challenge = bn_rsample(exp_order);
   return challenge;
 }
 
