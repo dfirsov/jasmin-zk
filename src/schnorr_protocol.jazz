@@ -15,7 +15,7 @@ inline fn commitment_indexed() -> (inline int, stack u64[nlimbs], stack u64[nlim
   barrett_parameter = bn_set_bp(barrett_parameter);
 
   i, secret_power = bn_rsample(exp_order);
-  commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
+  commitment = bn_expm(barrett_parameter,group_order,group_generator,secret_power);  
   return (i, commitment, secret_power);
 }
 
@@ -30,7 +30,7 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
   barrett_parameter = bn_set_bp(barrett_parameter);
 
   _, secret_power = bn_rsample(exp_order);
-  commitment = expm(barrett_parameter,group_order,group_generator,secret_power);  
+  commitment = bn_expm(barrett_parameter,group_order,group_generator,secret_power);  
   return (commitment, secret_power);
 }
 
@@ -47,7 +47,7 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
   secret_power = bn_breduce_small(exp_barrett, secret_power, exp_order);
   witness0     = bn_breduce_small(exp_barrett, witness0, exp_order);
 
-  product  = mulm(exp_barrett, exp_order, challenge, witness0);
+  product  = bn_mulm(exp_barrett, exp_order, challenge, witness0);
   response = addm2(exp_order, secret_power, product);
  
   return response;
@@ -91,12 +91,12 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
   challenge  = bn_breduce_small(exp_barrett, challenge, exp_order);
   response   = bn_breduce_small(exp_barrett, response, exp_order);
   
-  tmp = expm(group_barrett, group_order, statement, challenge); 
-  v1  = mulm(group_barrett, group_order, commitment, tmp);
-  v2  = expm(group_barrett, group_order, group_generator, response);
+  tmp = bn_expm(group_barrett, group_order, statement, challenge); 
+  v1  = bn_mulm(group_barrett, group_order, commitment, tmp);
+  v2  = bn_expm(group_barrett, group_order, group_generator, response);
   result1 = bn_eq(v1,v2);
 
-  v3 = expm(group_barrett, group_order, statement, exp_order);  
+  v3 = bn_expm(group_barrett, group_order, statement, exp_order);  
   v4 = bn_set1(v4);
   result2 = bn_eq(v3,v4);
 

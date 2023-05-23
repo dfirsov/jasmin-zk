@@ -222,7 +222,7 @@ inline fn bn_breduce_small(stack u64[dnlimbs] r, stack u64[nlimbs] a, stack u64[
 
 
 
-inline fn mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b) 
+inline fn bn_mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b) 
  -> stack u64[nlimbs]
 {
   stack u64[2*nlimbs] c;
@@ -234,7 +234,7 @@ inline fn mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b)
 }
 
 
-inline fn expm(stack u64[dnlimbs] r, stack u64[nlimbs] m x n) 
+inline fn bn_expm(stack u64[dnlimbs] r, stack u64[nlimbs] m x n) 
  -> (stack u64[nlimbs])
 {
   reg u64 i b;
@@ -250,8 +250,8 @@ inline fn expm(stack u64[dnlimbs] r, stack u64[nlimbs] m x n)
     b = ith_bit(n,i);
     (x1,x2) = swapr(x1,x2,b);
     x11 = bn_copy(x1);
-    x1 = mulm(r,m,x1,x1);
-    x2 = mulm(r,m,x11,x2);
+    x1 = bn_mulm(r,m,x1,x1);
+    x2 = bn_mulm(r,m,x11,x2);
     (x1,x2) = swapr(x1,x2,b);
   }
 
@@ -260,7 +260,7 @@ inline fn expm(stack u64[dnlimbs] r, stack u64[nlimbs] m x n)
 
 
 
-export fn __expm(reg u64 rp rr pp ap bp) 
+export fn __bn_expm(reg u64 rp rr pp ap bp) 
 { 
   reg u64 rp2;
   stack u64[nlimbs] a b c p;
@@ -272,7 +272,7 @@ export fn __expm(reg u64 rp rr pp ap bp)
   r = dbn_load(rr);
   // relax ABI contraints
   rp2 = rp;
-  c = expm(r,p,a,b);
+  c = bn_expm(r,p,a,b);
   bn_store(rp2, c);
 }
 
@@ -303,7 +303,7 @@ export fn zk_expm(reg u64 result_p base_p exp_p barrett_p mod_p)
   mod      = bn_load(mod_p);
   barrett  = dbn_load(barrett_p);
 
-  result = expm(barrett, mod, base, exp);
+  result = bn_expm(barrett, mod, base, exp);
 
   bn_store(result_p, result);
 }
@@ -317,7 +317,7 @@ inline fn toEC()
   reg u64 x;
   reg bool _cf;  
 
-  r = expm(z,a,b,p);
-  r = mulm(z,a,b,p);
+  r = bn_expm(z,a,b,p);
+  r = bn_mulm(z,a,b,p);
   r = bn_rsample(a);
 }

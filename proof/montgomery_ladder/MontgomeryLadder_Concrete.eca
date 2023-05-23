@@ -91,7 +91,7 @@ require import  BarrettRedInt.
 require import BarrettReduction_Concrete.
 
 local lemma ml_equiv_M_3 :
-  equiv [M(Syscall).expm ~ ML_Spec.mladder_3 : W64xN.valR x{1} = asint x{2} /\ valR n{1} =  valR n{2} /\ valR m{1} = Zp.p /\ (W64x2N.valR r{1}) = ri_uncompute Zp.p ==> valR res{1} = asint res{2}].
+  equiv [M(Syscall).bn_expm ~ ML_Spec.mladder_3 : W64xN.valR x{1} = asint x{2} /\ valR n{1} =  valR n{2} /\ valR m{1} = Zp.p /\ (W64x2N.valR r{1}) = ri_uncompute Zp.p ==> valR res{1} = asint res{2}].
 proof. proc.
 while (W64.to_uint i{1} = i{2} /\ valR x{1} = asint x{2} /\ valR x1{1} = asint x1{2} /\ valR x2{1} = asint x2{2} /\ n{1} =  n{2} /\ as_bool b{1} = as_bool b{2} /\ valR m{1} = Zp.p /\ i{2} <= 2048 /\ (W64x2N.valR r{1}) = ri_uncompute Zp.p).
 ecall{1} (swap_lemma_ph x1{1} x2{1} (as_bool b{1})). simplify.
@@ -210,7 +210,7 @@ qed.
 
 
 local lemma ml_equiv_abs_conc : 
-  equiv [ML_Abstract.iterop_spec ~ M(Syscall).expm : 
+  equiv [ML_Abstract.iterop_spec ~ M(Syscall).bn_expm : 
   ImplZZ m{2} p 
   /\ asint x{1} = valR x{2} 
   /\ bs2int n{1} = valR n{2} 
@@ -282,7 +282,7 @@ qed.
 
 
 lemma expm_correct :
-      equiv[ ML_Spec.expm ~ M(Syscall).expm :
+      equiv[ ML_Spec.expm ~ M(Syscall).bn_expm :
              ImplZZ m{2} p /\
              asint a{1} = valR x{2} /\
              b{1} = valR n{2}  /\
@@ -320,7 +320,7 @@ qed.
 
 
 lemma bn_expm_correct rr mm xx nn:
-  phoare[ M(Syscall).expm : r = rr /\ m = mm /\ x = xx /\ n = nn /\
+  phoare[ M(Syscall).bn_expm : r = rr /\ m = mm /\ x = xx /\ n = nn /\
                    ImplZZ m p /\
                    valR x < p /\
                    r = R ==> (valR res) = ((valR xx) ^ (valR nn)) %% p ] = 1%r.
@@ -344,7 +344,7 @@ qed.
 
 lemma bn_expm_correct_hoare:
   forall rr mm xx nn,
-    hoare[ M(Syscall).expm :
+    hoare[ M(Syscall).bn_expm :
              r = rr /\
              m = mm /\
              x = xx /\
@@ -353,7 +353,7 @@ lemma bn_expm_correct_hoare:
              ImplZZ res ((W64xN.valR xx) ^ (W64xN.valR nn) %% p)]. 
 progress.
 hoare. bypr. progress.
-have : Pr[M(Syscall).expm(r{m}, m{m}, x{m}, n{m}) @ &m :
+have : Pr[M(Syscall).bn_expm(r{m}, m{m}, x{m}, n{m}) @ &m :
    valR res = valR x{m} ^ valR n{m} %% p] = 1%r.
 byphoare (_: arg = (r{m}, m{m}, x{m}, n{m}) ==> _).
 conseq (bn_expm_correct r{m} m{m} x{m} n{m}). auto. auto. auto.

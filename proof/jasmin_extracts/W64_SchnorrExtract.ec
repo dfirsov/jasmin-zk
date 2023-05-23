@@ -721,8 +721,8 @@ module M(SC:Syscall_t) = {
     return (res_0);
   }
   
-  proc mulm (r:W64.t Array64.t, p:W64.t Array32.t, a:W64.t Array32.t,
-             b:W64.t Array32.t) : W64.t Array32.t = {
+  proc bn_mulm (r:W64.t Array64.t, p:W64.t Array32.t, a:W64.t Array32.t,
+                b:W64.t Array32.t) : W64.t Array32.t = {
     
     var _of:bool;
     var _cf:bool;
@@ -734,8 +734,8 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc expm (r:W64.t Array64.t, m:W64.t Array32.t, x:W64.t Array32.t,
-             n:W64.t Array32.t) : W64.t Array32.t = {
+  proc bn_expm (r:W64.t Array64.t, m:W64.t Array32.t, x:W64.t Array32.t,
+                n:W64.t Array32.t) : W64.t Array32.t = {
     
     var x1:W64.t Array32.t;
     var x2:W64.t Array32.t;
@@ -756,8 +756,8 @@ module M(SC:Syscall_t) = {
       b <@ ith_bit (n, i);
       (x1, x2) <@ swapr (x1, x2, b);
       x11 <@ bn_copy (x1);
-      x1 <@ mulm (r, m, x1, x1);
-      x2 <@ mulm (r, m, x11, x2);
+      x1 <@ bn_mulm (r, m, x1, x1);
+      x2 <@ bn_mulm (r, m, x11, x2);
       (x1, x2) <@ swapr (x1, x2, b);
     }
     return (x1);
@@ -1408,7 +1408,7 @@ module M(SC:Syscall_t) = {
     group_generator <@ bn_set_g (group_generator);
     barrett_parameter <@ bn_set_bp (barrett_parameter);
     (i, secret_power) <@ bn_rsample (exp_order);
-    commitment_0 <@ expm (barrett_parameter, group_order, group_generator,
+    commitment_0 <@ bn_expm (barrett_parameter, group_order, group_generator,
     secret_power);
     return (i, commitment_0, secret_power);
   }
@@ -1433,7 +1433,7 @@ module M(SC:Syscall_t) = {
     group_generator <@ bn_set_g (group_generator);
     barrett_parameter <@ bn_set_bp (barrett_parameter);
     ( _0, secret_power) <@ bn_rsample (exp_order);
-    commitment_0 <@ expm (barrett_parameter, group_order, group_generator,
+    commitment_0 <@ bn_expm (barrett_parameter, group_order, group_generator,
     secret_power);
     return (commitment_0, secret_power);
   }
@@ -1454,7 +1454,7 @@ module M(SC:Syscall_t) = {
     challenge_0 <@ bn_breduce_small (exp_barrett, challenge_0, exp_order);
     secret_power <@ bn_breduce_small (exp_barrett, secret_power, exp_order);
     witness0 <@ bn_breduce_small (exp_barrett, witness0, exp_order);
-    product <@ mulm (exp_barrett, exp_order, challenge_0, witness0);
+    product <@ bn_mulm (exp_barrett, exp_order, challenge_0, witness0);
     response_0 <@ addm2 (exp_order, secret_power, product);
     return (response_0);
   }
@@ -1519,11 +1519,11 @@ module M(SC:Syscall_t) = {
     group_order);
     challenge_0 <@ bn_breduce_small (exp_barrett, challenge_0, exp_order);
     response_0 <@ bn_breduce_small (exp_barrett, response_0, exp_order);
-    tmp <@ expm (group_barrett, group_order, statement, challenge_0);
-    v1 <@ mulm (group_barrett, group_order, commitment_0, tmp);
-    v2 <@ expm (group_barrett, group_order, group_generator, response_0);
+    tmp <@ bn_expm (group_barrett, group_order, statement, challenge_0);
+    v1 <@ bn_mulm (group_barrett, group_order, commitment_0, tmp);
+    v2 <@ bn_expm (group_barrett, group_order, group_generator, response_0);
     result1 <@ bn_eq (v1, v2);
-    v3 <@ expm (group_barrett, group_order, statement, exp_order);
+    v3 <@ bn_expm (group_barrett, group_order, statement, exp_order);
     v4 <@ bn_set1 (v4);
     result2 <@ bn_eq (v3, v4);
     result1 <- (result1 `&` result2);

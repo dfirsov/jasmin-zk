@@ -4,6 +4,6 @@ from Jasmin require import JModel.
 
 
 equiv expm_ct :
-  M(Syscall).expm ~ M(Syscall).expm :
+  M(Syscall).bn_expm ~ M(Syscall).bn_expm :
   ={M.leakages, glob M} ==> ={M.leakages}.
 proof.  proc. progress. inline*. sim. qed.

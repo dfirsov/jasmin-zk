@@ -11,7 +11,7 @@ import W64x2N.
 
 
 equiv mulm_cspec:
- M(Syscall).mulm ~ CSpecFp.mulm:
+ M(Syscall).bn_mulm ~ CSpecFp.mulm:
   valR a{1} = a{2}
   /\ valR p{1} = p{2}
   /\ valR b{1} = b{2}
@@ -35,7 +35,8 @@ qed.
 
 
 lemma bn_mulm_correct aa bb pp:
-  phoare[ M(Syscall).mulm : a = aa /\ b = bb /\ p = pp /\ 0 <= valR a < valR p /\ valR r = ri_uncompute (valR p) /\ 0 <= valR b < valR p (* /\ 0 <= 2* (valR p) < W64xN.modulusR *)  ==> (valR aa * valR bb)%% (valR pp) = valR res ] = 1%r.
+  phoare[ M(Syscall).bn_mulm : a = aa /\ b = bb /\ p = pp /\ 0 <= valR a < valR p /\ valR r = ri_uncompute (valR p) /\ 0 <= valR b < valR p 
+    ==> (valR aa * valR bb)%% (valR pp) = valR res ] = 1%r.
 proof. bypr. progress.
  have <- : Pr[CSpecFp.mulm(valR a{m}, valR b{m}, valR p{m}) @ &m : (valR a{m} * valR b{m}) %% valR p{m} =  res] = 1%r. 
   byphoare (_: arg = (valR a{m}, valR b{m}, valR p{m}) ==> _).
@@ -45,3 +46,17 @@ smt.
 smt(). smt(). 
 qed.
 
+lemma bn_mulm_correct_pr &m a b p r:
+  W64xN.valR a < W64xN.valR p
+  => W64xN.valR b < valR p
+  => W64x2N.valR r = ri_uncompute (valR p)
+  => Pr[ M(Syscall).bn_mulm(r,p,a,b) @&m : (valR a * valR b) %% (valR p) = valR res ] = 1%r.
+proof. progress.
+byphoare (_: arg = (r,p,a,b) ==> _).
+conseq (bn_mulm_correct a b p). 
+progress.
+smt(@W64xN).
+smt(@W64xN).
+auto.
+auto.
+qed.

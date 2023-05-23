@@ -244,7 +244,7 @@ qed.
 
 
 lemma M1_M2_mulm :
-  equiv  [ M1.mulm ~ M2.mulm
+  equiv  [ M1.bn_mulm ~ M2.bn_mulm
     : ={arg} ==> ={res}  ].
 proc. sim.  
 wp. call M1_M2_bn_breduce.
@@ -272,7 +272,7 @@ lemma M1_M2_ith_bit :
 proc.  sim.  qed.
 
 lemma M1_M2_expm :
-  equiv  [ M1.expm ~ M2.expm
+  equiv  [ M1.bn_expm ~ M2.bn_expm
     : ={arg} ==> ={res}  ].
 proc. 
 while (={m,r,n,i,b,x1,x2,x11,b}). 

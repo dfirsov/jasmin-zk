@@ -708,7 +708,7 @@ qed.
 op [opaque] mulm_t : leakages_t = bn_breduce_f ++ [LeakAddr []] ++ bn_muln_g 32 ++ bn_muln_prefix ++
 [LeakAddr []] .
 lemma mulm_leakages start_l : 
-   hoare [ M(Syscall).mulm : M.leakages = start_l 
+   hoare [ M(Syscall).bn_mulm : M.leakages = start_l 
                 ==> M.leakages = mulm_t ++ start_l ].
 proof. proc.
 pose suf1 :=  [LeakAddr []] ++ start_l.
@@ -994,7 +994,7 @@ qed.
 op [opaque] expm_t : leakages_t = expm_step 2048 ++ expm_t_prefix.
 
 lemma expm_leakages l :
-  hoare [ M(Syscall).expm : M.leakages = l 
+  hoare [ M(Syscall).bn_expm : M.leakages = l 
      ==> M.leakages = expm_t ++ l].
 proc.
 seq 19 : (M.leakages = expm_t_prefix ++ l /\ i = (W64.of_int (32 * 64)) ). 
