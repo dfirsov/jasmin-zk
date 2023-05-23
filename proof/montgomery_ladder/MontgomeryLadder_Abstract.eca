@@ -160,7 +160,6 @@ module ML_Abstract = {
   proc iterop_spec (x:R, n:bits) : R = {
     return x ^ (bs2int n); 
   }  
-
   proc mladder (x :R , n : bits ) : R = {
     var x1 , x2 , i , b ;
     (x1,x2) <- (idR , x);
@@ -175,9 +174,10 @@ module ML_Abstract = {
     return x1 ;
   } 
 }.
+
   
 lemma mladder_correct_ph xx nn : 
-  phoare[ ML_Abstract.mladder : arg = (xx, nn)  /\  0 < size nn  ==> res = xx ^ (bs2int nn) ]  = 1%r.
+  phoare[ ML_Abstract.mladder : arg = (xx, nn) ==> res = xx ^ (bs2int nn) ]  = 1%r.
 proc. sp.
 while (i <= size n 
   /\ x1 = x ^ bs2int (drop i n)
@@ -235,4 +235,11 @@ smt(exp_prop1).
 smt().
 have i0_prop : i0 <= 0. smt().
 smt (@List).
+qed.
+
+
+lemma mladder_correct x n &m: 
+  Pr[ML_Abstract.mladder(x,n) @&m : res = x ^ (bs2int n) ] = 1%r.
+byphoare (_: arg = (x,n) ==> _).
+conseq (mladder_correct_ph x n). auto. auto.
 qed.
