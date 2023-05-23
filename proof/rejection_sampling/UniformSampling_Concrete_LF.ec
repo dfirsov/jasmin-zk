@@ -18,8 +18,8 @@ hoare. simplify.
 conseq (rsample_leakages []). auto. smt(@List).  auto. auto.
 qed.
 
-
-lemma rsample_leakages3 a l x &m : (glob M1){m} = [] =>
+(* samp_t_correct *)
+lemma samp_t_correct a l x &m : (glob M1){m} = [] =>
   Pr[ M1.rsample(a) @ &m : M1.leakages = l  /\ res.`2 = x ]
   = Pr[ M1.rsample(a) @ &m : l = samp_t res.`1 /\ res.`2 = x  ].
 move => H.
@@ -57,10 +57,11 @@ rewrite Pr[mu_eq]. smt(). auto.
 qed.
 
 
-lemma rsample_leakages_inv a x l &m : (glob M1){m} = [] 
+(* rsample_leakf *)
+lemma rsample_leakf a x l &m : (glob M1){m} = [] 
  => Pr[ M1.rsample(a) @ &m : M1.leakages = l /\ res.`2 = x  ]
   = Pr[ M1.rsample(a) @ &m :  (inv (-1) samp_t) l = res.`1  /\ res.`2 = x  ].
-move => ic (* ic' *). rewrite  (rsample_leakages3 a l x &m). auto. auto.
+move => ic (* ic' *). rewrite  (samp_t_correct a l x &m). auto. auto.
 simplify. 
 have -> : 
   Pr[M1.rsample(a) @ &m :
@@ -119,6 +120,7 @@ require import UniformSampling_Abstract.
 require import UniformSampling_Concrete.
 
 
+
 equiv rsample_cspec_equiv:
  M1.rsample ~ CSpecFp.rsample:
   W64xN.valR byte_z{1} = a{2}
@@ -141,6 +143,13 @@ conseq rsample_cspec_equiv. progress. progress. smt().
 smt(@W64xN). auto. auto.
 qed.
 
+lemma jrsample_pr a i x &m : 
+  1 <= i => RSP (W64xN.valR a) (W64xN.valR x) =>
+  Pr[ M1.rsample(a) @ &m : res = (i,x) ]
+   = mu D (predC (RSP (W64xN.valR a))) ^ (i - 1) * mu1 D (W64xN.valR x).
+rewrite rsample_cspec_pr.
+apply rsample_pr. 
+qed.
 
 lemma rsample_index_pos &m a : Pr[M1.rsample(a) @ &m : res.`1 <= 0 ] = 0%r.
 byphoare (_: arg = a ==> _);auto. hoare.
@@ -163,11 +172,13 @@ op g a l : real
      mu D (predC (RSP (valR a))) ^ (inv (-1) samp_t l - 1)
        * (1%r / Ring_ops_spec.M%r).
 
+
         
-lemma leakfree1 &m x a l: (glob M1){m} = [] 
-  => Pr[ M1.rsample(a) @ &m : M1.leakages = l  /\ res.`2 = x  ] = if (valR a <= valR x) then 0%r else (g a l).
+lemma jrsample_v &m x a l: (glob M1){m} = [] 
+  => Pr[ M1.rsample(a) @ &m : M1.leakages = l  /\ res.`2 = x  ] 
+       = if (valR a <= valR x) then 0%r else (g a l).
       progress.
-   rewrite  (rsample_leakages_inv a x l &m);auto.
+   rewrite  (rsample_leakf a x l &m);auto.
 case (inv (-1) samp_t l <= 0). 
 move => q. rewrite /g. rewrite q.  simplify. 
   have : Pr[M1.rsample(a) @ &m :
@@ -200,7 +211,7 @@ qed.
 
 op h a : real = 1%r/(valR a)%r. 
 
-lemma leakfree2 &m x a: 
+lemma jrsample_w &m x a: 
  Pr[ M1.rsample(a) @ &m : res.`2 = x ] 
   = if (valR a <= valR x) then 0%r else h a.    
 proof. 
@@ -216,26 +227,26 @@ rewrite rsample_uni. smt(@W64xN).
 smt(@W64xN). smt(). auto.
 qed.
 
-op f a l = h a / g a l.
+op rsample_f a l = h a / g a l.
 
-lemma rsample_leakfree pin l a &m: (glob M1){m} = [] 
+lemma jrsample_leakfree pin l a &m: (glob M1){m} = [] 
  =>  let v = Pr[ M1.rsample(pin) @ &m : res.`2 = a  ] in 
      let w = Pr[ M1.rsample(pin) @ &m : M1.leakages = l  /\ res.`2 = a  ] in 
   0%r < w => v/w 
-  = f pin l.
+  = rsample_f pin l.
 move => l_empty v w f1.
 have : (valR a < valR pin).
  case (valR pin <= valR a) => h.
  have : w <= 0%r.
  rewrite /w.  
- rewrite (leakfree1 &m a pin l _). auto.
+ rewrite (jrsample_v &m a pin l _). auto.
  rewrite h. auto.
  smt(). 
  smt().
 move => a_less_pin.
 rewrite /f.
-rewrite  (leakfree1 &m a pin l _). auto.
-rewrite  (leakfree2 &m a pin ). auto. 
+rewrite  (jrsample_v &m a pin l _). auto.
+rewrite  (jrsample_w &m a pin ). auto. 
 smt().
 qed.
 
