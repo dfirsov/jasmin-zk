@@ -1,6 +1,6 @@
 require "bn_generic.jazz"
 
-// sample uniformly at random an element from interval [0..byte_z]
+// sample uniformly at random an element from interval [0..byte_z-1]
 inline fn rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
 {
   stack u64[nlimbs] byte_q byte_p;
@@ -20,27 +20,3 @@ inline fn rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
 
   return (i, byte_p);
 }
-
-
-// sample uniformly at random an element from interval [0..byte_z-1]
-inline fn usample(stack u64[nlimbs] byte_z) -> stack u64[nlimbs]
-{
-  stack u64[nlimbs] byte_q byte_p;
-
-  _, byte_p = rsample(byte_z);
-  return byte_p;
-}
-
-
-
-export fn __rsample(reg u64 zp rp) 
-{ 
-  stack u64[nlimbs] r z;
-
-  rp = rp;
-
-  z = bn_load(zp);
-  r = rsample(z);
-  bn_store(rp, r);
-}
-

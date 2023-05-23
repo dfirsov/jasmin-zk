@@ -471,15 +471,6 @@ module M(SC:Syscall_t) = {
     return (i, byte_p);
   }
   
-  proc usample (byte_z:W64.t Array32.t) : W64.t Array32.t = {
-    
-    var byte_p:W64.t Array32.t;
-    var  _0:int;
-    byte_p <- witness;
-    ( _0, byte_p) <@ rsample (byte_z);
-    return (byte_p);
-  }
-  
   proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
     
     var bit:W64.t;

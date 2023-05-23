@@ -503,18 +503,18 @@ progress.
 qed.
 
 
-equiv usample_aspec:
- M.usample ~ ASpecFp.rsample:
-  W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
-  ==> W64xN.valR res{1} = res{2}.
-proof.
-transitivity 
- M.rsample
-  (={arg} ==> res{1} = res{2}.`2)
-  (W64xN.valR byte_z{1} = a{2} /\ 0 < a{2}
-  ==> W64xN.valR res{1}.`2 = res{2}).
-progress. 
-smt(). progress. proc*.
-inline M.usample. sp.  wp. call (_:true). sim. skip. progress.
-apply rsample_aspec.
-qed.
+(* equiv usample_aspec: *)
+(*  M.usample ~ ASpecFp.rsample: *)
+(*   W64xN.valR byte_z{1} = a{2} /\ 0 < a{2} *)
+(*   ==> W64xN.valR res{1} = res{2}. *)
+(* proof. *)
+(* transitivity  *)
+(*  M.rsample *)
+(*   (={arg} ==> res{1} = res{2}.`2) *)
+(*   (W64xN.valR byte_z{1} = a{2} /\ 0 < a{2} *)
+(*   ==> W64xN.valR res{1}.`2 = res{2}). *)
+(* progress.  *)
+(* smt(). progress. proc*. *)
+(* inline M.usample. sp.  wp. call (_:true). sim. skip. progress. *)
+(* apply rsample_aspec. *)
+(* qed. *)

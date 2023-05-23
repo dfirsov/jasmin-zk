@@ -941,20 +941,6 @@ module M(SC:Syscall_t) = {
     return (i, byte_p);
   }
   
-  proc usample (byte_z:W64.t Array32.t) : W64.t Array32.t = {
-    var aux: int;
-    var aux_0: W64.t Array32.t;
-    
-    var byte_p:W64.t Array32.t;
-    var  _0:int;
-    byte_p <- witness;
-    leakages <- LeakAddr([]) :: leakages;
-    (aux, aux_0) <@ rsample (byte_z);
-     _0 <- aux;
-    byte_p <- aux_0;
-    return (byte_p);
-  }
-  
   proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
     var aux: W64.t;
     
