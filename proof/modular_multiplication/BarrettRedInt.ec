@@ -130,7 +130,7 @@ smt(st6).
 qed.
 
 
-lemma st8 x n (k : real) :
+lemma barrett_bound x n (k : real) :
   0%r <= x < n * n =>
   0%r <= n < 2%r^k =>
   0%r  <= t x n k < 2%r*n .
@@ -223,10 +223,10 @@ op barrett_reduction (x n k : int)
 
   
 lemma barrett_reduction_correct (x n k : int) : 
-    0 <= x < n * n =>
-    0 < n  < 2 ^ k =>
-    0 <= k =>
-  barrett_reduction x n k = x %% n.
+   0 <= x < n*n
+   => 0 < n < 2^k
+   => 0 <= k
+   => barrett_reduction x n k = x %% n.
 rewrite /barrett_reduction.
 simplify.
 have timn :  ti x n k %% n = x %% n.
@@ -244,15 +244,15 @@ rewrite modz_small.
   have : 0%r <= (ti x n k)%r.
   rewrite - same_t. smt(). smt(). 
   have kk : 0%r <= t x%r n%r k%r && t x%r n%r k%r < 2%r * n%r.
-  apply st8. progress. progress.  smt(). smt(). split. smt(). move => q. smt(exp_lemma1).
+  apply barrett_bound. progress. progress.  smt(). smt(). split. smt(). move => q. smt(exp_lemma1).
   elim kk. auto. smt().
   have -> : `|n| = n. smt().
   have kk : 0%r <= t x%r n%r k%r && t x%r n%r k%r < 2%r * n%r.
-  apply st8. progress. progress.  smt(). smt(). smt(exp_lemma1).  smt(). auto.
+  apply barrett_bound. progress. progress.  smt(). smt(). smt(exp_lemma1).  smt(). auto.
 progress.
 have :  (ti x n k)%r < (2 * n)%r.
 rewrite - same_t. smt(). smt().
   have kk : 0%r <= t x%r n%r k%r && t x%r n%r k%r < 2%r * n%r.
-  apply st8. progress. progress. smt(). smt(). smt(exp_lemma1).  
+  apply barrett_bound. progress. progress. smt(). smt(). smt(exp_lemma1).  
   smt(). smt(). 
 qed.

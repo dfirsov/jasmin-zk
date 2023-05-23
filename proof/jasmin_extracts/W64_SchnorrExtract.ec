@@ -674,7 +674,7 @@ module M(SC:Syscall_t) = {
     return (r);
   }
   
-  proc bn_breduce (a:W64.t Array64.t, r:W64.t Array64.t, p:W64.t Array32.t) : 
+  proc bn_breduce (r:W64.t Array64.t, a:W64.t Array64.t, p:W64.t Array32.t) : 
   W64.t Array32.t = {
     
     var res_0:W64.t Array32.t;
@@ -709,7 +709,7 @@ module M(SC:Syscall_t) = {
     return (res_0);
   }
   
-  proc bn_breduce_small (a:W64.t Array32.t, r:W64.t Array64.t,
+  proc bn_breduce_small (r:W64.t Array64.t, a:W64.t Array32.t,
                          p:W64.t Array32.t) : W64.t Array32.t = {
     
     var res_0:W64.t Array32.t;
@@ -717,7 +717,7 @@ module M(SC:Syscall_t) = {
     aa <- witness;
     res_0 <- witness;
     aa <@ bn_expand (a);
-    res_0 <@ bn_breduce (aa, r, p);
+    res_0 <@ bn_breduce (r, aa, p);
     return (res_0);
   }
   
@@ -730,7 +730,7 @@ module M(SC:Syscall_t) = {
     var  _0:W64.t;
     c <- witness;
     ( _0, _of, _cf, c) <@ bn_muln (a, b);
-    a <@ bn_breduce (c, r, p);
+    a <@ bn_breduce (r, c, p);
     return (a);
   }
   
@@ -1451,9 +1451,9 @@ module M(SC:Syscall_t) = {
     response_0 <- witness;
     exp_order <@ bn_set_q (exp_order);
     exp_barrett <@ bn_set_bq (exp_barrett);
-    challenge_0 <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
-    secret_power <@ bn_breduce_small (secret_power, exp_barrett, exp_order);
-    witness0 <@ bn_breduce_small (witness0, exp_barrett, exp_order);
+    challenge_0 <@ bn_breduce_small (exp_barrett, challenge_0, exp_order);
+    secret_power <@ bn_breduce_small (exp_barrett, secret_power, exp_order);
+    witness0 <@ bn_breduce_small (exp_barrett, witness0, exp_order);
     product <@ mulm (exp_barrett, exp_order, challenge_0, witness0);
     response_0 <@ addm2 (exp_order, secret_power, product);
     return (response_0);
@@ -1514,11 +1514,11 @@ module M(SC:Syscall_t) = {
     group_order <@ bn_set_p (group_order);
     group_barrett <@ bn_set_bp (group_barrett);
     group_generator <@ bn_set_g (group_generator);
-    statement <@ bn_breduce_small (statement, group_barrett, group_order);
-    commitment_0 <@ bn_breduce_small (commitment_0, group_barrett,
+    statement <@ bn_breduce_small (group_barrett, statement, group_order);
+    commitment_0 <@ bn_breduce_small (group_barrett, commitment_0,
     group_order);
-    challenge_0 <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
-    response_0 <@ bn_breduce_small (response_0, exp_barrett, exp_order);
+    challenge_0 <@ bn_breduce_small (exp_barrett, challenge_0, exp_order);
+    response_0 <@ bn_breduce_small (exp_barrett, response_0, exp_order);
     tmp <@ expm (group_barrett, group_order, statement, challenge_0);
     v1 <@ mulm (group_barrett, group_order, commitment_0, tmp);
     v2 <@ expm (group_barrett, group_order, group_generator, response_0);

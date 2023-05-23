@@ -146,6 +146,21 @@ progress.
 smt(@W64x2N). smt(). auto. auto.
 qed.
 
+op [opaque] big_value (n : int) = 4 ^ (64 * nlimbs) %/ n.
+lemma bn_bnreduce_correct &m r x n:
+ W64x2N.valR r =  big_value (W64xN.valR n)
+ => 0 < (W64xN.valR n) 
+ => W64x2N.valR x < valR n * valR n
+ => Pr[ M(Syscall).bn_breduce(r,x,n) @&m : W64xN.valR res = W64x2N.valR x %% W64xN.valR n ] = 1%r.
+proof.  move => eq1 c2 c3.
+byphoare (_: arg = (r,x,n) ==> _).
+conseq (bnreduce_spec_ph x n).
+progress. rewrite eq1. rewrite /big_value. rewrite /ri_uncompute nasty_id /ri. smt().
+smt(@W64xN).
+smt(@W64x2N).
+smt(@W64xN).
+auto. auto.
+qed.
 
 lemma bnreduce_small_spec_ph aaa ppp:
  phoare [ M(Syscall).bn_breduce_small :  a = aaa /\ p = ppp

@@ -46,13 +46,13 @@ have -> : a{2} - a{2} * (4 ^ k{2} %/ p{2}) %/ 4 ^ k{2} * p{2}
 split. 
    have : 0%r <= (ti a{2} p{2} k{2})%r < 2%r * p{2}%r.
    rewrite - same_t. auto. auto.
-     apply (st8 a{2}%r p{2}%r k{2}%r _ _). split.  smt(). smt(). smt(exp_lemma1).
+     apply (barrett_bound a{2}%r p{2}%r k{2}%r _ _). split.  smt(). smt(). smt(exp_lemma1).
   progress. smt(). 
 move => _.
 have ->: `|W64xN.modulusR2| = W64xN.modulusR2. rewrite /W64xN.modulusR2. smt(@Ring).
    have : 0%r <= (ti a{2} p{2} k{2})%r < 2%r * p{2}%r.
    rewrite - same_t. auto. auto. 
-     apply (st8 a{2}%r p{2}%r k{2}%r _ _). split. smt(). smt().
+     apply (barrett_bound a{2}%r p{2}%r k{2}%r _ _). split. smt(). smt().
 split. smt(). move => ?. smt(exp_lemma1).
   progress. 
    have : 2 * p{2} < W64xN.modulusR2. rewrite /W64xN.modulusR2. 

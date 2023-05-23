@@ -1277,7 +1277,7 @@ module M(SC:Syscall_t) = {
     return (r);
   }
   
-  proc bn_breduce (a:W64.t Array64.t, r:W64.t Array64.t, p:W64.t Array32.t) : 
+  proc bn_breduce (r:W64.t Array64.t, a:W64.t Array64.t, p:W64.t Array32.t) : 
   W64.t Array32.t = {
     var aux_1: bool;
     var aux_0: bool;
@@ -1341,7 +1341,7 @@ module M(SC:Syscall_t) = {
     return (res_0);
   }
   
-  proc bn_breduce_small (a:W64.t Array32.t, r:W64.t Array64.t,
+  proc bn_breduce_small (r:W64.t Array64.t, a:W64.t Array32.t,
                          p:W64.t Array32.t) : W64.t Array32.t = {
     var aux_0: W64.t Array32.t;
     var aux: W64.t Array64.t;
@@ -1354,7 +1354,7 @@ module M(SC:Syscall_t) = {
     aux <@ bn_expand (a);
     aa <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux_0 <@ bn_breduce (aa, r, p);
+    aux_0 <@ bn_breduce (r, aa, p);
     res_0 <- aux_0;
     return (res_0);
   }
@@ -1379,7 +1379,7 @@ module M(SC:Syscall_t) = {
     _cf <- aux_0;
     c <- aux_2;
     leakages <- LeakAddr([]) :: leakages;
-    aux_3 <@ bn_breduce (c, r, p);
+    aux_3 <@ bn_breduce (r, c, p);
     a <- aux_3;
     return (a);
   }
@@ -3620,13 +3620,13 @@ module M(SC:Syscall_t) = {
     aux_0 <@ bn_set_bq (exp_barrett);
     exp_barrett <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
+    aux <@ bn_breduce_small (exp_barrett, challenge_0, exp_order);
     challenge_0 <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_breduce_small (secret_power, exp_barrett, exp_order);
+    aux <@ bn_breduce_small (exp_barrett, secret_power, exp_order);
     secret_power <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_breduce_small (witness0, exp_barrett, exp_order);
+    aux <@ bn_breduce_small (exp_barrett, witness0, exp_order);
     witness0 <- aux;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ mulm (exp_barrett, exp_order, challenge_0, witness0);
@@ -3720,16 +3720,16 @@ module M(SC:Syscall_t) = {
     aux <@ bn_set_g (group_generator);
     group_generator <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_breduce_small (statement, group_barrett, group_order);
+    aux <@ bn_breduce_small (group_barrett, statement, group_order);
     statement <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_breduce_small (commitment_0, group_barrett, group_order);
+    aux <@ bn_breduce_small (group_barrett, commitment_0, group_order);
     commitment_0 <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_breduce_small (challenge_0, exp_barrett, exp_order);
+    aux <@ bn_breduce_small (exp_barrett, challenge_0, exp_order);
     challenge_0 <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_breduce_small (response_0, exp_barrett, exp_order);
+    aux <@ bn_breduce_small (exp_barrett, response_0, exp_order);
     response_0 <- aux;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ expm (group_barrett, group_order, statement, challenge_0);

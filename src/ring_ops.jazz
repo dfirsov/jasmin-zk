@@ -188,7 +188,7 @@ inline fn div2(stack u64[2*dnlimbs] x, inline int k)
 
 
 
-inline fn bn_breduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p) 
+inline fn bn_breduce(stack u64[2*nlimbs] r a, stack u64[nlimbs] p) 
  -> (stack u64[nlimbs])
 {
   inline int i;
@@ -210,13 +210,13 @@ inline fn bn_breduce(stack u64[2*nlimbs] a r, stack u64[nlimbs] p)
 
 
 
-inline fn bn_breduce_small(stack u64[nlimbs] a, stack u64[dnlimbs] r, stack u64[nlimbs] p) 
+inline fn bn_breduce_small(stack u64[dnlimbs] r, stack u64[nlimbs] a, stack u64[nlimbs] p) 
  -> stack u64[nlimbs]
 {
   stack u64[dnlimbs] aa;
   stack u64[nlimbs] res;
   aa = bn_expand(a);
-  res = bn_breduce(aa,r,p);
+  res = bn_breduce(r,aa,p);
   return res;
 }
 
@@ -229,7 +229,7 @@ inline fn mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b)
   reg bool _of _cf;
 
   _of, _cf, c = bn_muln (a,b);
-  a = bn_breduce(c,r,p);
+  a = bn_breduce(r,c,p);
   return a;
 }
 
