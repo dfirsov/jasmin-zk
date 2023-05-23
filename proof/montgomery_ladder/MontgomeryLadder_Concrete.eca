@@ -11,8 +11,7 @@ require import W64_SchnorrExtract.
 import W64xN.
 
 require ZModP.
-clone import ZModP.ZModField as Zp.
-  (* TODO proof* or make this theory abstract *)
+clone import ZModP.ZModRing as Zp.
 
 
 op (^^) (x : zmod)(n : int) : zmod = ZModpRing.exp x n. 
@@ -231,7 +230,7 @@ exists (arg{1}).  smt.
 auto.
 proc*.
 ecall {2} (mladder_correct_ph x{2} n{2}).
-inline*. wp.  skip. progress. smt().
+inline*. wp.  skip. progress. 
 transitivity ML_Spec.mladder_1
  (={arg} /\ size n{1} < W64xN.modulusR ==> ={res})
  (ImplZZ m{2} p /\
@@ -319,7 +318,7 @@ smt().
 qed.
 
 
-lemma bn_expm_correct rr mm xx nn:
+lemma bn_expm_correct_ph rr mm xx nn:
   phoare[ M(Syscall).bn_expm : r = rr /\ m = mm /\ x = xx /\ n = nn /\
                    ImplZZ m p /\
                    valR x < p /\
@@ -356,8 +355,37 @@ hoare. bypr. progress.
 have : Pr[M(Syscall).bn_expm(r{m}, m{m}, x{m}, n{m}) @ &m :
    valR res = valR x{m} ^ valR n{m} %% p] = 1%r.
 byphoare (_: arg = (r{m}, m{m}, x{m}, n{m}) ==> _).
-conseq (bn_expm_correct r{m} m{m} x{m} n{m}). auto. auto. auto.
+conseq (bn_expm_correct_ph r{m} m{m} x{m} n{m}). auto. auto. auto.
 smt(@Distr).
 qed.
+
+
+lemma W64x2NmodulusR_val : 
+W64x2N.modulusR =  4 ^ (dnlimbs * nlimbs). rewrite /W64x2N.modulusR. smt(@Ring).
+qed.
+
+lemma bn_expm_correct &m r m x n:
+  ImplZZ m p
+  => valR x < valR m
+  => W64x2N.valR r = Ri
+  => Pr[ M(Syscall).bn_expm(r,m,x,n) @&m: 
+           valR res = (valR x) ^ (valR n) %% valR m ] = 1%r.
+progress.
+byphoare (_: arg = (r,m,x,n) ==> _).
+conseq (bn_expm_correct_ph  r m x n).
+progress. rewrite - H. auto. rewrite /R. 
+rewrite /Ri.
+have  : 0 <= (4 ^ (dnlimbs * nlimbs) %/ p ) < W64x2N.modulusR.
+rewrite W64x2NmodulusR_val. smt(@Ring @Zp).
+rewrite nasty_id.
+rewrite /r.
+move => q. apply W64x2N.R.bn_inj.
+rewrite W64x2N.R.bn_ofintK.
+rewrite H1. rewrite /Ri nasty_id.
+pose y := 4 ^ (64 * nlimbs) %/ p.
+smt(pmod_small).
+auto. smt(). auto. auto.
+qed.
+
 
 end section.

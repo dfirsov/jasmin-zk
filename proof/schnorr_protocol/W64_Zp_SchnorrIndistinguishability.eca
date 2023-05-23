@@ -180,11 +180,11 @@ lemma verify_eq :
 proc. sp. simplify. wp.
 ecall {2} (bn_eq_correct v3{2} v4{2}). simplify. 
 ecall {2} (bn_set1_correct). simplify. 
-ecall {2} (bn_expm_correct group_barrett{2} group_order{2} statement{2} exp_order{2}). simplify.      
+ecall {2} (bn_expm_correct_ph group_barrett{2} group_order{2} statement{2} exp_order{2}). simplify.      
 ecall {2} (bn_eq_correct v1{2} v2{2}). simplify. 
-ecall {2} (bn_expm_correct group_barrett{2} group_order{2} group_generator{2} response_0{2}). simplify. 
+ecall {2} (bn_expm_correct_ph group_barrett{2} group_order{2} group_generator{2} response_0{2}). simplify. 
 ecall {2} (bn_mulm_correct commitment_0{2} tmp{2} group_order{2}). simplify.
-ecall {2} (bn_expm_correct group_barrett{2} group_order{2} statement{2} challenge_0{2}). simplify. 
+ecall {2} (bn_expm_correct_ph group_barrett{2} group_order{2} statement{2} challenge_0{2}). simplify. 
 ecall {2} (bnreduce_small_spec_ph response_0{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph commitment_0{2} group_order{2}). simplify.
