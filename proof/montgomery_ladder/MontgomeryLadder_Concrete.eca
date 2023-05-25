@@ -4,8 +4,8 @@ import BS2Int.
 from Jasmin require import JModel. (* only properties of bs2int function *)
 
 require MontgomeryLadder_Abstract.
-require import Ring_ops_spec.
-require import Ring_ops_proof.
+require import BigNum_spec.
+require import BigNum_proofs.
 require import W64_SchnorrExtract.
 
 import W64xN.

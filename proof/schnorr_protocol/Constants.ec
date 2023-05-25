@@ -2,7 +2,7 @@
 
 require import AllCore Int.
 from Jasmin require JModel JBigNum.
-require import Ring_ops_spec.
+require import BigNum_spec.
 require W64_SchnorrExtract.
 
 module M = W64_SchnorrExtract.M(W64_SchnorrExtract.Syscall).

@@ -123,7 +123,7 @@ qed.
 
 
 
-require import Ring_ops_spec.
+require import BigNum_spec.
 require import AllCore List.
 
 import W64xN.

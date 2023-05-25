@@ -4,7 +4,7 @@ import StdBigop Bigint BIA.
 from Jasmin require import JModel JBigNum.
 require import W64_SchnorrExtract Array128 Array64 Array32.
 
-require import Ring_ops_spec AuxLemmas.
+require import BigNum_spec AuxLemmas.
 import W64xN R.
 
 require import BitEncoding.
@@ -373,7 +373,7 @@ qed.
 
 
 equiv addm_spec_eq:
- M.addm ~ ASpecFp.addm:
+ M.bn_addm2 ~ ASpecFp.addm:
     W64xN.valR a{1} = a{2} /\ ImplZZ b{1} b{2} /\  ImplZZ p{1} p{2}
  /\ 0 <= a{2} < p{2} /\ 0 <= b{2} < p{2} /\ 0 <= 2*p{2} < W64xN.modulusR
   ==> ImplZZ res{1} res{2}.
@@ -411,7 +411,7 @@ qed.
 
 
 lemma bn_addm_correct aa bb pp:
-  phoare[ M.addm : a = aa /\ b = bb /\ p = pp /\ 0 <= valR a < valR p /\ 0 <= valR b < valR p /\ 0 <= 2* (valR p) < W64xN.modulusR  ==> (valR aa + valR bb)%% (valR pp) = valR res ] = 1%r.
+  phoare[ M.bn_addm2 : a = aa /\ b = bb /\ p = pp /\ 0 <= valR a < valR p /\ 0 <= valR b < valR p /\ 0 <= 2* (valR p) < W64xN.modulusR  ==> (valR aa + valR bb)%% (valR pp) = valR res ] = 1%r.
 proof. bypr. progress.
  have <- : Pr[ASpecFp.addm(valR a{m}, valR b{m}, valR p{m}) @ &m : (valR a{m} + valR b{m}) %% valR p{m} =  res] = 1%r. 
   byphoare (_: arg = (valR a{m}, valR b{m}, valR p{m}) ==> _).
@@ -1094,8 +1094,8 @@ module AddM = {
 }.
 
 (* (valR aaa + valR bbb)%% (valR ppp) *)
-lemma bn_addm2_equiv aaa bbb ppp:
-  equiv[ M.addm2 ~ AddM.addm:
+lemma bn_addm_equiv aaa bbb ppp:
+  equiv[ M.bn_addm ~ AddM.addm:
     a{1} = aaa /\ b{1} = bbb /\ p{1} = ppp 
     /\ x{2} = valR aaa /\ y{2} = valR bbb /\ z{2} = valR ppp
     /\ 0 <= valR a{1} < valR p{1}
@@ -1137,13 +1137,13 @@ call {1} (bn_shrink_correct cc_). skip. progress. rewrite H7 H6 H3 H4 H5.
 pose w := (valR a{1} + valR b{1}) %% valR p{1}. smt(@IntDiv @W64xN).
 qed.
 
-lemma bn_addm2_ph aaa bbb ppp:
-  phoare[ M.addm2 : a = aaa /\ b = bbb /\ p = ppp /\ 0 <= valR a < valR p /\ 0 <= valR b < valR p 
+lemma bn_addm_ph aaa bbb ppp:
+  phoare[ M.bn_addm : a = aaa /\ b = bbb /\ p = ppp /\ 0 <= valR a < valR p /\ 0 <= valR b < valR p 
         ==> (valR aaa + valR bbb)%% (valR ppp) = valR res ] = 1%r .
 bypr. progress.
 have ->: 1%r = Pr[ AddM.addm(valR a{m}, valR b{m}, valR p{m}) @ &m : (valR a{m} + valR b{m}) %% valR p{m} = res ].
 byphoare (_: arg = (valR a{m}, valR b{m}, valR p{m}) ==> _).
 proc. skip. auto. auto. auto.
-byequiv. conseq (bn_addm2_equiv a{m} b{m} p{m}).
+byequiv. conseq (bn_addm_equiv a{m} b{m} p{m}).
 progress. progress. auto. auto.
 qed.

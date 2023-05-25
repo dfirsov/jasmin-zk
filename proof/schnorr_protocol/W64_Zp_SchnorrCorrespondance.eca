@@ -7,7 +7,7 @@ require import W64_SchnorrExtract.
 require import W64_SchnorrProtocol.
 require import ModularMultiplication_Concrete.
 require import BarrettReduction_Concrete.
-require import Ring_ops_spec Ring_ops_proof.
+require import BigNum_spec BigNum_proofs.
 import W64xN R.                 
 
 require Zp_SchnorrProtocol.
@@ -29,6 +29,7 @@ axiom bn_set_q_correct  : phoare[ M.bn_set_q  : true ==> W64xN.valR  res = q  ] 
 axiom bn_set_g_correct  : phoare[ M.bn_set_g  : true ==> W64xN.valR  res = g  ] = 1%r.
 axiom bn_set_bp_correct : phoare[ M.bn_set_bp : true ==> W64x2N.valR res = bp ] = 1%r.
 axiom bn_set_bq_correct : phoare[ M.bn_set_bq : true ==> W64x2N.valR res = bq ] = 1%r.
+
 
 op pair_sbits : sbits * sbits -> sbits.
 op unpair : sbits -> sbits * sbits.
@@ -370,7 +371,7 @@ lemma response_eq :
     /\  c{1}   %% q  = (valR challenge_0{2})  %% q
     ==> res{1} %% q  = (valR res{2}) ].
 proc. sp. simplify.
-ecall {2} (bn_addm2_ph secret_power{2} product{2} exp_order{2}). simplify. 
+ecall {2} (bn_addm_ph secret_power{2} product{2} exp_order{2}). simplify. 
 ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph witness0{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph secret_power{2} exp_order{2}). simplify.

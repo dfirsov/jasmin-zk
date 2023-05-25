@@ -3,7 +3,7 @@
 */
 
 require "params.jinc"
-param int dnlimbs = (nlimbs*2);
+
 
 
 /* performs multi-limb subtraction */
@@ -31,29 +31,6 @@ inline fn bn_subc
   return cf, a;
 }
 
-fn dbn_subc
-( reg ptr u64[dnlimbs] a b
-) -> reg bool, reg ptr u64[dnlimbs]
-{
-  inline int i;
-  reg bool cf;
-  reg u64 x1 x2;
-
-
-  x1 = a[0];
-  x2 = b[0];
-  cf, x1 = x1 - x2;
-  a[0] =  x1;
-  for i=1 to dnlimbs{ 
-    x1 = a[i];
-    x2 = b[i];
-    cf, x1 = x1 - x2 - cf; 
-    a[i] = x1;
-  }
-
-  return cf, a;
-}
-
 
 /* Loads an array from memory
  */
@@ -70,24 +47,6 @@ inline fn bn_load
 
   return x;
 }
-
-
-/* Loads an array from memory
- */
-inline fn dbn_load
-( reg u64 a
-) -> stack u64[dnlimbs]
-{
-  inline int i;
-  stack u64[dnlimbs] x;
-
-  for i = 0 to dnlimbs {
-    x[i] = [a + 8*i];
-  }
-
-  return x;
-}
-
 
 
 
@@ -167,21 +126,6 @@ inline fn bn_copy(stack u64[nlimbs] a) -> stack u64[nlimbs] {
 }
 
 
-/* copy a bignum */
-inline fn dbn_copy(stack u64[dnlimbs] a) -> stack u64[dnlimbs] {
-  inline int i;
-  reg u64 t;
-  stack u64[dnlimbs] r;
-    
-  for i = 0 to dnlimbs {
-    t = a[i];
-    r[i] = t;
-  }
-    
-  return r;
-}
-
-
 inline fn bn_cmov(reg bool cond, stack u64[nlimbs] a b) -> stack u64[nlimbs] {
   inline int i;   
   reg u64 r1 r2;  
@@ -194,17 +138,6 @@ inline fn bn_cmov(reg bool cond, stack u64[nlimbs] a b) -> stack u64[nlimbs] {
   return a;
 }
 
-inline fn dbn_cmov(reg bool cond, stack u64[dnlimbs] a b) -> stack u64[dnlimbs] {
-  inline int i;   
-  reg u64 r1 r2;  
-  for i = 0 to dnlimbs{
-   r1 = a[i];
-   r2 = b[i];
-   r1 = r2 if cond;
-   a[i] = r1;
-  }
-  return a;
-}
 
 
 /* zeroing a bignum */
@@ -289,29 +222,6 @@ inline fn bn_addc
   return cf, a;
 }
 
-
-inline fn dbn_addc
-( reg ptr u64[dnlimbs] a b
-) -> reg bool, reg ptr u64[dnlimbs]
-{
-  inline int i;
-  reg bool cf;
-  reg u64 x1 x2;
-
-
-  x1 = a[0];
-  x2 = b[0];
-  cf, x1 = x1 + x2;
-  a[0] =  x1;
-  for i=1 to dnlimbs{ 
-    x1 = a[i];
-    x2 = b[i];
-    cf, x1 = x1 + x2 + cf; 
-    a[i] = x1;
-  }
-
-  return cf, a;
-}
 
 
 /* multiplies a scalar by a reg array (first iteration of mul) */
@@ -462,117 +372,3 @@ export fn __muln( reg u64 rp ap bp ) {
 
 
 
-
-/* multiplies a scalar by a reg array (first iteration of mul) */
-/* REGS (params + workspace): (1+nlimbs) + (nlimbs+2) */
-inline fn dmul1
-( reg u64 a,
-  stack u64[dnlimbs] b
-) -> reg u64, reg bool, reg bool, stack u64[2*dnlimbs]
-{
-  inline int i;
-  reg bool of, cf;
-  reg u64 _zero, lo, a0, x1, x2;
-  stack u64[2*dnlimbs] r;
-  
-
-  of, cf, _, _, _, _zero = #set0();
-
-  x1 = a;
-  x2 = b[0];
-  x1, x2 = #MULX ( x1, x2 );
-  r[1] = x1;
-  r[0] = x2;
-
-  for i = 1 to dnlimbs {
-    x1 = a;
-    x2 = b[i];
-    x1, x2 = #MULX ( x1, x2 );
-    r[i+1] = x1;
-    lo = x2;
-
-    x1 = r[i];
-    x2 = lo;
-    cf, x1 = #ADCX ( x1,x2, cf );
-    r[i] = x1;
-  }
-
-  x1 = r[dnlimbs];
-  cf, x1 = #ADCX ( x1, _zero, cf );
-  r[dnlimbs] = x1;
-
-
-  return _zero, of, cf, r;
-}
-
-fn dmul1acc
-( reg u64 k,
-  reg u64 a,
-  reg ptr u64[dnlimbs] b,
-  reg ptr u64[2*dnlimbs] r,
-  reg u64 _zero, // should be set to 0
-  reg bool of cf // should be set to 0
-) -> reg u64, reg bool, reg bool, reg ptr u64[2*dnlimbs]
-{
-  inline int i kk;
-  reg u64 ak hi lo  x1 x2;
-   kk = (int) k;
-
-  for i = 0 to dnlimbs-1 {
-    x1 = a; x2 = b[i];
-    x1, x2 = #MULX ( x1, x2 ); 
-    hi = x1;
-    lo = x2;
-    
-    x1 = r[kk+i];
-   
-    of, x1 = #ADOX ( x1, lo, of );
-    r[kk+i] = x1;
-
-    x1 = r[kk+i+1];
-    cf, x1 = #ADCX ( x1, hi, cf );
-    r[kk+i+1] = x1;
-  }
-
-  x1 = a;  x2 = b[dnlimbs-1];
-  x1 , x2 = #MULX ( x1, x2 ); // a is now dead!
-  r[dnlimbs+kk] = x1;  lo = x2;
-
-  x1 = r[dnlimbs+kk-1];
-  of, x1 = #ADOX ( x1, lo, of );
-  r[dnlimbs+kk-1] = x1;
-
-   x1 = r[dnlimbs+kk];
-   cf, x1 = #ADCX ( x1, _zero, cf);
-   r[dnlimbs+kk] = x1;
-
-   x1 =  r[dnlimbs+kk];
-   of, x1 = #ADOX ( x1, _zero, of);
-   r[dnlimbs+kk] = x1;
-
-  return _zero, of, cf, r;
-}
-
-
-
-/* full multiplication (first arg. as a reg_ptr) */
-inline fn dbn_muln
-( reg ptr u64[dnlimbs] a, //reg u64 fptr,
-  stack u64[dnlimbs] b
-) -> reg u64, reg bool, reg bool, stack u64[2*dnlimbs]
-{
-  inline int i;
-  reg bool of cf;
-  reg u64 _zero ai z;
-  stack u64[2*dnlimbs] r;
-
-  ai = a[0];
-  _zero, of, cf, r = dmul1(ai, b);
-
-  for i = 1 to dnlimbs {
-    ai = a[i];
-    z = (64u) i;
-    _zero, of, cf, r = dmul1acc(z, ai, b, r, _zero, of, cf);
-  }
-  return _zero, of, cf, r;
-}

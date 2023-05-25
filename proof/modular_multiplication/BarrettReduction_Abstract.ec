@@ -1,7 +1,7 @@
 require import Core Int Ring IntDiv StdOrder List Distr Real RealExp.
 import Ring.IntID IntOrder.
 
-require import BarrettRedInt Ring_ops_spec.
+require import BarrettRedInt BigNum_spec.
 
 
 (* equiv mulm_eq: *)

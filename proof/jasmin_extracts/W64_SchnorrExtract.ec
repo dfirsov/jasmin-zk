@@ -43,31 +43,6 @@ module M(SC:Syscall_t) = {
     return (cf, a);
   }
   
-  proc dbn_subc (a:W64.t Array64.t, b:W64.t Array64.t) : bool *
-                                                         W64.t Array64.t = {
-    var aux: int;
-    
-    var cf:bool;
-    var x1:W64.t;
-    var x2:W64.t;
-    var i:int;
-    
-    x1 <- a.[0];
-    x2 <- b.[0];
-    (cf, x1) <- sbb_64 x1 x2 false;
-    a.[0] <- x1;
-    aux <- (32 * 2);
-    i <- 1;
-    while (i < aux) {
-      x1 <- a.[i];
-      x2 <- b.[i];
-      (cf, x1) <- sbb_64 x1 x2 cf;
-      a.[i] <- x1;
-      i <- i + 1;
-    }
-    return (cf, a);
-  }
-  
   proc bn_copy (a:W64.t Array32.t) : W64.t Array32.t = {
     var aux: int;
     
@@ -84,23 +59,6 @@ module M(SC:Syscall_t) = {
     return (r);
   }
   
-  proc dbn_copy (a:W64.t Array64.t) : W64.t Array64.t = {
-    var aux: int;
-    
-    var r:W64.t Array64.t;
-    var i:int;
-    var t:W64.t;
-    r <- witness;
-    aux <- (32 * 2);
-    i <- 0;
-    while (i < aux) {
-      t <- a.[i];
-      r.[i] <- t;
-      i <- i + 1;
-    }
-    return (r);
-  }
-  
   proc bn_cmov (cond:bool, a:W64.t Array32.t, b:W64.t Array32.t) : W64.t Array32.t = {
     var aux: int;
     
@@ -110,25 +68,6 @@ module M(SC:Syscall_t) = {
     
     i <- 0;
     while (i < 32) {
-      r1 <- a.[i];
-      r2 <- b.[i];
-      r1 <- (cond ? r2 : r1);
-      a.[i] <- r1;
-      i <- i + 1;
-    }
-    return (a);
-  }
-  
-  proc dbn_cmov (cond:bool, a:W64.t Array64.t, b:W64.t Array64.t) : W64.t Array64.t = {
-    var aux: int;
-    
-    var i:int;
-    var r1:W64.t;
-    var r2:W64.t;
-    
-    aux <- (32 * 2);
-    i <- 0;
-    while (i < aux) {
       r1 <- a.[i];
       r2 <- b.[i];
       r1 <- (cond ? r2 : r1);
@@ -180,31 +119,6 @@ module M(SC:Syscall_t) = {
     a.[0] <- x1;
     i <- 1;
     while (i < 32) {
-      x1 <- a.[i];
-      x2 <- b.[i];
-      (cf, x1) <- adc_64 x1 x2 cf;
-      a.[i] <- x1;
-      i <- i + 1;
-    }
-    return (cf, a);
-  }
-  
-  proc dbn_addc (a:W64.t Array64.t, b:W64.t Array64.t) : bool *
-                                                         W64.t Array64.t = {
-    var aux: int;
-    
-    var cf:bool;
-    var x1:W64.t;
-    var x2:W64.t;
-    var i:int;
-    
-    x1 <- a.[0];
-    x2 <- b.[0];
-    (cf, x1) <- adc_64 x1 x2 false;
-    a.[0] <- x1;
-    aux <- (32 * 2);
-    i <- 1;
-    while (i < aux) {
       x1 <- a.[i];
       x2 <- b.[i];
       (cf, x1) <- adc_64 x1 x2 cf;
@@ -325,6 +239,92 @@ module M(SC:Syscall_t) = {
     return (_zero, of_0, cf, r);
   }
   
+  proc dbn_subc (a:W64.t Array64.t, b:W64.t Array64.t) : bool *
+                                                         W64.t Array64.t = {
+    var aux: int;
+    
+    var cf:bool;
+    var x1:W64.t;
+    var x2:W64.t;
+    var i:int;
+    
+    x1 <- a.[0];
+    x2 <- b.[0];
+    (cf, x1) <- sbb_64 x1 x2 false;
+    a.[0] <- x1;
+    aux <- (32 * 2);
+    i <- 1;
+    while (i < aux) {
+      x1 <- a.[i];
+      x2 <- b.[i];
+      (cf, x1) <- sbb_64 x1 x2 cf;
+      a.[i] <- x1;
+      i <- i + 1;
+    }
+    return (cf, a);
+  }
+  
+  proc dbn_copy (a:W64.t Array64.t) : W64.t Array64.t = {
+    var aux: int;
+    
+    var r:W64.t Array64.t;
+    var i:int;
+    var t:W64.t;
+    r <- witness;
+    aux <- (32 * 2);
+    i <- 0;
+    while (i < aux) {
+      t <- a.[i];
+      r.[i] <- t;
+      i <- i + 1;
+    }
+    return (r);
+  }
+  
+  proc dbn_cmov (cond:bool, a:W64.t Array64.t, b:W64.t Array64.t) : W64.t Array64.t = {
+    var aux: int;
+    
+    var i:int;
+    var r1:W64.t;
+    var r2:W64.t;
+    
+    aux <- (32 * 2);
+    i <- 0;
+    while (i < aux) {
+      r1 <- a.[i];
+      r2 <- b.[i];
+      r1 <- (cond ? r2 : r1);
+      a.[i] <- r1;
+      i <- i + 1;
+    }
+    return (a);
+  }
+  
+  proc dbn_addc (a:W64.t Array64.t, b:W64.t Array64.t) : bool *
+                                                         W64.t Array64.t = {
+    var aux: int;
+    
+    var cf:bool;
+    var x1:W64.t;
+    var x2:W64.t;
+    var i:int;
+    
+    x1 <- a.[0];
+    x2 <- b.[0];
+    (cf, x1) <- adc_64 x1 x2 false;
+    a.[0] <- x1;
+    aux <- (32 * 2);
+    i <- 1;
+    while (i < aux) {
+      x1 <- a.[i];
+      x2 <- b.[i];
+      (cf, x1) <- adc_64 x1 x2 cf;
+      a.[i] <- x1;
+      i <- i + 1;
+    }
+    return (cf, a);
+  }
+  
   proc dmul1 (a:W64.t, b:W64.t Array64.t) : W64.t * bool * bool *
                                             W64.t Array128.t = {
     var aux: int;
@@ -437,38 +437,6 @@ module M(SC:Syscall_t) = {
       i <- i + 1;
     }
     return (_zero, of_0, cf, r);
-  }
-  
-  proc bn_rsample (byte_z:W64.t Array32.t) : int * W64.t Array32.t = {
-    var aux: W8.t Array256.t;
-    
-    var i:int;
-    var byte_p:W64.t Array32.t;
-    var cf:bool;
-    var byte_q:W64.t Array32.t;
-    var  _0:bool;
-    var  _1:bool;
-    var  _2:bool;
-    var  _3:bool;
-    var  _4:W64.t;
-    byte_p <- witness;
-    byte_q <- witness;
-    i <- 0;
-    byte_p <@ bn_set0 (byte_p);
-    ( _0, cf,  _1,  _2,  _3,  _4) <- set0_64 ;
-    
-    while ((! cf)) {
-      aux <@ SC.randombytes_256 ((Array256.init (fun i_0 => get8
-                                 (WArray256.init64 (fun i_0 => byte_p.[i_0]))
-                                 i_0)));
-      byte_p <-
-      (Array32.init (fun i_0 => get64
-      (WArray256.init8 (fun i_0 => aux.[i_0])) i_0));
-      byte_q <@ bn_copy (byte_p);
-      (cf, byte_q) <@ bn_subc (byte_q, byte_z);
-      i <- (i + 1);
-    }
-    return (i, byte_p);
   }
   
   proc ith_bit64 (k:W64.t, ctr:W64.t) : W64.t = {
@@ -614,7 +582,7 @@ module M(SC:Syscall_t) = {
     return (r);
   }
   
-  proc addm (p:W64.t Array32.t, a:W64.t Array32.t, b:W64.t Array32.t) : 
+  proc bn_addm2 (p:W64.t Array32.t, a:W64.t Array32.t, b:W64.t Array32.t) : 
   W64.t Array32.t = {
     
     var  _0:bool;
@@ -638,7 +606,7 @@ module M(SC:Syscall_t) = {
     return (r);
   }
   
-  proc addm2 (p:W64.t Array32.t, a:W64.t Array32.t, b:W64.t Array32.t) : 
+  proc bn_addm (p:W64.t Array32.t, a:W64.t Array32.t, b:W64.t Array32.t) : 
   W64.t Array32.t = {
     
     var d:W64.t Array32.t;
@@ -761,6 +729,38 @@ module M(SC:Syscall_t) = {
       (x1, x2) <@ swapr (x1, x2, b);
     }
     return (x1);
+  }
+  
+  proc bn_rsample (byte_z:W64.t Array32.t) : int * W64.t Array32.t = {
+    var aux: W8.t Array256.t;
+    
+    var i:int;
+    var byte_p:W64.t Array32.t;
+    var cf:bool;
+    var byte_q:W64.t Array32.t;
+    var  _0:bool;
+    var  _1:bool;
+    var  _2:bool;
+    var  _3:bool;
+    var  _4:W64.t;
+    byte_p <- witness;
+    byte_q <- witness;
+    i <- 0;
+    byte_p <@ bn_set0 (byte_p);
+    ( _0, cf,  _1,  _2,  _3,  _4) <- set0_64 ;
+    
+    while ((! cf)) {
+      aux <@ SC.randombytes_256 ((Array256.init (fun i_0 => get8
+                                 (WArray256.init64 (fun i_0 => byte_p.[i_0]))
+                                 i_0)));
+      byte_p <-
+      (Array32.init (fun i_0 => get64
+      (WArray256.init8 (fun i_0 => aux.[i_0])) i_0));
+      byte_q <@ bn_copy (byte_p);
+      (cf, byte_q) <@ bn_subc (byte_q, byte_z);
+      i <- (i + 1);
+    }
+    return (i, byte_p);
   }
   
   proc bn_set_p (p:W64.t Array32.t) : W64.t Array32.t = {
@@ -1455,7 +1455,7 @@ module M(SC:Syscall_t) = {
     secret_power <@ bn_breduce_small (exp_barrett, secret_power, exp_order);
     witness0 <@ bn_breduce_small (exp_barrett, witness0, exp_order);
     product <@ bn_mulm (exp_barrett, exp_order, challenge_0, witness0);
-    response_0 <@ addm2 (exp_order, secret_power, product);
+    response_0 <@ bn_addm (exp_order, secret_power, product);
     return (response_0);
   }
   

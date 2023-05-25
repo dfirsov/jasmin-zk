@@ -1,5 +1,5 @@
 require import Core Int IntDiv Ring IntDiv StdOrder List Distr Real.
-require import Ring_ops_spec.
+require import BigNum_spec.
 
 require RejectionSamplingProperties.
 

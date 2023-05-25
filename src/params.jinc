@@ -1,1 +1,2 @@
 param int nlimbs = 32;
+param int dnlimbs = (nlimbs*2);

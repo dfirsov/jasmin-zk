@@ -1,7 +1,7 @@
 require import Core Int Ring IntDiv StdOrder List Distr Real RealExp.
 import Ring.IntID IntOrder.
 
-require import BarrettRedInt BarrettReduction_Abstract Ring_ops_spec Ring_ops_proof.
+require import BarrettRedInt BarrettReduction_Abstract BigNum_spec BigNum_proofs.
 require import W64_SchnorrExtract.
 require import AuxLemmas.
 import W64x2N.

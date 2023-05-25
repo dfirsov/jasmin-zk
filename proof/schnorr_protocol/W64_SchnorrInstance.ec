@@ -2,10 +2,10 @@ require import AllCore Distr DInterval List Int IntDiv.
 
 from Jasmin require import JModel JBigNum.
 require import Array32 Array64 Array128.
-require import Ring_ops_spec.
+require import BigNum_spec.
 import W64xN. 
 require import W64_SchnorrProtocol.
-require  W64_Zp_SchnorrPropreties.
+require  W64_SchnorrPropreties.
 require Constants.
 require import ConstantsValidation.
 
@@ -42,7 +42,7 @@ qed.
 
 lemma zp_eq z1 z2 : (Sub.val z1 = Sub.val z2) = (z1 = z2). smt(@ZpC). qed.
 
-clone import W64_Zp_SchnorrPropreties as W64_Zp_Props with 
+clone import W64_SchnorrPropreties as W64_Zp_Props with 
   op Ind.p <- Constants.p,
   op Ind.q <- Constants.q,
   op Ind.bp <- Constants.bp,

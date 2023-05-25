@@ -1,5 +1,6 @@
-require "uniform_distr.jazz"
-require "ring_ops.jazz"
+require "bn_generic.jazz"
+require "dbn_generic.jazz"
+require "bn_generic_extra.jazz"
 
 require "constants.jazz"
 
@@ -48,7 +49,7 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
   witness0     = bn_breduce_small(exp_barrett, witness0, exp_order);
 
   product  = bn_mulm(exp_barrett, exp_order, challenge, witness0);
-  response = addm2(exp_order, secret_power, product);
+  response = bn_addm(exp_order, secret_power, product);
  
   return response;
 }

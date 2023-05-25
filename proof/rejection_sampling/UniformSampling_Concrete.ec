@@ -240,7 +240,7 @@ qed.
 require import W64_SchnorrExtract.
 
 
-require import Ring_ops_spec.
+require import BigNum_spec.
 
 module SampleLoc = {
   proc jsmD() = {
@@ -315,10 +315,10 @@ smt.
 progress. 
 have : exists z, z \in (to_seq (support jsmD)) /\ W64xN.valR z = x. smt(@List).
 progress. 
-have mf : 0 <= (W64xN.valR z) < Ring_ops_spec.M. smt(@W64xN). 
+have mf : 0 <= (W64xN.valR z) < BigNum_spec.M. smt(@W64xN). 
 rewrite /D.
-have mf2 : W64xN.valR z \in (range 0 Ring_ops_spec.M). smt(@List).
-have mf3 : W64xN.valR z \in duniform (range 0 Ring_ops_spec.M). smt(@Distr).
+have mf2 : W64xN.valR z \in (range 0 BigNum_spec.M). smt(@List).
+have mf3 : W64xN.valR z \in duniform (range 0 BigNum_spec.M). smt(@Distr).
 smt(@Distr @Finite).
 rewrite ioo.
 exists (W64xN.R.bn_ofint x). split. 
@@ -327,7 +327,7 @@ apply (jsmdD_fu (W64xN.R.bn_ofint x)).
 smt.
 rewrite W64xN.R.bn_ofintK.
 have mf2 :  x \in D. smt.
-have mf3 : 0 <= x < Ring_ops_spec.M. smt.
+have mf3 : 0 <= x < BigNum_spec.M. smt.
 smt(@W64xN).
 auto.
 qed.
@@ -339,10 +339,10 @@ proc.
 rnd W64xN.valR W64xN.R.bn_ofint.
 skip. progress.
 rewrite W64xN.R.bn_ofintK. 
-have rval : 0 <= rR  < Ring_ops_spec.M. smt(@Distr @List).
+have rval : 0 <= rR  < BigNum_spec.M. smt(@Distr @List).
 smt(@Int).
-have rval : 0 <= rR  < Ring_ops_spec.M. smt(@Distr @List).
-have ->: mu1 D rR = 1%r / Ring_ops_spec.M%r.
+have rval : 0 <= rR  < BigNum_spec.M. smt(@Distr @List).
+have ->: mu1 D rR = 1%r / BigNum_spec.M%r.
 rewrite /D. smt(@Distr @List).
 rewrite mu1_uni. apply jsmdD_uni.
 have -> : (W64xN.R.bn_ofint rR)%W64xN.R \in jsmD = true.
@@ -352,7 +352,7 @@ have ->: weight jsmD = 1%r.
 smt(jsmdD_ll @Distr).
 rewrite jsmd_supp.
 smt.
-have rval : 0 <= W64xN.valR rL  < Ring_ops_spec.M. smt(@W64xN).
+have rval : 0 <= W64xN.valR rL  < BigNum_spec.M. smt(@W64xN).
 smt.
 smt(@W64xN).
 qed.    
@@ -437,7 +437,7 @@ module WW = {
 
 }.
 
-require import Ring_ops_proof.
+require import BigNum_proofs.
 equiv rsample_cspec:
  M.bn_rsample ~ CSpecFp.rsample:
   W64xN.valR byte_z{1} = a{2}
@@ -499,7 +499,7 @@ transitivity
  CSpecFp.rsample
   (W64xN.valR byte_z{1} = a{2}
     ==> W64xN.valR res{1}.`2 = res{2}.`2 /\ res{1}.`1 = res{2}.`1)
-  (={arg} /\ 0 < arg{1} < Ring_ops_spec.M  ==> res{1}.`2 = res{2}).
+  (={arg} /\ 0 < arg{1} < BigNum_spec.M  ==> res{1}.`2 = res{2}).
 progress. 
 exists (W64xN.valR arg{1}). split. smt(). split. smt().
 split. 
