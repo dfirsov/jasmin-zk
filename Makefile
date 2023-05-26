@@ -66,7 +66,6 @@ update_downloads :
 	mkdir -p proof/eclib
 	cp tmp/unpack-jasmin/*/eclib/*.ec proof/eclib/
 	cp tmp/unpack-bignum/*/proof/eclib_extra/JBigNum.ec proof/eclib/
-# cp tmp/unpack-bignum/*/proof/eclib/JArray.ec proof/eclib/
 	cp -a tmp/zk_unpack/easycrypt-zk-code-* easycrypt-zk-code
 
 

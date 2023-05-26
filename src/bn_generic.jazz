@@ -338,34 +338,35 @@ inline fn bn_muln
   return _zero, of, cf, r;
 }
 
-export fn __addc( reg u64 rp ap bp ) { 
-  reg u64 rp2;
-  stack u64[nlimbs] a b;
-  a = bn_load(ap);
-  b = bn_load(bp);
-  // relax ABI contraints
-  rp2 = rp;
-  _, a = bn_addc(a, b);
-  bn_store(rp2, a);
-}
+
+// export fn __addc( reg u64 rp ap bp ) { 
+//   reg u64 rp2;
+//   stack u64[nlimbs] a b;
+//   a = bn_load(ap);
+//   b = bn_load(bp);
+//   // relax ABI contraints
+//   rp2 = rp;
+//   _, a = bn_addc(a, b);
+//   bn_store(rp2, a);
+// }
 
 
-export fn __muln( reg u64 rp ap bp ) { 
-  stack u64 rp2;
-  stack u64[nlimbs] a b;
-  stack u64[2*nlimbs] r;
-  stack u64[nlimbs] a_s;
-  stack u64 rp_s;
+// export fn __muln( reg u64 rp ap bp ) { 
+//   stack u64 rp2;
+//   stack u64[nlimbs] a b;
+//   stack u64[2*nlimbs] r;
+//   stack u64[nlimbs] a_s;
+//   stack u64 rp_s;
 
-  rp_s = rp;
-  a = bn_load(ap);
-  a_s = a;
-  b = bn_load(bp);
-  rp2 = rp;
-  _, _, _, r = bn_muln(a_s, b);
-  rp = rp2;
-  bn2_store(rp, r);
-}
+//   rp_s = rp;
+//   a = bn_load(ap);
+//   a_s = a;
+//   b = bn_load(bp);
+//   rp2 = rp;
+//   _, _, _, r = bn_muln(a_s, b);
+//   rp = rp2;
+//   bn2_store(rp, r);
+// }
 
 
 
