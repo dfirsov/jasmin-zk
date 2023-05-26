@@ -13,7 +13,7 @@
    - `bn_rsample` rejection sampling algorithm for uniform distributions.
 * `schnorr_protocol.h` C-interface of external calls for the Schnorr protocol entry points.
 
-### `src/example`
+### `src/example/`
 * `example.c` C-wrapper which links the Schnorr protocol procedures (which were previously compiled by Jasmin) and handles dispatching of messages.
 * `syscalls/` implementation of System calls for linking with Jasmin programs.
 
@@ -51,11 +51,11 @@
   - `W64_Zp_SchnorrCorrespondance.eca` proofs of equivalences between Schnorr procedures at "middle-level" and "low-level".
   - `W64_SchnorrProeprties.eca` final derivation of properties for Schnorr at the "low-level".
   - `Constants.ec` automatically generated file by `src/constants.py` file which contains Schnorr protocol parameters `p` (group order),`q` (exponent order), `bp` (Barrett factor for `p`), `bq` (Barrett factor for `q`), and `g` (generator of subgroup of prime order `q`). Also contains automatically generated proofs that Jasmin functions `bn_set_p`, `bn_set_q`, etc. correctly encode the respective values.
-  - `ConstantsValidation.ec` proofs (based on tacticals) that parameters in `Constants.ec` are valid (e.g., `g` is a generator of order subgoup of `q`, `bp` is a Barrett parameter for `p`, etc.).
-  - `W64_SchnorrInstance.ec` instance of the Schnorr protocol defined for parameters from `Constants.ec`.
+  - `ConstantsValidation.ec` proofs (based on tacticals) that parameters in `Constants.ec` are valid (e.g., `g` is a generator of subgoup of order `q`, `bp` is a Barrett parameter for `p`, etc.).
+  - `W64_SchnorrInstance.ec` instance of the Schnorr protocol cloned with parameters from `Constants.ec`.
   - `side_channel_properties/` proofs that Jasmin implementation of `verify` and `response` are constant time; `commitment` and `challenge` are leakage-free.
-  - `ZModPStar.eca` abstract definition of Zp*.
+  - `ZModPStar.eca` abstract definition of Zp* through `Subtype` theory.
 
 * `leakage_functions/Ops_LeakageFunctions.ec` explicit proofs that main operations on the big nums are "constant-time" in a sense that there exist functions which compute leakages from public inputs.
 
-* `easycrypt-zk-code/` contains formalization of zero-knowledge proofs by  (Firsov, Unruh, CSF 2023).
+* `easycrypt-zk-code/` contains formalization of zero-knowledge proofs by  "Firsov, Unruh, CSF 2023".
