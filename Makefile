@@ -85,3 +85,13 @@ extract_all $(EXTRACTED_FILES) : src/schnorr_protocol.jazz src/constants.jazz Ma
 
 src/constants.jazz : src/constants.py
 	make -C src constants.jazz
+
+
+
+
+compile_and_run :
+	$(info This might take a while...)
+	make -C src/example run
+
+
+

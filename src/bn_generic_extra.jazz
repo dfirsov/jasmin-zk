@@ -1,0 +1,301 @@
+require "bn_generic.jazz"
+require "dbn_generic.jazz"
+
+
+inline fn ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 {
+  reg u64 p bit;
+  bit =  k;
+  p = ctr;
+  p &= 63;
+  bit = bit >> p;
+  bit &= 1;
+  return bit;
+}
+
+
+inline fn ith_bit(reg ptr u64[nlimbs] kk, reg u64 ctr) -> reg u64
+{
+  reg u64 p bit r c1 c2 ctr2 ctr3;
+  ctr2 = ctr;
+  ctr3 =  ctr;
+  c1 = ctr2 >> 6;
+  c2 = ctr3 & 63;
+  r = kk[(int) c1 ];
+  bit = ith_bit64(r,c2);  
+  return bit;
+}
+
+
+inline fn swapr(reg ptr u64[nlimbs] x, reg ptr u64[nlimbs] y, reg u64 swap) -> (reg ptr u64[nlimbs] , reg ptr u64[nlimbs]) {
+  reg u64  mask, tmp1, tmp2;
+  inline int i;
+
+  mask = swap * 0xffffffffffffffff;
+
+  for i = 0 to nlimbs {
+   tmp1   = x[i];
+   tmp1  ^= y[i];
+   tmp1  &= mask;
+   x[i]  ^= tmp1;
+   tmp2   = y[i];
+   tmp2  ^= tmp1;
+   y[i] = tmp2;
+
+  }
+  return x, y;
+}
+
+
+inline fn sn_cmov(reg bool cond, stack u64 a b) -> stack u64 {
+  inline int i;   
+  reg u64 r1 r2;  
+   r1 = a;
+   r2 = b;
+   r1 = r2 if cond;
+   a = r1;
+  return a;
+}
+
+
+/* equality check */
+inline fn bn_eq(stack u64[nlimbs] a b) -> stack u64 {
+  stack u64 result output;
+  reg u64 c1 c2;
+  reg bool cf;
+  inline int i;
+  result = 0;
+  for i = 0 to nlimbs {
+    c1 = a[i];
+    c2 = b[i];
+    c1 ^= c2;
+    result |= c1 ;
+  }
+  cf = result == 0;
+  output = sn_cmov(cf,0,1);
+  return output;
+}
+
+
+inline fn cminusP (stack u64[nlimbs] p x) 
+ -> stack u64[nlimbs]
+{
+  stack u64[nlimbs] z;
+  reg bool cf;
+  inline int i;
+
+  z = bn_copy(x);
+  cf, z = bn_subc(z, p);
+  x = bn_cmov(cf, z, x);
+  return x;
+}
+
+
+inline fn dcminusP (stack u64[dnlimbs] p x) 
+ -> stack u64[dnlimbs]
+{
+  stack u64[dnlimbs] z;
+  reg bool cf;
+  inline int i;
+
+  z = dbn_copy(x);
+  cf, z = dbn_subc(z, p);
+  x = dbn_cmov(cf, z, x);
+  return x;
+}
+
+
+
+/*  Modular addition  */
+inline fn daddm(stack u64[dnlimbs] p a b) 
+ -> stack u64[dnlimbs]
+{  
+  _, a = dbn_addc (a,b);
+  a = dcminusP (p,a);
+  return a;
+}
+
+
+inline fn bn_expand(stack u64[nlimbs] x) 
+ -> (stack u64[dnlimbs])
+{
+  stack u64[dnlimbs] r;
+  inline int i;
+
+  for i = 0 to nlimbs{
+    r[i] = x[i];
+  }  
+  for i = nlimbs to dnlimbs{
+    r[i] = 0;
+  }  
+  return r;
+}
+
+
+/*  Modular addition (constrained, 2p < modulus)  */
+inline fn bn_addm2(stack u64[nlimbs] p a b) 
+ -> stack u64[nlimbs]
+{  
+  _, a = bn_addc (a,b);
+  a = cminusP (p,a);
+  return a;
+}
+
+
+inline fn bn_shrink(stack u64[dnlimbs] x) 
+ -> (stack u64[nlimbs])
+{
+  stack u64[nlimbs] r;
+  inline int i;
+
+  for i = 0 to nlimbs{
+    r[i] = x[i];
+  }  
+  return r;
+}
+
+
+
+// (unconstrained addition, hacky implementation)
+inline fn bn_addm(stack u64[nlimbs] p a b) 
+ -> (stack u64[nlimbs])
+{
+  stack u64[dnlimbs] aa bb cc dd pp;
+  stack u64[nlimbs] d;
+
+
+  aa = bn_expand(a);
+  bb = bn_expand(b);
+  pp = bn_expand(p);
+  cc = daddm(pp,aa,bb);
+  d   = bn_shrink(cc);
+  return d;
+}
+
+
+inline fn div2(stack u64[2*dnlimbs] x, inline int k) 
+ -> (stack u64[dnlimbs])
+{
+  stack u64[dnlimbs] r;
+  inline int i;
+
+  for i = 0 to k{
+   r[i] = x[(int)dnlimbs + i];
+  }
+  return r;
+}
+
+
+
+
+
+inline fn bn_breduce(stack u64[2*nlimbs] r a, stack u64[nlimbs] p) 
+ -> (stack u64[nlimbs])
+{
+  inline int i;
+  stack u64[nlimbs] xrfd res;
+  stack u64[dnlimbs] xrf xrfn t pp;
+  stack u64[2*dnlimbs] xr;
+
+  xr = dbn_muln(a,r);
+  xrf = div2(xr, 2 * nlimbs);
+  xrfd = bn_shrink(xrf);
+  xrfn = bn_muln(xrfd,p);
+  t = dbn_subc(a, xrfn);
+  pp = bn_expand(p);
+  t = dcminusP(pp, t);
+  res = bn_shrink(t);
+
+  return res;
+}
+
+
+
+inline fn bn_breduce_small(stack u64[dnlimbs] r, stack u64[nlimbs] a, stack u64[nlimbs] p) 
+ -> stack u64[nlimbs]
+{
+  stack u64[dnlimbs] aa;
+  stack u64[nlimbs] res;
+  aa = bn_expand(a);
+  res = bn_breduce(r,aa,p);
+  return res;
+}
+
+
+
+inline fn bn_mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b) 
+ -> stack u64[nlimbs]
+{
+  stack u64[2*nlimbs] c;
+  reg bool _of _cf;
+
+  _of, _cf, c = bn_muln (a,b);
+  a = bn_breduce(r,c,p);
+  return a;
+}
+
+
+inline fn bn_expm(stack u64[dnlimbs] r, stack u64[nlimbs] m x n) 
+ -> (stack u64[nlimbs])
+{
+  reg u64 i b;
+  stack u64[nlimbs] x1 x2 x11;
+
+  x1 = bn_set1(x1);
+  x2 = bn_copy(x);
+  x11 = bn_copy(x1);
+  i = nlimbs * 64;
+  b = 0;
+  while(i > 0){
+    i = i - 1;
+    b = ith_bit(n,i);
+    (x1,x2) = swapr(x1,x2,b);
+    x11 = bn_copy(x1);
+    x1 = bn_mulm(r,m,x1,x1);
+    x2 = bn_mulm(r,m,x11,x2);
+    (x1,x2) = swapr(x1,x2,b);
+  }
+  return x1;
+}
+
+
+
+// sample uniformly at random an element from interval [0..byte_z-1]
+inline fn bn_rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
+{
+  stack u64[nlimbs] byte_q byte_p;
+  reg bool cf;
+  inline int i;
+
+  i = 0;
+  byte_p = bn_set0(byte_p);
+
+  _, cf, _, _, _, _ = #set0();
+  while (!cf) {
+    byte_p = #randombytes(byte_p);
+    byte_q = bn_copy(byte_p);
+    cf, byte_q = bn_subc(byte_q, byte_z);
+    i = i + 1;
+  }
+
+  return (i, byte_p);
+}
+
+
+// used by Tiago for testing
+export fn zk_expm(reg u64 result_p base_p exp_p barrett_p mod_p) 
+{ 
+  stack u64[nlimbs] result base exp mod;
+  stack u64[dnlimbs] barrett;
+
+  result_p = result_p;
+  base     = bn_load(base_p);
+  exp      = bn_load(exp_p);
+  mod      = bn_load(mod_p);
+  barrett  = dbn_load(barrett_p);
+
+  result = bn_expm(barrett, mod, base, exp);
+
+  bn_store(result_p, result);
+}
+
+
