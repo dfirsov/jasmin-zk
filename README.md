@@ -1,9 +1,11 @@
 ## Makefile
-
-* `make extract_all`
-* `make check_all`
-* `make update_downloads`
-* `make opam_pin`
+* `make opam_pin` installs EasyCrypt and Jasmin of versions specified in `Makefile`.
+* `make update_downloads` fetches dependendencies from Github repositories (required versions are specified in the `Makefile`).
+   - BigNum library of Jasmin;
+   - Zero-Knowledge library of EasyCrypt;
+   - Jasmin's `eclib` for EasyCrypt.
+* `make check_all` runs the EasyCrypt proof checker on the entire development (this takes a while...).
+* `make compile_and_run` compiles and runs protocol `src/schnorr_protocol.jazz` linked together by C-wrapper `src/example/example.c`.
 
 
 ## Contents
