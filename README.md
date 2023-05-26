@@ -68,4 +68,4 @@
 
 * `leakage_functions/Ops_LeakageFunctions.ec` explicit proofs that main operations on the big nums are "constant-time" in a sense that there exist functions which compute leakages from public inputs.
 
-* `easycrypt-zk-code/` contains formalization of zero-knowledge proofs by  "Firsov, Unruh, CSF 2023".
+* `easycrypt-zk-code/` contains formalization of zero-knowledge proofs from "D. Firsov, D. Unruh. [Zero-Knowledge in EasyCrypt](https://eprint.iacr.org/2022/926)".
