@@ -224,18 +224,25 @@ module M(SC:Syscall_t) = {
     var cf:bool;
     var r:W64.t Array64.t;
     var ai:W64.t;
+    var rp:W64.t Array64.t;
+    var bp:W64.t Array32.t;
     var i:int;
     var z:W64.t;
+    bp <- witness;
     r <- witness;
+    rp <- witness;
     ai <- a.[0];
     (_zero, of_0, cf, r) <@ mul1 (ai, b);
+    rp <- r;
+    bp <- b;
     i <- 1;
     while (i < 32) {
       ai <- a.[i];
       z <- (W64.of_int i);
-      (_zero, of_0, cf, r) <@ mul1acc (z, ai, b, r, _zero, of_0, cf);
+      (_zero, of_0, cf, rp) <@ mul1acc (z, ai, bp, rp, _zero, of_0, cf);
       i <- i + 1;
     }
+    r <- rp;
     return (_zero, of_0, cf, r);
   }
   

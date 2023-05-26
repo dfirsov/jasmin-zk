@@ -425,8 +425,9 @@ module M(SC:Syscall_t) = {
                                                         W64.t Array64.t = {
     var aux_1: bool;
     var aux_0: bool;
-    var aux_3: int;
+    var aux_4: int;
     var aux: W64.t;
+    var aux_3: W64.t Array32.t;
     var aux_2: W64.t Array64.t;
     
     var _zero:W64.t;
@@ -434,9 +435,13 @@ module M(SC:Syscall_t) = {
     var cf:bool;
     var r:W64.t Array64.t;
     var ai:W64.t;
+    var rp:W64.t Array64.t;
+    var bp:W64.t Array32.t;
     var i:int;
     var z:W64.t;
+    bp <- witness;
     r <- witness;
+    rp <- witness;
     leakages <- LeakAddr([0]) :: leakages;
     aux <- a.[0];
     ai <- aux;
@@ -446,6 +451,12 @@ module M(SC:Syscall_t) = {
     of_0 <- aux_1;
     cf <- aux_0;
     r <- aux_2;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_2 <- r;
+    rp <- aux_2;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_3 <- b;
+    bp <- aux_3;
     leakages <- LeakFor(1,32) :: LeakAddr([]) :: leakages;
     i <- 1;
     while (i < 32) {
@@ -456,13 +467,16 @@ module M(SC:Syscall_t) = {
       aux <- (W64.of_int i);
       z <- aux;
       leakages <- LeakAddr([]) :: leakages;
-      (aux, aux_1, aux_0, aux_2) <@ mul1acc (z, ai, b, r, _zero, of_0, cf);
+      (aux, aux_1, aux_0, aux_2) <@ mul1acc (z, ai, bp, rp, _zero, of_0, cf);
       _zero <- aux;
       of_0 <- aux_1;
       cf <- aux_0;
-      r <- aux_2;
+      rp <- aux_2;
       i <- i + 1;
     }
+    leakages <- LeakAddr([]) :: leakages;
+    aux_2 <- rp;
+    r <- aux_2;
     return (_zero, of_0, cf, r);
   }
   
