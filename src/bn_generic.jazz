@@ -327,43 +327,51 @@ inline fn bn_muln
   reg u64 _zero ai z;
   stack u64[2*nlimbs] r;
 
+  reg ptr u64[2*nlimbs] rp;
+  reg ptr u64[nlimbs] bp;
+
   ai = a[0];
   _zero, of, cf, r = mul1(ai, b);
 
+  rp = r;
+  bp = b;
   for i = 1 to nlimbs {
     ai = a[i];
     z = (64u) i;
-    _zero, of, cf, r = mul1acc(z, ai, b, r, _zero, of, cf);
+    _zero, of, cf, rp = mul1acc(z, ai, bp, rp, _zero, of, cf);
   }
+
+  r = rp;
   return _zero, of, cf, r;
 }
 
-export fn __addc( reg u64 rp ap bp ) { 
-  reg u64 rp2;
+export fn __addc( reg u64 rp ap bp ) {
+
   stack u64[nlimbs] a b;
+  reg ptr u64[nlimbs] _a, _b;
+
   a = bn_load(ap);
   b = bn_load(bp);
-  // relax ABI contraints
-  rp2 = rp;
-  _, a = bn_addc(a, b);
-  bn_store(rp2, a);
+
+  _a = a; _b = b;
+  _, a = bn_addc(_a, _b);
+
+  bn_store(rp, a);
 }
 
 
-export fn __muln( reg u64 rp ap bp ) { 
-  stack u64 rp2;
+export fn __muln( reg u64 rp ap bp ) {
+
   stack u64[nlimbs] a b;
   stack u64[2*nlimbs] r;
-  stack u64[nlimbs] a_s;
-  stack u64 rp_s;
+  reg ptr u64[nlimbs] _a _b;
 
-  rp_s = rp;
   a = bn_load(ap);
-  a_s = a;
   b = bn_load(bp);
-  rp2 = rp;
-  _, _, _, r = bn_muln(a_s, b);
-  rp = rp2;
+
+  _a = a; _b = b;
+  _, _, _, r = bn_muln(_a, _b);
+
   bn2_store(rp, r);
 }
 
