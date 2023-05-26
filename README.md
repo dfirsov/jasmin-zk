@@ -1,3 +1,11 @@
+## Makefile
+
+* `make extract_all`
+* `make check_all`
+* `make update_downloads`
+* `make opam_pin`
+
+
 ## Contents
 
 ### `src/`
