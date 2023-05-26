@@ -24,8 +24,8 @@
 * `schnorr_protocol.h` C-interface of external calls for the Schnorr protocol entry points.
 
 ### `src/example/`
-* `example.c` C-wrapper which links the Schnorr protocol procedures (which were previously compiled by Jasmin) and handles dispatching of messages.
-* `syscalls/` implementation of System calls for linking with Jasmin programs.
+* `example.c` C-wrapper which links the Schnorr protocol procedures and handles dispatching of messages.
+* `syscalls/` (random and pseudo-random) implementation of Jasmin's `#randombytes` system-call.
 
 
 ### `proof/`
