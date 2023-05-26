@@ -655,7 +655,7 @@ op bn_breduce_f : leakages_t = bn_shrink_f 32 ++
 [LeakAddr []] ++ dcminusP_f ++
 [LeakAddr []] ++ bn_expand_f 32 ++
 [LeakAddr []] ++ dsub_f 64 ++
-[LeakAddr []; LeakAddr []] ++ bn_muln_f 32 ++
+[LeakAddr []; LeakAddr []; LeakAddr []] ++ bn_muln_f 32 ++
 [LeakAddr []; LeakAddr []] ++ bn_shrink_f 32 ++
 [LeakAddr []] ++ div2_f 64 64 ++
 [LeakAddr []] ++ dbn_muln_f 64 ++ [LeakAddr []; LeakAddr []].
@@ -666,11 +666,11 @@ lemma bn_breduce_leakages start_l :
 proof. 
 proc. 
 pose suf1 :=  [LeakAddr []; LeakAddr []] ++ start_l.
-seq 14 : (M.leakages = dbn_muln_f 64 ++ suf1 ).
+seq 16 : (M.leakages = dbn_muln_f 64 ++ suf1 ).
 wp.  call (dbn_muln_leakages suf1). simplify. wp. skip. progress. 
 
 pose suf2 :=  [LeakAddr []] ++ dbn_muln_f 64 ++ suf1.
-seq 7 : (M.leakages = div2_f 64 64 ++ suf2).
+seq 6 : (M.leakages = div2_f 64 64 ++ suf2).
 wp.  call (div2_leakages suf2 64). simplify. wp. skip. progress. 
 
 pose suf3 :=  [LeakAddr []] ++ div2_f 64 64 ++ suf2.
@@ -681,8 +681,8 @@ pose suf4 :=  [LeakAddr [] ;  LeakAddr []] ++ bn_shrink_f 32 ++ suf3.
 seq 9 : (M.leakages = bn_muln_f 32 ++ suf4).
 wp.  call (bn_muln_leakages suf4). simplify. wp. skip. progress.  rewrite /suf4.
 
-pose suf5 :=  [LeakAddr [];LeakAddr []] ++ bn_muln_f 32 ++ suf4.
-seq 5 : (M.leakages = dsub_f 64  ++ suf5).
+pose suf5 :=  [LeakAddr [];LeakAddr [];LeakAddr []] ++ bn_muln_f 32 ++ suf4.
+seq 9 : (M.leakages = dsub_f 64  ++ suf5).
 wp.  call (dbn_subc_leakages suf5). simplify. wp. skip. progress. 
 
 pose suf6 :=  [LeakAddr []] ++ dsub_f 64 ++ suf5.
@@ -823,7 +823,7 @@ op samp_prefix : leakages_t =
                                                               LeakAddr []]).
 op samp_step  : leakages_t = LeakCond true :: LeakAddr [] :: LeakAddr [] :: (sub_f 32 ++
                                                 LeakAddr [] :: (copy_f 32 ++
-                                                                LeakAddr [] :: 
+                                                                LeakAddr [] :: LeakAddr [] :: 
                                                                 LeakAddr [] :: [])) .
 
 
@@ -840,7 +840,7 @@ smt(@Int). qed.
 op samp_suffix : leakages_t = 
  LeakCond false :: LeakAddr [] :: LeakAddr [] 
    :: (sub_f 32 ++ LeakAddr [] :: 
-      (copy_f 32 ++ LeakAddr [] :: LeakAddr [] :: [])).
+      (copy_f 32 ++ LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: [])).
 
 op samp_f (x : int) : leakages_t = samp_g x ++ samp_prefix.
 op samp_t (x : int) : leakages_t = samp_suffix ++ samp_f (x - 1).
@@ -911,9 +911,9 @@ lemma rsample_leakages l :
   hoare [ M(Syscall).bn_rsample : M.leakages = l 
      ==> M.leakages = samp_t res.`1 ++ l].
 proc.
-seq 17 :  (M.leakages = samp_prefix ++ l /\ i = 0  /\ cf = false ).
-wp. ecall (bn_set0_leakages M.leakages). wp. skip. progress.  
-rewrite /set0_64. rewrite /samp_prefix. simplify. smt(@List).
+seq 18 :  (M.leakages = samp_prefix ++ l /\ i = 0  /\ cf = false ).
+wp. ecall (bn_set0_leakages M.leakages). wp. skip. progress.
+rewrite /samp_prefix. simplify. smt(@List).
 while (0 <= i /\ (cf = false => M.leakages = samp_f i ++ l) 
               /\ (cf = true => M.leakages = samp_t i ++ l)).
 wp.  ecall (bn_subc_leakages M.leakages). simplify.
@@ -924,14 +924,20 @@ rewrite /samp_f. rewrite (samp_g_comp_2 (i{hr} + 1)). smt().
 simplify.
 rewrite /samp_step. simplify. 
 have ->: (copy_f 32 ++
-                LeakAddr [] :: LeakAddr [] :: (samp_g i{hr} ++ samp_prefix ++
+                LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: (samp_g i{hr} ++ samp_prefix ++
                                                l))
- = (copy_f 32 ++ [LeakAddr []; LeakAddr []]) ++
+ = (copy_f 32 ++ [LeakAddr [] ; LeakAddr []; LeakAddr []]) ++
 samp_g i{hr} ++ samp_prefix ++ l.
-smt(@List). smt(@List).
+do ? rewrite - catA. simplify. auto. 
+
+
+smt(@List).
 rewrite /samp_t. simplify.
 rewrite /samp_suffix.  simplify.  split. rewrite H4. auto.
-rewrite H0. rewrite H2. auto. smt(@List).
+rewrite H0. rewrite H2. auto. 
+do ? rewrite - catA. simplify.
+congr. congr. congr. 
+do ? rewrite - catA. congr. simplify. auto.
 skip. progress. rewrite /samp_prefix. rewrite /samp_f. rewrite samp_g_comp_1.
 auto. rewrite /samp_prefix. auto.
 rewrite H2. rewrite H. auto.

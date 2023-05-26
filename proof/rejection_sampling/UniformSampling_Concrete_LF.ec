@@ -154,7 +154,7 @@ qed.
 lemma rsample_index_pos &m a : Pr[M1.bn_rsample(a) @ &m : res.`1 <= 0 ] = 0%r.
 byphoare (_: arg = a ==> _);auto. hoare.
 proc.  simplify.
-unroll 18. rcondt 18. wp. wp. 
+unroll 19. rcondt 19. wp. wp. 
 call (_:true). wp. auto. wp. skip. auto.
 while (0 < i). wp. call (_:true). auto. wp.  call (_:true). auto.  wp. 
 inline*. wp. rnd. wp. skip. progress. smt().

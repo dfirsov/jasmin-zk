@@ -1063,7 +1063,13 @@ module M(SC:Syscall_t) = {
     aux_1 <- (result = (W64.of_int 0));
     cf <- aux_1;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ sn_cmov (cf, (W64.of_int 0), (W64.of_int 1));
+    aux <- (W64.of_int 0);
+    c1 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- (W64.of_int 1);
+    c2 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ sn_cmov (cf, c1, c2);
     output <- aux;
     return (output);
   }
@@ -1120,18 +1126,27 @@ module M(SC:Syscall_t) = {
   
   proc daddm (p:W64.t Array64.t, a:W64.t Array64.t, b:W64.t Array64.t) : 
   W64.t Array64.t = {
-    var aux: bool;
-    var aux_0: W64.t Array64.t;
+    var aux_0: bool;
+    var aux: W64.t Array64.t;
     
+    var _a:W64.t Array64.t;
+    var _b:W64.t Array64.t;
     var  _0:bool;
-    
+    _a <- witness;
+    _b <- witness;
     leakages <- LeakAddr([]) :: leakages;
-    (aux, aux_0) <@ dbn_addc (a, b);
-     _0 <- aux;
-    a <- aux_0;
+    aux <- a;
+    _a <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux_0 <@ dcminusP (p, a);
-    a <- aux_0;
+    aux <- b;
+    _b <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    (aux_0, aux) <@ dbn_addc (_a, _b);
+     _0 <- aux_0;
+    a <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ dcminusP (p, a);
+    a <- aux;
     return (a);
   }
   
@@ -1269,6 +1284,7 @@ module M(SC:Syscall_t) = {
     var xrfd:W64.t Array32.t;
     var _b:W64.t Array32.t;
     var xrfn:W64.t Array64.t;
+    var _xrfn:W64.t Array64.t;
     var t:W64.t Array64.t;
     var pp:W64.t Array64.t;
     var  _0:W64.t;
@@ -1280,6 +1296,7 @@ module M(SC:Syscall_t) = {
     var  _6:bool;
     _a <- witness;
     _b <- witness;
+    _xrfn <- witness;
     pp <- witness;
     res_0 <- witness;
     t <- witness;
@@ -1315,7 +1332,10 @@ module M(SC:Syscall_t) = {
     aux <- a;
     _a <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    (aux_2, aux) <@ dbn_subc (_a, xrfn);
+    aux <- xrfn;
+    _xrfn <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    (aux_2, aux) <@ dbn_subc (_a, _xrfn);
      _6 <- aux_2;
     t <- aux;
     leakages <- LeakAddr([]) :: leakages;
@@ -1459,12 +1479,14 @@ module M(SC:Syscall_t) = {
     var i:int;
     var byte_p:W64.t Array32.t;
     var cf:bool;
+    var _byte_p:W64.t Array32.t;
     var byte_q:W64.t Array32.t;
     var  _0:bool;
     var  _1:bool;
     var  _2:bool;
     var  _3:bool;
     var  _4:W64.t;
+    _byte_p <- witness;
     byte_p <- witness;
     byte_q <- witness;
     leakages <- LeakAddr([]) :: leakages;
@@ -1486,8 +1508,11 @@ module M(SC:Syscall_t) = {
     
     while ((! cf)) {
       leakages <- LeakAddr([]) :: leakages;
+      aux_0 <- byte_p;
+      _byte_p <- aux_0;
+      leakages <- LeakAddr([]) :: leakages;
       aux_7 <@ SC.randombytes_256 ((Array256.init (fun i_0 => get8
-                                   (WArray256.init64 (fun i_0 => byte_p.[i_0]))
+                                   (WArray256.init64 (fun i_0 => _byte_p.[i_0]))
                                    i_0)));
       byte_p <-
       (Array32.init (fun i_0 => get64

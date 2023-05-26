@@ -540,7 +540,9 @@ module M(SC:Syscall_t) = {
       i <- i + 1;
     }
     cf <- (result = (W64.of_int 0));
-    output <@ sn_cmov (cf, (W64.of_int 0), (W64.of_int 1));
+    c1 <- (W64.of_int 0);
+    c2 <- (W64.of_int 1);
+    output <@ sn_cmov (cf, c1, c2);
     return (output);
   }
   
@@ -575,9 +577,14 @@ module M(SC:Syscall_t) = {
   proc daddm (p:W64.t Array64.t, a:W64.t Array64.t, b:W64.t Array64.t) : 
   W64.t Array64.t = {
     
+    var _a:W64.t Array64.t;
+    var _b:W64.t Array64.t;
     var  _0:bool;
-    
-    ( _0, a) <@ dbn_addc (a, b);
+    _a <- witness;
+    _b <- witness;
+    _a <- a;
+    _b <- b;
+    ( _0, a) <@ dbn_addc (_a, _b);
     a <@ dcminusP (p, a);
     return (a);
   }
@@ -672,6 +679,7 @@ module M(SC:Syscall_t) = {
     var xrfd:W64.t Array32.t;
     var _b:W64.t Array32.t;
     var xrfn:W64.t Array64.t;
+    var _xrfn:W64.t Array64.t;
     var t:W64.t Array64.t;
     var pp:W64.t Array64.t;
     var  _0:W64.t;
@@ -683,6 +691,7 @@ module M(SC:Syscall_t) = {
     var  _6:bool;
     _a <- witness;
     _b <- witness;
+    _xrfn <- witness;
     pp <- witness;
     res_0 <- witness;
     t <- witness;
@@ -697,7 +706,8 @@ module M(SC:Syscall_t) = {
     _b <- xrfd;
     ( _3,  _4,  _5, xrfn) <@ bn_muln (_b, p);
     _a <- a;
-    ( _6, t) <@ dbn_subc (_a, xrfn);
+    _xrfn <- xrfn;
+    ( _6, t) <@ dbn_subc (_a, _xrfn);
     pp <@ bn_expand (p);
     t <@ dcminusP (pp, t);
     res_0 <@ bn_shrink (t);
@@ -770,12 +780,14 @@ module M(SC:Syscall_t) = {
     var i:int;
     var byte_p:W64.t Array32.t;
     var cf:bool;
+    var _byte_p:W64.t Array32.t;
     var byte_q:W64.t Array32.t;
     var  _0:bool;
     var  _1:bool;
     var  _2:bool;
     var  _3:bool;
     var  _4:W64.t;
+    _byte_p <- witness;
     byte_p <- witness;
     byte_q <- witness;
     i <- 0;
@@ -783,8 +795,9 @@ module M(SC:Syscall_t) = {
     ( _0, cf,  _1,  _2,  _3,  _4) <- set0_64 ;
     
     while ((! cf)) {
+      _byte_p <- byte_p;
       aux <@ SC.randombytes_256 ((Array256.init (fun i_0 => get8
-                                 (WArray256.init64 (fun i_0 => byte_p.[i_0]))
+                                 (WArray256.init64 (fun i_0 => _byte_p.[i_0]))
                                  i_0)));
       byte_p <-
       (Array32.init (fun i_0 => get64

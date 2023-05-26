@@ -13,7 +13,7 @@ inline fn ith_bit64(reg u64 k, reg u64 ctr) -> reg u64 {
 }
 
 
-inline fn ith_bit(reg ptr u64[nlimbs] kk, reg u64 ctr) -> reg u64
+inline fn ith_bit(stack u64[nlimbs] kk, reg u64 ctr) -> reg u64
 {
   reg u64 p bit r c1 c2 ctr2 ctr3;
   ctr2 = ctr;
@@ -26,7 +26,7 @@ inline fn ith_bit(reg ptr u64[nlimbs] kk, reg u64 ctr) -> reg u64
 }
 
 
-inline fn swapr(reg ptr u64[nlimbs] x, reg ptr u64[nlimbs] y, reg u64 swap) -> (reg ptr u64[nlimbs] , reg ptr u64[nlimbs]) {
+inline fn swapr(stack u64[nlimbs] x, stack u64[nlimbs] y, reg u64 swap) -> (stack u64[nlimbs] , stack u64[nlimbs]) {
   reg u64  mask, tmp1, tmp2;
   inline int i;
 
@@ -46,7 +46,7 @@ inline fn swapr(reg ptr u64[nlimbs] x, reg ptr u64[nlimbs] y, reg u64 swap) -> (
 }
 
 
-inline fn sn_cmov(reg bool cond, stack u64 a b) -> stack u64 {
+inline fn sn_cmov(reg bool cond, reg u64 a b) -> reg u64 {
   inline int i;   
   reg u64 r1 r2;  
    r1 = a;
@@ -58,8 +58,8 @@ inline fn sn_cmov(reg bool cond, stack u64 a b) -> stack u64 {
 
 
 /* equality check */
-inline fn bn_eq(stack u64[nlimbs] a b) -> stack u64 {
-  stack u64 result output;
+inline fn bn_eq(stack u64[nlimbs] a b) -> reg u64 {
+  reg u64 result output;
   reg u64 c1 c2;
   reg bool cf;
   inline int i;
@@ -71,7 +71,9 @@ inline fn bn_eq(stack u64[nlimbs] a b) -> stack u64 {
     result |= c1 ;
   }
   cf = result == 0;
-  output = sn_cmov(cf,0,1);
+  c1 = (64u) 0;
+  c2 = (64u) 1;
+  output = sn_cmov(cf,c1,c2);
   return output;
 }
 
@@ -112,7 +114,10 @@ inline fn dcminusP (stack u64[dnlimbs] p x)
 inline fn daddm(stack u64[dnlimbs] p a b) 
  -> stack u64[dnlimbs]
 {  
-  _, a = dbn_addc (a,b);
+  reg ptr u64[dnlimbs] _a _b;
+  _a = a;
+  _b = b;
+  _, a = dbn_addc (_a,_b);
   a = dcminusP (p,a);
   return a;
 }
@@ -198,7 +203,7 @@ inline fn bn_breduce(stack u64[2*nlimbs] r a, stack u64[nlimbs] p)
   stack u64[nlimbs] xrfd res;
   stack u64[dnlimbs] xrf xrfn t pp;
   stack u64[2*dnlimbs] xr;
-  reg ptr u64[dnlimbs] _a;
+  reg ptr u64[dnlimbs] _a _xrfn;
   reg ptr u64[nlimbs]  _b;
   
   _a = a;
@@ -208,7 +213,8 @@ inline fn bn_breduce(stack u64[2*nlimbs] r a, stack u64[nlimbs] p)
   _b = xrfd;
   _, _, _, xrfn = bn_muln(_b,p);
   _a = a;
-  _, t = dbn_subc(_a, xrfn);
+  _xrfn = xrfn;
+  _, t = dbn_subc(_a, _xrfn);
   pp = bn_expand(p);
   t = dcminusP(pp, t);
   res = bn_shrink(t);
@@ -273,7 +279,8 @@ inline fn bn_expm(stack u64[dnlimbs] r, stack u64[nlimbs] m x n)
 // sample uniformly at random an element from interval [0..byte_z-1]
 inline fn bn_rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs])
 {
-  stack u64[nlimbs] byte_q byte_p;
+  stack u64[nlimbs] byte_q byte_p r;
+  reg ptr u64[nlimbs] _byte_p;
   reg bool cf;
   inline int i;
 
@@ -282,7 +289,8 @@ inline fn bn_rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs]
 
   _, cf, _, _, _, _ = #set0();
   while (!cf) {
-    byte_p = #randombytes(byte_p);
+    _byte_p = byte_p;
+    byte_p = #randombytes(_byte_p);
     byte_q = bn_copy(byte_p);
     cf, byte_q = bn_subc(byte_q, byte_z);
     i = i + 1;

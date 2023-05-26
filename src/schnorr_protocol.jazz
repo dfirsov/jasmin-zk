@@ -99,6 +99,7 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
 
   v3 = bn_expm(group_barrett, group_order, statement, exp_order);  
   v4 = bn_set1(v4);
+
   result2 = bn_eq(v3,v4);
 
   result1 &= result2;
@@ -144,7 +145,7 @@ export fn __verify(reg u64 commitment_p challenge_p response_p result_p)
 { 
   reg u64 result_p2;
   stack u64[nlimbs] statement commitment challenge response;
-  stack u64 result;
+  reg u64 result;
   
   result_p2 = result_p; // relax ABI contraints 
 

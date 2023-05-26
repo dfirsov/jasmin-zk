@@ -475,7 +475,7 @@ proc.  simplify.
 wp. call (_:true). auto.
 wp. seq 19 : (true). auto.
 inline W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).bn_rsample.
-unroll 19. rcondt 19. wp. wp. 
+unroll 20. rcondt 20. wp. wp. 
 call (_:true). wp. auto. wp. skip. auto.
 wp. while (0 < i0). wp. call (_:true). auto. wp.  call (_:true). auto.  wp. 
 inline*. wp. rnd. wp. skip. progress. 

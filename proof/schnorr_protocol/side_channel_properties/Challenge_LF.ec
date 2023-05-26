@@ -180,7 +180,7 @@ lemma challenge_index_pos &m  : Pr[M1.challenge_indexed() @ &m : res.`1 <= 0 ] =
 byphoare (_: true ==> _);auto. hoare.
 proc.  simplify.
 inline W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).bn_rsample.
-unroll 25. rcondt 25. wp. wp. 
+unroll 26. rcondt 26. wp. wp. 
 call (_:true). wp. auto. wp. 
 call (_:true). wp. auto. wp. skip. auto.
 wp.
