@@ -23,23 +23,23 @@ int main(void)
 
   printf("\n*** Prover commits: ***\n");
   __commitment(commitment_p, random_power_p);
-  printf("\nCOMMITMENT: ");  
+  printf("\nCOMMITMENT:\n");  
   print(commitment_p);
 
-  printf("\nSECRET POWER: ");  
+  printf("\nSECRET POWER:\n");  
   print(random_power_p);
 
   printf("\n*** Verifier challenges: ***\n");
   __challenge(challenge_p);
-  printf("\nCHALLENGE: ");  
+  printf("\nCHALLENGE:\n");  
   print(challenge_p);
 
   printf("\n*** Prover responds: ***\n");
   __response(random_power_p, challenge_p, response_p);
-  printf("\nRESPONSE: "); 
+  printf("\nRESPONSE:\n"); 
   print(response_p); 
 
-  printf("\n*** Verifier decision: ***\n");
+  printf("\n*** Verifier decides: ***\n");
   __verify(commitment_p, challenge_p, response_p, result_p);
 
   printf("0x%016" PRIx64 "\n\n", result_p[0]);
