@@ -347,8 +347,11 @@ inline fn bn_muln
 
 export fn __addc( reg u64 rp ap bp ) {
 
+  stack u64 rp_s;
   stack u64[nlimbs] a b;
   reg ptr u64[nlimbs] _a, _b;
+
+  rp_s = rp;
 
   a = bn_load(ap);
   b = bn_load(bp);
@@ -356,15 +359,19 @@ export fn __addc( reg u64 rp ap bp ) {
   _a = a; _b = b;
   _, a = bn_addc(_a, _b);
 
+  rp = rp_s;
   bn_store(rp, a);
 }
 
 
 export fn __muln( reg u64 rp ap bp ) {
 
+  stack u64 rp_s;
   stack u64[nlimbs] a b;
   stack u64[2*nlimbs] r;
   reg ptr u64[nlimbs] _a _b;
+
+  rp_s = rp;
 
   a = bn_load(ap);
   b = bn_load(bp);
@@ -372,6 +379,7 @@ export fn __muln( reg u64 rp ap bp ) {
   _a = a; _b = b;
   _, _, _, r = bn_muln(_a, _b);
 
+  rp = rp_s;
   bn2_store(rp, r);
 }
 
