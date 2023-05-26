@@ -94,11 +94,14 @@ inline fn dcminusP (stack u64[dnlimbs] p x)
  -> stack u64[dnlimbs]
 {
   stack u64[dnlimbs] z;
+  reg ptr u64[dnlimbs] _z _p;
   reg bool cf;
   inline int i;
 
   z = dbn_copy(x);
-  cf, z = dbn_subc(z, p);
+  _z = z;
+  _p = p;
+  cf, z = dbn_subc(_z, _p);
   x = dbn_cmov(cf, z, x);
   return x;
 }
@@ -195,12 +198,17 @@ inline fn bn_breduce(stack u64[2*nlimbs] r a, stack u64[nlimbs] p)
   stack u64[nlimbs] xrfd res;
   stack u64[dnlimbs] xrf xrfn t pp;
   stack u64[2*dnlimbs] xr;
-
-  xr = dbn_muln(a,r);
+  reg ptr u64[dnlimbs] _a;
+  reg ptr u64[nlimbs]  _b;
+  
+  _a = a;
+  _, _, _, xr = dbn_muln(_a,r);
   xrf = div2(xr, 2 * nlimbs);
   xrfd = bn_shrink(xrf);
-  xrfn = bn_muln(xrfd,p);
-  t = dbn_subc(a, xrfn);
+  _b = xrfd;
+  _, _, _, xrfn = bn_muln(_b,p);
+  _a = a;
+  _, t = dbn_subc(_a, xrfn);
   pp = bn_expand(p);
   t = dcminusP(pp, t);
   res = bn_shrink(t);
@@ -226,9 +234,12 @@ inline fn bn_mulm(stack u64[dnlimbs] r, stack u64[nlimbs] p a b)
  -> stack u64[nlimbs]
 {
   stack u64[2*nlimbs] c;
+  reg ptr u64[nlimbs] _a _b;
   reg bool _of _cf;
 
-  _of, _cf, c = bn_muln (a,b);
+  _a = a;
+  _b = b;
+  _, _of, _cf, c = bn_muln (_a,_b);
   a = bn_breduce(r,c,p);
   return a;
 }

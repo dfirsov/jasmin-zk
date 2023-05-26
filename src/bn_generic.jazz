@@ -200,12 +200,12 @@ inline fn bn_add1
 /* performs multi-limb addition */
 /* REGS (params + workspace): 2*nlimbs + 0 (inplace 1st arg.) */
 inline fn bn_addc
-( reg ptr u64[nlimbs] a b
-) -> reg bool, reg ptr u64[nlimbs]
+( stack u64[nlimbs] a b
+) -> reg bool, stack u64[nlimbs]
 {
   inline int i;
   reg bool cf;
-  reg u64 x1 x2;
+  stack u64 x1 x2;
 
 
   x1 = a[0];
@@ -346,43 +346,43 @@ inline fn bn_muln
 }
 
 
-export fn __addc( reg u64 rp ap bp ) {
+// export fn __addc( reg u64 rp ap bp ) {
 
-  stack u64 rp_s;
-  stack u64[nlimbs] a b;
-  reg ptr u64[nlimbs] _a, _b;
+//   stack u64 rp_s;
+//   stack u64[nlimbs] a b;
+//   reg ptr u64[nlimbs] _a, _b;
 
-  rp_s = rp;
+//   rp_s = rp;
 
-  a = bn_load(ap);
-  b = bn_load(bp);
+//   a = bn_load(ap);
+//   b = bn_load(bp);
 
-  _a = a; _b = b;
-  _, a = bn_addc(_a, _b);
+//   _a = a; _b = b;
+//   _, a = bn_addc(_a, _b);
 
-  rp = rp_s;
-  bn_store(rp, a);
-}
+//   rp = rp_s;
+//   bn_store(rp, a);
+// }
 
 
-export fn __muln( reg u64 rp ap bp ) {
+// export fn __muln( reg u64 rp ap bp ) {
 
-  stack u64 rp_s;
-  stack u64[nlimbs] a b;
-  stack u64[2*nlimbs] r;
-  reg ptr u64[nlimbs] _a _b;
+//   stack u64 rp_s;
+//   stack u64[nlimbs] a b;
+//   stack u64[2*nlimbs] r;
+//   reg ptr u64[nlimbs] _a _b;
 
-  rp_s = rp;
+//   rp_s = rp;
 
-  a = bn_load(ap);
-  b = bn_load(bp);
+//   a = bn_load(ap);
+//   b = bn_load(bp);
 
-  _a = a; _b = b;
-  _, _, _, r = bn_muln(_a, _b);
+//   _a = a; _b = b;
+//   _, _, _, r = bn_muln(_a, _b);
 
-  rp = rp_s;
-  bn2_store(rp, r);
-}
+//   rp = rp_s;
+//   bn2_store(rp, r);
+// }
 
 
 

@@ -197,13 +197,20 @@ inline fn dbn_muln
   reg u64 _zero ai z;
   stack u64[2*dnlimbs] r;
 
+  reg ptr u64[2*dnlimbs] rp;
+  reg ptr u64[dnlimbs] bp;
+
   ai = a[0];
   _zero, of, cf, r = dmul1(ai, b);
 
+  rp = r;
+  bp = b;
   for i = 1 to dnlimbs {
     ai = a[i];
     z = (64u) i;
-    _zero, of, cf, r = dmul1acc(z, ai, b, r, _zero, of, cf);
+    _zero, of, cf, rp = dmul1acc(z, ai, bp, rp, _zero, of, cf);
   }
+
+  r = rp;
   return _zero, of, cf, r;
 }

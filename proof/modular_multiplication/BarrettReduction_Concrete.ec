@@ -25,7 +25,7 @@ equiv breduce_cspec:
 proof. proc.
 sp.
 simplify.
-seq 0 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}). 
+seq 0 0 : (_a{1} = a{1} /\ valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}). 
 skip. auto.
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} (* /\ xr{2} = a{2} * r{2} *)).
@@ -38,15 +38,15 @@ have -> : W64x2N.modulusR = 2 ^ (2 * k{2}). smt(@Ring). smt().
 seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\  W64xN.valR xrfd{1} =  xrf{2}   ).
 ecall {1} (bn_shrink_correct xrf{1}). wp. skip. progress. 
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
+seq 2 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ valR xrfd{1} = xrf{2} 
     /\  W64x2N.valR xrfn{1} = xrfn{2}).
-ecall  (muln_spec xrfd{1} p{1}). skip. progress.
-seq 1 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
+ecall  (muln_spec xrfd{1} p{1}). wp. skip. progress.
+seq 2 1 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs  /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
     /\ W64x2N.valR xrfn{1} = xrfn{2}
     /\ W64x2N.valR t{1} = t{2}).
-call dsubc_spec. skip. progress.
+call dsubc_spec. wp. skip. progress.
 seq 1 0 : (valR a{1} = a{2} /\ valR r{1} = r{2} /\ ImplZZ p{1} p{2} /\ k{2} = 64 * nlimbs /\  0 < p{2}
     /\ W64x2N.valR2 xr{1} = xr{2} /\ W64xN.valR xrfd{1} = xrf{2} 
     /\ W64x2N.valR xrfn{1} = xrfn{2}

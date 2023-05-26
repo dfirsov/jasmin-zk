@@ -355,11 +355,11 @@ proc.
 (ecall {1} (dbn_cmov_correct cf{1} z{1} x{1})).  simplify.
 conseq (_:  ( (W64x2N.valR (if cf{1} then x{1} else z{1}))%W64x2N = r{2} )). progress.
 inline ASpecFp.ctseln. wp.   simplify.
-seq 2 0 : ((W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ z{1} = x{1} /\ 0 <= p{2}  ).
+seq 4 0 : ((W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ z{1} = x{1} /\ 0 <= p{2}  ).
 (ecall {1} (dbn_copy_correct x{1})).  wp. skip. progress.
-seq 1 1 : (cf{1} = c{2} /\ W64x2N.valR z{1} = x{2}
+seq 3 1 : (cf{1} = c{2} /\ W64x2N.valR z{1} = x{2}
   /\ (W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2}  /\ 0 <= p{2}).
-call  dsubc_spec.  skip. progress.
+call  dsubc_spec.  wp. skip. progress.
 skip. progress.   smt().
 proc. inline*. wp.  skip.  progress.
 case (a{2} < p{2} = true). move => q. rewrite q. simplify. auto.
@@ -558,8 +558,8 @@ transitivity
    ==> !res{1}.`1 /\ !res{1}.`2 /\ W64x2N.valR2 res{1}.`3 = res{2}).
 + by move=> /> &1 &2 H1 H2; exists (a{1},b{1}).
 + by move=> /> /#.
-+ proc; simplify.
-  while ( #pre /\ (i,_zero,of_0,cf,r){1}=(k,W64.zero,_of,_cf,r){2} /\
++ proc; simplify. wp.
+  while ( #pre /\ (i,_zero,of_0,cf){1}=(k,W64.zero,_of,_cf){2} /\ bp{1} = b{2} /\ rp{1} = r{2} /\
           1 <= k{2} <= dnlimbs /\ aux{1} = 64 ).
   wp. call dmul1acc_eq. wp. skip. progress.
 rewrite of_uintK.
@@ -625,11 +625,11 @@ proc.
 (ecall {1} (dbn_cmov_correct cf{1} z{1} x{1})).  simplify.
 conseq (_:  ( (W64x2N.valR (if cf{1} then x{1} else z{1}))%W64x2N = r{2} )). progress.
 inline ASpecFp.ctseln. wp.   simplify.
-seq 2 0 : ((W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ z{1} = x{1} /\ 0 < p{2}).
+seq 4 0 : ((W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ z{1} = x{1} /\ 0 < p{2}).
 (ecall {1} (dbn_copy_correct x{1})).  wp. skip. progress.
-seq 1 1 : (cf{1} = c{2} /\ W64x2N.valR z{1} = x{2} 
+seq 3 1 : (cf{1} = c{2} /\ W64x2N.valR z{1} = x{2} 
   /\ (W64x2N.valR p{1})%W64x2N = p{2} /\ (W64x2N.valR x{1})%W64x2N = a{2} /\ 0 < p{2}).
-call  dsubc_spec.  skip. progress.
+call  dsubc_spec.  wp. skip. progress.
 skip. progress.   smt().
 proc. inline*. wp.  skip.  progress.
 case (a{2} < p{2} = true). move => q. rewrite q. simplify. auto.

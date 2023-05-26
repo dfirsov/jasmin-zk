@@ -416,28 +416,27 @@ rewrite /bn_muln_prefix. auto.
 smt().
 qed.
 
-
-(* dbn_muln LEAKAGES  *)
-op dbn_muln_prefix : leakages_t = LeakFor (1, 64) :: LeakAddr [] :: (dmul1_f 64 ++ [LeakAddr []; LeakAddr [0]]).
+(* bn_muln LEAKAGES  *)
+op dbn_muln_prefix : leakages_t =  LeakFor (1, 64) :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] ::  (dmul1_f 64 ++ [LeakAddr []; LeakAddr [0]]).
 op dbn_muln_step (i : int) : leakages_t = dmul1acc_f (to_uint ((of_int i))%W64) 63 ++
  [LeakAddr [] ; LeakAddr [] ; LeakAddr [i]] .
 
-op dbn_muln_g (x : int) : leakages_t  =  iteri (x-1) (fun i r => dbn_muln_step  (i+1) ++ r) [].
+op dbn_muln_g (x : int) : leakages_t =  iteri (x-1) (fun i r => dbn_muln_step  (i+1) ++ r) [].
 lemma dbn_muln_g_comp_1 x : x = 1 => dbn_muln_g x = []. smt(@Int). qed.
 lemma dbn_muln_g_comp_2 x : 1 <  x => dbn_muln_g x = dbn_muln_step (x-1) ++ dbn_muln_g (x - 1). rewrite /dbn_muln_g. smt(@Int). qed.
 
-op dbn_muln_f (x : int) : leakages_t = dbn_muln_g x ++ dbn_muln_prefix.
+op dbn_muln_f (x : int) : leakages_t = LeakAddr [] :: dbn_muln_g x ++ dbn_muln_prefix.
 
 lemma dbn_muln_leakages start_l :
    hoare [ M(Syscall).dbn_muln : M.leakages = start_l 
      ==> M.leakages = dbn_muln_f 64 ++ start_l ].
 proof. 
 proc.
-seq 13 : (aux_3 = 64 /\ i = 1 /\ M.leakages = [LeakFor (1, 64) ; LeakAddr [] ] ++ dmul1_f 64 ++ [LeakAddr []; LeakAddr [0]] ++ start_l).
+seq 21 : (aux_4 = 64 /\ i = 1 /\ M.leakages = [ LeakFor (1, 64) ;  LeakAddr []; LeakAddr []; LeakAddr []] ++  dmul1_f 64 ++ [LeakAddr []; LeakAddr [0]] ++ start_l).
 wp. sp. elim*. progress.
 call (dmul1_leakages ([LeakAddr [] ; LeakAddr [0] ] ++ start_l)).
-skip. progress. smt(@List).
-while (aux_3 = 64 /\  1 <= i /\ i <= 64 /\ M.leakages = dbn_muln_g i ++ dbn_muln_prefix ++ start_l).
+skip. progress. smt(@List). wp.
+while (aux_4 = 64 /\ 1 <= i /\ i <= 64 /\ M.leakages = dbn_muln_g i ++ dbn_muln_prefix ++ start_l).
 wp.  
 sp. elim*. progress.
 exists* i. elim*. move => i_var.
@@ -625,8 +624,8 @@ smt().
 qed.
 
 (* dcminusP LEAKAGES  *)
-op dcminusP_f  : leakages_t = 
- dbn_cmov_f 64 ++ [LeakAddr []] ++ dsub_g 64 ++ dsub_prefix ++ [LeakAddr []] ++
+op dcminusP_f  : leakages_t =  
+ dbn_cmov_f 64 ++ [LeakAddr []] ++ dsub_g 64 ++ dsub_prefix ++ [LeakAddr []; LeakAddr []; LeakAddr []] ++
 dcopy_g 64 ++ dcopy_prefix ++ [LeakAddr []] .
 
 lemma dcminusP_leakages start_l :
@@ -635,15 +634,15 @@ lemma dcminusP_leakages start_l :
 proof. 
 proc.
 pose suf1 :=  [LeakAddr []] ++ start_l.
-seq 4 : (M.leakages = dcopy_f 64 ++ suf1 ).
+seq 6 : (M.leakages = dcopy_f 64 ++ suf1 ).
 wp.  call (dbn_copy_leakages suf1). simplify. wp. skip. progress. auto.
 
-pose suf2 :=  [LeakAddr []] ++ dcopy_f 64 ++ suf1.
-seq 3 : (M.leakages = dsub_f 64 ++ suf2).
+pose suf2 :=  [LeakAddr [];LeakAddr [];LeakAddr []] ++ dcopy_f 64 ++ suf1.
+seq 8 : (M.leakages = dsub_f 64 ++ suf2).
 wp.  call (dbn_subc_leakages suf2). wp. skip. progress.
 
 pose suf3 :=  [LeakAddr []] ++ dsub_f 64 ++ suf2.
-seq 3 : (M.leakages = dbn_cmov_f 64 ++ suf3).
+seq 5 : (M.leakages = dbn_cmov_f 64 ++ suf3).
 wp.  call (dbn_cmov_leakages suf3). wp. skip. progress.
 skip.
 progress. rewrite /suf3 /suf2 /suf1.
@@ -656,38 +655,38 @@ op bn_breduce_f : leakages_t = bn_shrink_f 32 ++
 [LeakAddr []] ++ dcminusP_f ++
 [LeakAddr []] ++ bn_expand_f 32 ++
 [LeakAddr []] ++ dsub_f 64 ++
-[LeakAddr []] ++ bn_muln_f 32 ++
-[LeakAddr []] ++ bn_shrink_f 32 ++
+[LeakAddr []; LeakAddr []] ++ bn_muln_f 32 ++
+[LeakAddr []; LeakAddr []] ++ bn_shrink_f 32 ++
 [LeakAddr []] ++ div2_f 64 64 ++
-[LeakAddr []] ++ dbn_muln_f 64 ++ [LeakAddr []].
+[LeakAddr []] ++ dbn_muln_f 64 ++ [LeakAddr []; LeakAddr []].
 
 lemma bn_breduce_leakages start_l :
    hoare [ M(Syscall).bn_breduce : M.leakages = start_l 
      ==> M.leakages = bn_breduce_f ++ start_l ].
 proof. 
 proc. 
-pose suf1 :=  [LeakAddr []] ++ start_l.
-seq 13 : (M.leakages = dbn_muln_f 64 ++ suf1 ).
+pose suf1 :=  [LeakAddr []; LeakAddr []] ++ start_l.
+seq 14 : (M.leakages = dbn_muln_f 64 ++ suf1 ).
 wp.  call (dbn_muln_leakages suf1). simplify. wp. skip. progress. 
 
 pose suf2 :=  [LeakAddr []] ++ dbn_muln_f 64 ++ suf1.
-seq 3 : (M.leakages = div2_f 64 64 ++ suf2).
+seq 7 : (M.leakages = div2_f 64 64 ++ suf2).
 wp.  call (div2_leakages suf2 64). simplify. wp. skip. progress. 
 
 pose suf3 :=  [LeakAddr []] ++ div2_f 64 64 ++ suf2.
 seq 3 : (M.leakages = bn_shrink_f 32 ++ suf3).
 wp.  call (bn_shrink_leakages suf3). simplify. wp. skip. progress. 
 
-pose suf4 :=  [LeakAddr []] ++ bn_shrink_f 32 ++ suf3.
-seq 3 : (M.leakages = bn_muln_f 32 ++ suf4).
-wp.  call (bn_muln_leakages suf4). simplify. wp. skip. progress. 
+pose suf4 :=  [LeakAddr [] ;  LeakAddr []] ++ bn_shrink_f 32 ++ suf3.
+seq 9 : (M.leakages = bn_muln_f 32 ++ suf4).
+wp.  call (bn_muln_leakages suf4). simplify. wp. skip. progress.  rewrite /suf4.
 
-pose suf5 :=  [LeakAddr []] ++ bn_muln_f 32 ++ suf4.
-seq 7 : (M.leakages = dsub_f 64  ++ suf5).
+pose suf5 :=  [LeakAddr [];LeakAddr []] ++ bn_muln_f 32 ++ suf4.
+seq 5 : (M.leakages = dsub_f 64  ++ suf5).
 wp.  call (dbn_subc_leakages suf5). simplify. wp. skip. progress. 
 
 pose suf6 :=  [LeakAddr []] ++ dsub_f 64 ++ suf5.
-seq 3 : (M.leakages = bn_expand_f 32  ++ suf6).
+seq 4 : (M.leakages = bn_expand_f 32  ++ suf6).
 wp. call (bn_expand_leakages suf6). simplify. wp. skip. progress. 
 
 pose suf7 :=  [LeakAddr []] ++ bn_expand_f 32 ++ suf6.
@@ -695,7 +694,7 @@ seq 3 : (M.leakages = dcminusP_f   ++ suf7).
 wp. call (dcminusP_leakages suf7). simplify. wp. skip. progress. 
 
 pose suf8 :=  [LeakAddr []] ++ dcminusP_f ++ suf7.
-seq 3 : (M.leakages = bn_shrink_f 32   ++ suf8).
+seq 4 : (M.leakages = bn_shrink_f 32   ++ suf8).
 wp. call (bn_shrink_leakages suf8). wp. skip.
 progress.
 skip. progress.
@@ -706,23 +705,23 @@ qed.
 
 (* mulm LEAKAGES  *)
 op [opaque] mulm_t : leakages_t = bn_breduce_f ++ [LeakAddr []] ++ bn_muln_f 32  ++
-[LeakAddr []] .
+[LeakAddr []; LeakAddr [] ; LeakAddr []] .
 lemma mulm_leakages start_l : 
    hoare [ M(Syscall).bn_mulm : M.leakages = start_l 
                 ==> M.leakages = mulm_t ++ start_l ].
 proof. proc.
-pose suf1 :=  [LeakAddr []] ++ start_l.
-seq 7 : (M.leakages = bn_muln_f 32 ++ suf1 ).
+pose suf1 :=  [LeakAddr [];LeakAddr []; LeakAddr []] ++ start_l.
+seq 11 : (M.leakages = bn_muln_f 32 ++ suf1 ).
 wp. call (bn_muln_leakages suf1). simplify. wp. skip. progress. 
 
 pose suf2 :=  [LeakAddr []] ++ bn_muln_f 32 ++ suf1.
-seq 3 : (M.leakages = bn_breduce_f ++ suf2).
+seq 7 : (M.leakages = bn_breduce_f ++ suf2).
 wp. call (bn_breduce_leakages suf2). simplify. wp. skip. progress. 
 skip. auto.
 progress.
 rewrite /suf2 /suf1.
-rewrite /mulm_t /bn_muln_f. simplify.
-do? rewrite catA. smt(@List).
+rewrite /mulm_t /bn_muln_f.
+do? rewrite catA. auto.
 qed.
 
 
