@@ -525,9 +525,9 @@ transitivity
    ==> !res{1}.`1 /\ !res{1}.`2 /\ ImplZZ2 res{1}.`3 res{2} /\ valR2 res{1}.`3 = valR aa * valR bb).
 + by move=> /> &1 &2 H1 H2; exists (a{1},b{1}).
 + by move=> /> /#.
-+ proc; simplify.
-  while ( #pre /\ (i,_zero,of_0,cf,r){1}=(k,W64.zero,_of,_cf,r){2} /\
-          1 <= k{2} <= nlimbs ).
++ proc; simplify. wp.
+  while ( #pre /\ (i,_zero,of_0,cf){1}=(k,W64.zero,_of,_cf){2} /\
+          1 <= k{2} <= nlimbs /\ bp{1} = b{2} /\ rp{1} = r{2} ).
   wp. call mul1acc_eq. wp. skip. progress. 
 rewrite of_uintK.
 apply modz_small. split. smt(). smt(). smt(). smt(). smt().

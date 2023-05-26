@@ -376,7 +376,7 @@ qed.
 
 
 (* bn_muln LEAKAGES  *)
-op bn_muln_prefix : leakages_t = LeakFor (1, 32) :: LeakAddr [] :: (mul1_f 32 ++ [LeakAddr []; LeakAddr [0]]).
+op bn_muln_prefix : leakages_t =  LeakFor (1, 32) :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] ::  (mul1_f 32 ++ [LeakAddr []; LeakAddr [0]]).
 op bn_muln_step (i : int) : leakages_t = mul1acc_f (to_uint ((of_int i))%W64) 31 ++
  [LeakAddr [] ; LeakAddr [] ; LeakAddr [i]] .
 
@@ -384,17 +384,17 @@ op bn_muln_g (x : int) : leakages_t =  iteri (x-1) (fun i r => bn_muln_step  (i+
 lemma bn_muln_g_comp_1 x : x = 1 => bn_muln_g x = []. smt(@Int). qed.
 lemma bn_muln_g_comp_2 x : 1 <  x => bn_muln_g x = bn_muln_step (x-1) ++ bn_muln_g (x - 1). rewrite /bn_muln_g. smt(@Int). qed.
 
-op bn_muln_f (x : int) : leakages_t = bn_muln_g x ++ bn_muln_prefix.
+op bn_muln_f (x : int) : leakages_t = LeakAddr [] :: bn_muln_g x ++ bn_muln_prefix.
 
 lemma bn_muln_leakages start_l :
    hoare [ M(Syscall).bn_muln : M.leakages = start_l 
      ==> M.leakages = bn_muln_f 32 ++ start_l ].
 proof. 
 proc.
-seq 12 : (i = 1 /\ M.leakages = [LeakFor (1, 32) ; LeakAddr [] ] ++ mul1_f 32 ++ [LeakAddr []; LeakAddr [0]] ++ start_l).
+seq 20 : (i = 1 /\ M.leakages = [ LeakFor (1, 32) ;  LeakAddr []; LeakAddr []; LeakAddr []] ++  mul1_f 32 ++ [LeakAddr []; LeakAddr [0]] ++ start_l).
 wp. sp. elim*. progress.
 call (mul1_leakages ([LeakAddr [] ; LeakAddr [0] ] ++ start_l)).
-skip. progress. smt(@List).
+skip. progress. smt(@List). wp.
 while (1 <= i /\ i <= 32 /\ M.leakages = bn_muln_g i ++ bn_muln_prefix ++ start_l).
 wp.  
 sp. elim*. progress.
@@ -652,14 +652,14 @@ auto.
 qed.
 
 (* bn_breduce LEAKAGES  *)
-op bn_breduce_f : leakages_t = bn_shrink_f 32 ++ [LeakAddr []] ++ dbn_cmov_g 64 ++ dbn_cmov_prefix ++
-[LeakAddr []] ++ dsub_g 64 ++ dsub_prefix ++ [LeakAddr []] ++ dcopy_g 64 ++
-dcopy_prefix ++ [LeakAddr []] ++ [LeakAddr []] ++ bn_expand_h (2 * 32) ++
-[LeakFor (32, 64); LeakAddr []] ++ bn_expand_g 32 ++ bn_expand_prefix ++
-[LeakAddr []] ++ dsub_g 64 ++ dsub_prefix ++ [LeakAddr []] ++ bn_muln_g 32 ++
-bn_muln_prefix ++ [LeakAddr []] ++ bn_shrink_g 32 ++ bn_shrink_prefix ++
-[LeakAddr []] ++ div2_g 64 ++ div2_prefix 64 ++ [LeakAddr []] ++
-dbn_muln_g 64 ++ dbn_muln_prefix ++ [LeakAddr []].
+op bn_breduce_f : leakages_t = bn_shrink_f 32 ++
+[LeakAddr []] ++ dcminusP_f ++
+[LeakAddr []] ++ bn_expand_f 32 ++
+[LeakAddr []] ++ dsub_f 64 ++
+[LeakAddr []] ++ bn_muln_f 32 ++
+[LeakAddr []] ++ bn_shrink_f 32 ++
+[LeakAddr []] ++ div2_f 64 64 ++
+[LeakAddr []] ++ dbn_muln_f 64 ++ [LeakAddr []].
 
 lemma bn_breduce_leakages start_l :
    hoare [ M(Syscall).bn_breduce : M.leakages = start_l 
@@ -700,12 +700,12 @@ wp. call (bn_shrink_leakages suf8). wp. skip.
 progress.
 skip. progress.
 rewrite /suf8 /suf7 /suf6 /suf5 /suf4 /suf3 /suf2 /suf1.
-do? rewrite catA.
-auto.
+rewrite /bn_breduce_f. 
+do ? rewrite catA. auto.
 qed.
 
 (* mulm LEAKAGES  *)
-op [opaque] mulm_t : leakages_t = bn_breduce_f ++ [LeakAddr []] ++ bn_muln_g 32 ++ bn_muln_prefix ++
+op [opaque] mulm_t : leakages_t = bn_breduce_f ++ [LeakAddr []] ++ bn_muln_f 32  ++
 [LeakAddr []] .
 lemma mulm_leakages start_l : 
    hoare [ M(Syscall).bn_mulm : M.leakages = start_l 
@@ -721,9 +721,8 @@ wp. call (bn_breduce_leakages suf2). simplify. wp. skip. progress.
 skip. auto.
 progress.
 rewrite /suf2 /suf1.
-do? rewrite catA.
-rewrite /mulm_t.
-auto.
+rewrite /mulm_t /bn_muln_f. simplify.
+do? rewrite catA. smt(@List).
 qed.
 
 
