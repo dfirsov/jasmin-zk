@@ -8,12 +8,10 @@ require import W64_SchnorrExtract.
 require import BigNum_spec AuxLemmas.
 import W64xN R.
 
-
 require import BitEncoding.
 import BS2Int.
 
 module M = M(Syscall).
-
 
 equiv addc_spec:
  M.bn_addc ~ ASpecFp.addn:
@@ -355,8 +353,6 @@ rewrite H2. smt().
 rewrite /oneR. smt(@A @List).
 qed.
 
-
-(* import W64x2N. *)
 
 
 lemma bn_div2_correct z :
