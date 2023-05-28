@@ -102,7 +102,7 @@ lemma inzpKK: forall (z : int), val (inzmod z) = z %% p. smt(@ZpC). qed.
 
   
 module ASpecFp_Schnorr = {
- proc commit(h : zmod, w : R) : zmod * int = {
+ proc commit(h : zmod, w : W64xN.R.t) : zmod * int = {
    var r;
    var a : zmod;    
    r <@ ASpecFp.rsample(q);

@@ -1,21 +1,11 @@
 require import Core Int IntDiv Ring IntDiv StdOrder List Distr Real.
-require import AuxLemmas.
-
-from Jasmin require import JModel JBigNum.
-require import Array32 Array64 Array128 Array3.
 import Ring.IntID IntOrder.
 
-abbrev nlimbs = 32.
-abbrev dnlimbs = 64.
+require import AuxLemmas.
 
+from Jasmin require import JModel.
 
-clone import BigNum as W64xN with
- op nlimbs <- nlimbs,
- theory R.A <= Array32,
- theory R2.A <= Array64,
- theory Array3 <= Array3
-proof*.
-realize gt0_nlimbs by done.
+require export BigNum_instances.
 
 
 op as_word (x : bool) : W64.t  = x ? W64.one : W64.zero.
@@ -31,19 +21,7 @@ lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
 smt(@Real).
 qed.
 
-
-clone import BigNum as W64x2N with
- op nlimbs <- dnlimbs,
- theory R.A <= Array64,
- theory R2.A <= Array128,
- theory Array3 <= Array3
-proof*.
-realize gt0_nlimbs by done.
-
  
-type R = W64.t Array32.t.
-type R2 = W64.t Array64.t.
-
 op M : int = W64xN.modulusR.
 
 op D : int distr = duniform (range 0 M).
@@ -57,7 +35,7 @@ lemma D_mu x : x \in D => mu1 D x = Real.inv M%r. smt(@Distr). qed.
 lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
 smt(@Int). qed.
 
-op oneR : R = (of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero ))%Array32.
+op oneR : W64xN.R.t = (W64xN.R.A.of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)).
 
         
 (** "Implements" relation *)
@@ -66,7 +44,7 @@ abbrev ImplZZ x y = W64xN.valR x = y.
 abbrev ImplZZ2 x y = W64xN.valR2 x = y.
 
 
-op zeroR : R = W64xN.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
+op zeroR : W64xN.R.t = W64xN.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
 
 lemma nseqS' ['a]:
   forall (n : int) (x : 'a), 0 < n => nseq n x = x :: nseq (n - 1) x.
@@ -74,7 +52,7 @@ smt(nseqS).
 qed.
 
 
-lemma zeroRE: valR zeroR = 0.
+lemma zeroRE: W64xN.valR zeroR = 0.
 proof.
 rewrite /zeroR.
 do? (rewrite nseqS'; first by trivial). simplify.
