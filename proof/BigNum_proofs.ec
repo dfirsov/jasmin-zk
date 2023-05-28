@@ -364,7 +364,7 @@ lemma bn_div2_correct z :
 proc. sp.
 while (aux = dnlimbs /\ i <= dnlimbs /\ forall j, (0 <= j < i => R2.A."_.[_]" r j =  (W64x2N.R2.A."_.[_]" x (dnlimbs + j)))) (dnlimbs - i). 
 progress. wp. skip. progress.
-smt(). smt(@Array64). smt(). skip. progress.
+smt(). smt(@R2.A). smt(). skip. progress.
 smt(). smt().
 have ->:  W64x2N.modulusR  = W64x2N.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
 have ->: (W64x2N.R2.bnk (2*dnlimbs) x{hr})%R2 = W64x2N.valR2 x{hr}. auto.
@@ -411,8 +411,8 @@ lemma bn_expand_correct : forall a,
    sp. 
     seq 1 : (a = x /\ i = nlimbs /\ forall i, i < nlimbs => (W64x2N.R.A."_.[_]" r i) = x.[i]%A).
     while (i <= nlimbs /\ forall j, 0 <= j < i => (W64x2N.R.A."_.[_]" r j) = x.[j]%A). wp.  skip. progress.
-    smt(). smt(@A @Array64). skip. progress.
-    smt().  smt(). smt(@Array64 @A). sp.
+    smt(). smt(@A @R2.A). skip. progress.
+    smt().  smt(). smt(@R2.A @A). sp.
     seq 2 : (a = x /\  (forall j, 0 <= j < nlimbs => (W64x2N.R.A."_.[_]" r j) = x.[j]%A)
          /\ (forall j, nlimbs <= j < 2*nlimbs => (W64x2N.R.A."_.[_]" r j) = W64.zero)).     
     while (a = x /\ nlimbs <= i <= 2*nlimbs 
@@ -420,15 +420,15 @@ lemma bn_expand_correct : forall a,
          /\ (forall j, nlimbs <= j < i => (W64x2N.R.A."_.[_]" r j) = W64.zero) /\ aux = 64 ). wp.  skip. progress.
     smt(). smt().
     have z : i{hr} <> j. smt(). 
-    rewrite - H1. auto.  smt(@A @Array64).
-    case (j = i{hr}). smt(@A @Array64).
+    rewrite - H1. auto.  smt(@A @R2.A).
+    case (j = i{hr}). smt(@A @R2.A).
     progress.
     have : j < i{hr}.  smt().
     progress.
     rewrite - (H2 j).  smt().
-    smt(@A @Array64). wp. 
+    smt(@A @R2.A). wp. 
     skip.  progress.
-    smt(@A @Array64). smt(). smt(). 
+    smt(@A @R2.A). smt(). smt(). 
     skip.  progress.
     have -> : W64x2N.valR r{hr} = (bn_seq ((R2.A.to_list r{hr}))).
     apply W64x2N.R.bn2seq. 

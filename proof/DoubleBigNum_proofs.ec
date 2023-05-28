@@ -4,8 +4,6 @@ import StdBigop Bigint BIA.
 from Jasmin require import JModel.
 
 require import W64_SchnorrExtract.
-require import Array128.
-
 
 require import BigNum_spec AuxLemmas.
 import W64x2N R.
@@ -237,9 +235,9 @@ proc; simplify.
 wp.
 while ( #pre /\ ={r,i} /\ (a,of_0,cf,_zero){1}=(ak,_of,_cf,W64.zero){2} /\ 
         1 <= i{2} <= dnlimbs /\ !_of{2} /\ aux{1} = dnlimbs).
-wp. skip. progress. smt(Array128.get_setE Array128.set_set_if). smt(Array128.get_setE Array128.set_set_if).
-smt(Array128.get_setE Array128.set_set_if). smt(Array128.get_setE Array128.set_set_if). 
- wp; skip => />; smt(Array128.get_setE Array128.set_set_if).
+wp. skip. progress. smt(R2.A.get_setE R2.A.set_set_if). smt(R2.A.get_setE R2.A.set_set_if).
+smt(R2.A.get_setE R2.A.set_set_if). smt(R2.A.get_setE R2.A.set_set_if). 
+ wp; skip => />; smt(R2.A.get_setE R2.A.set_set_if).
 qed.
 
 
@@ -253,8 +251,8 @@ proof.
 proc. simplify.
 wp. while ( #pre /\ ={i} /\ (aux,_zero){1}=(dnlimbs-1,W64.zero) /\ 
             0 <= i{2} <= dnlimbs-1 /\ kk{1} = k{2}).
- wp; skip => />; smt(Array128.get_setE Array128.set_set_if).
-wp; skip; smt(Array128.get_setE Array128.set_set_if).
+ wp; skip => />; smt(R2.A.get_setE R2.A.set_set_if).
+wp; skip; smt(R2.A.get_setE R2.A.set_set_if).
 qed.
 
 
