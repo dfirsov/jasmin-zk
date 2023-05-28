@@ -5,6 +5,14 @@ import BS2Int.
 
 from Jasmin require import JWord.
 
+
+
+lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
+ a <= b / c => a < b.
+smt(@Real).
+qed.
+
+
 lemma w64oneP : forall x, 0 < x < 64 => W64.one.[x] = false. 
 progress. 
 rewrite /W64.one.

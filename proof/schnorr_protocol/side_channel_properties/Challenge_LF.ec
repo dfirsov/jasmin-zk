@@ -200,7 +200,7 @@ import W64xN.
 op g l : real 
  = if inv (-1) challenge_t l <= 0 then 0%r else 
      mu D (predC (RSP Constants.q)) ^ (inv (-1) challenge_t l - 1)
-       * (1%r / BigNum_spec.M%r).
+       * (1%r / W64xN.modulusR%r).
 
         
 lemma leakfree1 &m x  l: (glob M1){m} = [] 
@@ -224,9 +224,9 @@ rewrite challenge_cspec_pr.
 rewrite rsample_pr.   smt().
 rewrite /RSP. auto.
 rewrite /z. 
-have ->: mu1 D (W64xN.valR x) = 1%r / BigNum_spec.M%r.
+have ->: mu1 D (W64xN.valR x) = 1%r / W64xN.modulusR%r.
 rewrite duniform1E_uniq. smt(@List).
- have f1 : 0 <= W64xN.valR x < BigNum_spec.M. smt(@W64xN).  smt(@Distr @List). 
+ have f1 : 0 <= W64xN.valR x < W64xN.modulusR. smt(@W64xN).  smt(@Distr @List). 
 rewrite /g.   smt().
 have : Pr[M1.challenge_indexed() @ &m :
    res.`2 = x] = 0%r.

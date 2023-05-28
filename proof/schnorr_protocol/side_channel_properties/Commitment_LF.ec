@@ -491,7 +491,7 @@ import W64xN.
 op g l : real 
  = if inv (-1) commitment_t l <= 0 then 0%r else 
      mu D (predC (RSP Constants.q)) ^ (inv (-1) commitment_t l - 1)
-       * (1%r / BigNum_spec.M%r).
+       * (1%r / W64xN.modulusR%r).
 
         
 lemma leakfree1 &m x l: (glob M1){m} = [] 
@@ -536,9 +536,9 @@ rewrite commitment_cspec_pr1.
 case (valR x < Constants.q) => case1.
 rewrite rsample_pr. smt().
 auto. 
-have ->: mu1 D (W64xN.valR x) = 1%r / BigNum_spec.M%r.
+have ->: mu1 D (W64xN.valR x) = 1%r / W64xN.modulusR%r.
 rewrite duniform1E_uniq. smt(@List).
- have f1 : 0 <= W64xN.valR x < BigNum_spec.M. smt(@W64xN).  smt(@Distr @List). 
+ have f1 : 0 <= W64xN.valR x < W64xN.modulusR. smt(@W64xN).  smt(@Distr @List). 
 smt().
 have : Pr[CSpecFp.rsample(Constants.q) @ &m :
                    res.`2 = valR x] = 0%r.

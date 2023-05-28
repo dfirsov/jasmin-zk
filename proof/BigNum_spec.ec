@@ -15,34 +15,18 @@ lemma ones64 : (2^64  - 1)  = 18446744073709551615. smt(). qed.
 op as_bool (x : W64.t) : bool  = (x = W64.one).
 op as_w64 (x : bool) : W64.t  = x ? W64.one : W64.zero.
 
-
-lemma kok (a b c : real) : 0%r <= a => 0%r < b => 1%r < c =>
- a <= b / c => a < b.
-smt(@Real).
-qed.
-
  
-op M : int = W64xN.modulusR.
-
-op D : int distr = duniform (range 0 M).
+op D : int distr = duniform (range 0 W64xN.modulusR).
 lemma D_ll : is_lossless D. apply duniform_ll.  
- have q : 0 < Top.M . smt. smt(@List). qed.
+ have q : 0 < W64xN.modulusR . smt. smt(@List). qed.
 lemma D_uni : is_uniform D. smt(@Distr). qed.
-lemma D_sup x : x \in D <=> 0 <= x < M. smt(@Distr). qed.
-lemma D_mu x : x \in D => mu1 D x = Real.inv M%r. smt(@Distr). qed.
+lemma D_sup x : x \in D <=> 0 <= x < W64xN.modulusR. smt(@Distr). qed.
+lemma D_mu x : x \in D => mu1 D x = Real.inv W64xN.modulusR%r. smt(@Distr). qed.
 
 
-lemma M_pos : 2 < M. rewrite /M. rewrite /W64xN.modulusR.
-smt(@Int). qed.
+lemma M_pos : 2 < W64xN.modulusR. auto. qed.
 
 op oneR : W64xN.R.t = (W64xN.R.A.of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)).
-
-        
-(** "Implements" relation *)
-abbrev ImplWord x y = W64.to_uint x = y.
-abbrev ImplZZ x y = W64xN.valR x = y.
-abbrev ImplZZ2 x y = W64xN.valR2 x = y.
-
 
 op zeroR : W64xN.R.t = W64xN.R.A.of_list W64.zero (List.nseq nlimbs W64.zero).
 
@@ -60,6 +44,11 @@ rewrite nseq0.
 by rewrite /zeroR W64xN.R.bn2seq /= W64xN.R.A.of_listK 1:/# /bn_seq.
 qed.
 
+
+(** "Implements" relation *)
+abbrev ImplWord x y = W64.to_uint x = y.
+abbrev ImplZZ x y = W64xN.valR x = y.
+abbrev ImplZZ2 x y = W64xN.valR2 x = y.
 
 
 module ASpecFp = {

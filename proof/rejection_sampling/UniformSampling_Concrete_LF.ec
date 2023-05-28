@@ -170,7 +170,7 @@ import W64xN.
 op g a l : real 
  = if inv (-1) samp_t l <= 0 then 0%r else 
      mu D (predC (RSP (valR a))) ^ (inv (-1) samp_t l - 1)
-       * (1%r / BigNum_spec.M%r).
+       * (1%r / W64xN.modulusR%r).
 
 
         
@@ -196,9 +196,9 @@ rewrite rsample_cspec_pr.
 rewrite rsample_pr.   smt().
 rewrite /RSP. auto.
 rewrite /z. 
-have ->: mu1 D (W64xN.valR x) = 1%r / BigNum_spec.M%r.
+have ->: mu1 D (W64xN.valR x) = 1%r / W64xN.modulusR%r.
 rewrite duniform1E_uniq. smt(@List).
- have f1 : 0 <= W64xN.valR x < BigNum_spec.M. smt(@W64xN).  smt(@Distr @List). 
+ have f1 : 0 <= W64xN.valR x < W64xN.modulusR. smt(@W64xN).  smt(@Distr @List). 
 rewrite /g.   smt().
 have : Pr[W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).bn_rsample(a) @ &m :
    res.`2 = x] = 0%r.
