@@ -1,11 +1,16 @@
 require import AllCore IntDiv CoreMap List RealExp.
 import StdBigop Bigint BIA.
 
-from Jasmin require import JModel JBigNum.
-require import W64_SchnorrExtract Array128 Array64 Array32.
+from Jasmin require import JModel.
+
+require import W64_SchnorrExtract.
+require import Array128 Array64.
+
 
 require import BigNum_spec AuxLemmas.
 import W64xN R.
+
+
 
 require import BitEncoding.
 import BS2Int.
@@ -30,8 +35,8 @@ transitivity
   exlim a{1}, b{1} => aa bb.
   while (={i,b} /\ 1 <= i{2} <= nlimbs /\
          (cf,aa){1}=(c,a){2} /\
-         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array32 /\
-         (forall k, i{2} <= k < nlimbs => a{1}.[k] = aa.[k])%Array32).
+         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%A /\
+         (forall k, i{2} <= k < nlimbs => a{1}.[k] = aa.[k])%A).
    wp; skip => /> &1 &2 Hi1 Hi2 H1 H2 Hi.
    split => *; first smt().
    split => *; first smt().
@@ -40,17 +45,19 @@ transitivity
     pose X := (addc _ _ _)%W64.
     pose Y := (addc _ _ _)%W64.
     have ->: X=Y by smt().
-    case: (k = i{2}) => ?.
-     by rewrite !set_eqiE /#.
-    by rewrite !set_neqiE /#.
-   move=> k Hk1 Hk2. 
-   by rewrite set_neqiE /#.
+    case: (k = i{2}) => ?.  smt(@A). smt(@A).
+    (*  by rewrite !set_eqiE /#. *)
+    (* by rewrite !set_neqiE /#. *)
+   move=> k Hk1 Hk2. smt(@A).
+   (* by rewrite A.set_neqiE /#. *)
   wp; skip => /> &2.
   move=> Hc; split => *.
    split => k *. 
-    by rewrite (_:k=0) 1:/# !set_eqiE /#.
-   by rewrite set_neqiE /#.
-  by apply ext_eq; smt().
+    (* by rewrite (_:k=0) 1:/# !set_eqiE /#. *)
+        smt(@A).
+        smt(@A).
+   (* by rewrite set_neqiE /#. *)
+  apply A.ext_eq; smt().
 + proc; simplify.
   transitivity {1}
    { (c,r) <@ R.Ops.addcR(a,b,c); }
@@ -140,10 +147,10 @@ lemma bn_cmov_correct x y z :
   phoare[ M.bn_cmov :  arg = (x,y,z)  ==> res = if x then z else y ] = 1%r.
 proc.
 while (cond = x /\ b = z /\ i <= nlimbs 
-  /\ (forall j, 0 <= j < i => a.[j]%Array32 = if cond then z.[j] else y.[j])%Array32
-  /\ (forall j, i <= j < nlimbs => a.[j] = y.[j]) )%Array32 (nlimbs - i). progress.
-wp.  skip.  progress. smt().   smt(@Array32). smt(@Array32). smt(). wp.  skip. progress. smt(@Array32). smt().
-apply Array32.ext_eq. progress. smt(@Array32). 
+  /\ (forall j, 0 <= j < i => a.[j]%A = if cond then z.[j] else y.[j])%A
+  /\ (forall j, i <= j < nlimbs => a.[j] = y.[j]) )%A (nlimbs - i). progress.
+wp.  skip.  progress. smt().   smt(@A). smt(@A). smt(). wp.  skip. progress. smt(@A). smt().
+apply A.ext_eq. progress. smt(@A). 
 qed.
 
 
@@ -161,7 +168,7 @@ qed.
 lemma bn_eq_correct x1 x2 :
   phoare[ M.bn_eq :  arg = (x1,x2) ==> (res = W64.one) = (valR x1 = valR x2)  /\ (res = W64.zero \/ res = W64.one) ] = 1%r.
 proc. sp. inline M.sn_cmov.  wp.
-while (i <= nlimbs /\ ((result = W64.zero) <=> (forall j, 0 <= j < i => a.[j] = b.[j])%Array32)) (nlimbs - i). progress.
+while (i <= nlimbs /\ ((result = W64.zero) <=> (forall j, 0 <= j < i => a.[j] = b.[j])%A)) (nlimbs - i). progress.
 wp.  skip.  progress. smt(). smt(@W64xN).
 smt(@W64xN).
 smt().
@@ -171,14 +178,14 @@ smt().
 smt().
 case (result0 = W64.zero). simplify.
 move => c1.
-rewrite (Array32.ext_eq a{hr} b{hr} ). 
+rewrite (A.ext_eq a{hr} b{hr} ). 
 have qq : i0 = nlimbs. smt().
 rewrite - qq.
 smt(). auto.
 elim H1. move => H11 H12.
 simplify.
 have ->: (W64.zero = W64.one) = false. smt(@W64).
-smt(@Array32 @W64xN).
+smt(@A @W64xN).
 smt().
 qed.
 
@@ -187,10 +194,10 @@ lemma bn_copy_correct x :
   phoare[ M.bn_copy :  arg = x  ==> res = x ] = 1%r.
 proc.
 while (a = x /\ i <= nlimbs 
-  /\ (forall j, 0 <= j < i => r.[j] = x.[j])%Array32
+  /\ (forall j, 0 <= j < i => r.[j] = x.[j])%A
   ) (nlimbs - i). progress.
-wp.  skip.  progress. smt(). smt(@Array32). smt(). wp.  skip. progress. smt(). smt().
-apply Array32.ext_eq. progress. smt(). 
+wp.  skip.  progress. smt(). smt(@A). smt(). wp.  skip. progress. smt(). smt().
+apply A.ext_eq. progress. smt(). 
 qed.
 
 
@@ -223,8 +230,8 @@ transitivity
   exlim a{1}, b{1} => aa bb.
   while (={i,b} /\ 1 <= i{2} <= dnlimbs /\ 
          (cf, aa){1}=(c, a){2} /\
-         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%Array32 /\
-         (forall k, i{2} <= k < dnlimbs => a{1}.[k] = aa.[k])%Array32).
+         (forall k, 0 <= k < i{2} => a{1}.[k] = r{2}.[k])%A /\
+         (forall k, i{2} <= k < dnlimbs => a{1}.[k] = aa.[k])%A).
    wp; skip => /> &1 &2 Hi1 _ Hh1 Hh2 Hi2.
    split => *; first smt().
    split => *; first smt().
@@ -233,17 +240,17 @@ transitivity
     pose X := (subc _ _ _)%W64.
     pose Y := (subc _ _ _)%W64.
     have ->: X=Y by smt().
-    case: (k = i{2}) => ?.
-     by rewrite !set_eqiE /#.
-    by rewrite !set_neqiE /#.
+    case: (k = i{2}) => ?. smt(@A). smt(@A).
+    (*  by rewrite !A.set_eqiE /#. *)
+    (* by rewrite !set_neqiE /#. *)
    move=> k Hk1 Hk2.
-   by rewrite set_neqiE /#.
+   (* by rewrite set_neqiE /#. *) smt(@A).
   wp; skip => />.
   split => *.
    split => k *.
-    by rewrite (_:k=0) 1:/# !set_eqiE /#.
-   by rewrite set_neqiE /#.
-  by apply Array32.ext_eq; smt().
+    (* by rewrite (_:k=0) 1:/# !set_eqiE /#. *) smt(@A).
+   (* by rewrite set_neqiE /#. *) smt(@A).
+  by apply A.ext_eq; smt().
 + proc; simplify.
   transitivity {1}
    { (c,r) <@ W64xN.R.Ops.subcR(a,b,c); }
@@ -438,15 +445,14 @@ lemma bn_set0_correct :
   phoare[ M.bn_set0 : true  ==> W64xN.valR res = 0 ] = 1%r.
 proc.
 while (i <= nlimbs
-  /\ (forall j, 0 <= j < i => a.[j]%Array32 = W64.zero)) (nlimbs - i). progress.
-wp.  skip.  progress. smt().  smt(@Array32). smt(). wp.  skip. progress. smt(). smt().
+  /\ (forall j, 0 <= j < i => a.[j]%A = W64.zero)) (nlimbs - i). progress.
+wp.  skip.  progress. smt().  smt(@A). smt(). wp.  skip. progress. smt(). smt().
 rewrite - zeroRE. congr.
-apply Array32.ext_eq. progress.  rewrite H1. smt().
-rewrite /zeroR. smt(@Array32 @List). 
+apply A.ext_eq. progress.  
+rewrite /zeroR. smt(@A @List). 
 qed.
 
 
-require import WArray256 Array256.
 
 
 equiv mul1first_eq:
@@ -577,23 +583,23 @@ apply modz_small. split. smt(). smt(). smt(). smt(). smt().
 qed.
 
 
-(* TODO: nlimbs specific *)
+
 lemma oneRE: ImplZZ oneR 1.
 rewrite /oneR /valR /bnk.
 do? (rewrite range_ltn; first by trivial ).
 simplify. rewrite range_geq. auto.
 do rewrite big_consT.
 rewrite big_nil.
- have -> : dig ((of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)))%Array32 0 = 1.
- simplify. smt(@Int).
- have q : forall x, 0 < x < nlimbs => dig ((of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)))%Array32 x = 0.
+ have -> : dig ((A.of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)))%A 0 = 1.
+ simplify. smt(@W64 @A).
+ have q : forall x, 0 < x < nlimbs => dig ((A.of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)))%A x = 0.
  move => x xp. rewrite /dig.
-   have ->: to_uint ((of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)).[x])%Array32 = 0. 
+   have ->: to_uint ((A.of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)).[x])%A = 0. 
     do? (rewrite nseqS'; first by trivial). simplify. 
    rewrite nseq0. 
-  have -> : (of_list W64.zero [W64.one; W64.zero; W64.zero; W64.zero; W64.zero]).[x]%Array32 = W64.zero. 
-rewrite get_of_list. smt().
-smt(@List).  smt(@W64). smt().
+  have -> : (A.of_list W64.zero [W64.one; W64.zero ]).[x]%A = W64.zero.  
+smt(A.get_of_list). smt().
+smt(@List).  
 do? (rewrite q; first smt()). auto.
 qed.
 
@@ -602,13 +608,14 @@ lemma bn_set1_correct :
   phoare[ M.bn_set1 : true  ==> W64xN.valR res = 1 ] = 1%r.
 proc.
 while (0 < i <= nlimbs 
-  /\ (forall j, 1 <= j < i => a.[j]%Array32 = W64.zero) /\ a.[0]%Array32 = W64.one) (nlimbs - i). progress.
-wp.  skip.  progress. smt(). smt().  smt(@Array32). smt(@Array32). smt(). wp.  skip. progress. smt(@Array32). smt().
+  /\ (forall j, 1 <= j < i => a.[j]%A = W64.zero) /\ a.[0]%A = W64.one) (nlimbs - i). progress.
+wp.  skip.  progress. smt(). smt().  smt(@A). smt(@A). smt(). wp.  skip. progress. smt(@A). smt().
 rewrite - oneRE. congr.
-apply Array32.ext_eq. progress.  
+apply A.ext_eq. progress.  
 case (x = 0). progress. progress.
-rewrite H2. smt(). 
-rewrite /oneR. smt(@Array32 @List).
+rewrite /A."_.[_]" in H2.
+rewrite H2. smt().
+rewrite /oneR. smt(@A @List).
 qed.
 
 
@@ -642,7 +649,7 @@ smt(@Int).
 qed.
 
 
-import W64x2N.
+(* import W64x2N. *)
 
 
 lemma bn_div2_correct z :
@@ -653,10 +660,10 @@ progress. wp. skip. progress.
 smt(). smt(@Array64). smt(). skip. progress.
 smt(). smt().
 have ->:  W64x2N.modulusR  = W64x2N.M^dnlimbs.  rewrite /R.bn_modulus. auto. 
-have ->: (R2.bnk (2*dnlimbs) x{hr})%R2 = valR2 x{hr}. auto.
-rewrite R2.bn_div_kup.
+have ->: (W64x2N.R2.bnk (2*dnlimbs) x{hr})%R2 = W64x2N.valR2 x{hr}. auto.
+rewrite W64x2N.R2.bn_div_kup.
 auto.
-rewrite - R.bnkup0.
+rewrite - W64x2N.R.bnkup0.
 rewrite /bnkup.
 have ->: 
   bigi predT (fun (i1 : int) => to_uint r0.[i1] * W64x2N.M ^ (i1 - 0)) 0 dnlimbs
@@ -674,14 +681,14 @@ lemma bn_shrink_correct a  :
   phoare[ M.bn_shrink : arg = a  ==> W64xN.valR res = W64x2N.valR a %% W64xN.modulusR ] = 1%r.
 proc.
 sp.
-while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j]%Array32 = x.[j]%Array64) (nlimbs - i). 
+while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j]%A = x.[j]%Array64) (nlimbs - i). 
 progress. wp. skip. progress.
-smt(). smt(@Array32). smt(). skip. progress.
+smt(). smt(@A). smt(). skip. progress.
 smt(). smt(). 
 rewrite /W64xN.modulusR. auto.
 rewrite W64x2N.R.bn_mod. auto. 
 rewrite /bnk. 
-apply eq_big_seq. progress. rewrite H1. split.
+apply eq_big_seq. progress. rewrite /A."_.[_]" in H1. rewrite H1. split.
 smt (mem_range). 
 smt (mem_range). 
 auto.
@@ -695,34 +702,34 @@ lemma bn_expand_correct : forall a,
    move => a.
    proc.
    sp. 
-    seq 1 : (a = x /\ i = nlimbs /\ forall i, i < nlimbs => r.[i] = x.[i]%Array32).
-    while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[j]%Array32). wp.  skip. progress.
-    smt(). smt(@Array32 @Array64). skip. progress.
-    smt().  smt(). smt(@Array64 @Array32). sp.
-    seq 2 : (a = x /\  (forall j, 0 <= j < nlimbs => r.[j]%Array64 = x.[j]%Array32)
+    seq 1 : (a = x /\ i = nlimbs /\ forall i, i < nlimbs => r.[i] = x.[i]%A).
+    while (i <= nlimbs /\ forall j, 0 <= j < i => r.[j] = x.[j]%A). wp.  skip. progress.
+    smt(). smt(@A @Array64). skip. progress.
+    smt().  smt(). smt(@Array64 @A). sp.
+    seq 2 : (a = x /\  (forall j, 0 <= j < nlimbs => r.[j]%Array64 = x.[j]%A)
          /\ (forall j, nlimbs <= j < 2*nlimbs => r.[j] = W64.zero)).     
     while (a = x /\ nlimbs <= i <= 2*nlimbs 
-         /\ (forall j, 0 <= j < nlimbs => r.[j]%Array64 = x.[j]%Array32)
+         /\ (forall j, 0 <= j < nlimbs => r.[j]%Array64 = x.[j]%A)
          /\ (forall j, nlimbs <= j < i => r.[j] = W64.zero) /\ aux = 64 ). wp.  skip. progress.
     smt(). smt().
     have z : i{hr} <> j. smt(). 
-    rewrite - H1. auto.  smt(@Array32 @Array64).
-    case (j = i{hr}). smt(@Array32 @Array64).
+    rewrite - H1. auto.  smt(@A @Array64).
+    case (j = i{hr}). smt(@A @Array64).
     progress.
     have : j < i{hr}.  smt().
     progress.
     rewrite - (H2 j).  smt().
-    smt(@Array32 @Array64). wp. 
+    smt(@A @Array64). wp. 
     skip.  progress.
-    smt(@Array32 @Array64). smt(). smt(). 
+    smt(@A @Array64). smt(). smt(). 
     skip.  progress.
-    have -> : valR r{hr} = (bn_seq ((to_list r{hr}))%Array64).
+    have -> : W64x2N.valR r{hr} = (bn_seq ((to_list r{hr}))%Array64).
     apply W64x2N.R.bn2seq. 
     rewrite /to_list.
     have -> : dnlimbs = nlimbs + nlimbs. smt().
     rewrite mkseq_add. auto. auto.
     have -> : mkseq (fun (i0 : int) => r{hr}.[i0]) nlimbs 
-      = mkseq (fun (i0 : int) => x{hr}.[i0]%Array32) nlimbs.
+      = mkseq (fun (i0 : int) => x{hr}.[i0]%A) nlimbs.
     apply eq_in_mkseq. progress. 
     simplify.
     have ->: mkseq (fun (i0 : int) => r{hr}.[nlimbs + i0]) nlimbs
@@ -756,7 +763,7 @@ wp.  skip. smt(). auto. auto.
   = Pr[M.bn_expand(arg{m}) @ &m : (W64x2N.valR res =  W64xN.valR arg{m}) ]  
     + Pr[M.bn_expand(arg{m}) @ &m : (W64x2N.valR res <>  W64xN.valR arg{m}) ].
 rewrite Pr[mu_split (W64x2N.valR res =  W64xN.valR arg{m})]. simplify.   auto.
-have ->: Pr[M.bn_expand(arg{m}) @ &m : valR res <> valR arg{m}] = 0%r.
+have ->: Pr[M.bn_expand(arg{m}) @ &m : W64x2N.valR res <> valR arg{m}] = 0%r.
 byphoare (_: arg = arg{m} ==> _). 
 hoare. simplify. conseq (bn_expand_correct arg{m}). auto. auto. auto.
 qed.
@@ -768,24 +775,24 @@ move => a. bypr. progress.
 have q : 1%r = Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : true]. 
 byphoare (_: arg = arg{m} ==> _). proc*. call (bn_expand_correct ( arg{m})). auto. auto. auto.
 have z :  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : true] = Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
-   valR res <> valR arg{m}] +  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
-   valR res = valR arg{m}].
-rewrite Pr[mu_split (valR res <> valR arg{m})]. simplify. auto.
-have w :  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : valR res = valR arg{m}] = 1%r.
+   W64x2N.valR res <> valR arg{m}] +  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
+   W64x2N.valR res = valR arg{m}].
+rewrite Pr[mu_split (W64x2N.valR res <> valR arg{m})]. simplify. auto.
+have w :  Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m : W64x2N.valR res = valR arg{m}] = 1%r.
 byphoare (_: arg = arg{m} ==> _). conseq (bn_expand_correct ( arg{m})).  auto. auto.
-rewrite Pr[mu_split valR res = valR arg{m}]. simplify. 
+rewrite Pr[mu_split W64x2N.valR res = valR arg{m}]. simplify. 
 have ->: Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
-   valR res <> valR arg{m} /\ valR res <> valR arg{m}] =
+   W64x2N.valR res <> valR arg{m} /\ W64x2N.valR res <> valR arg{m}] =
 Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
-   valR res <> valR arg{m}]. rewrite Pr[mu_eq]. auto. auto.
+   W64x2N.valR res <> valR arg{m}]. rewrite Pr[mu_eq]. auto. auto.
 have easy_fact1 : Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
-   valR res <> valR arg{m}] = 0%r. smt(@Distr).
+   W64x2N.valR res <> valR arg{m}] = 0%r. smt(@Distr).
 have easy_fact2 : Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
-   valR res <> valR arg{m} /\ valR res = valR arg{m}]
+   W64x2N.valR res <> valR arg{m} /\ W64x2N.valR res = valR arg{m}]
  <= Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
-   valR res <> valR arg{m}]. smt(@Distr).
+   W64x2N.valR res <> valR arg{m}]. smt(@Distr).
 have easy_fact3 : Pr[W64_SchnorrExtract.M(Syscall).bn_expand(arg{m}) @ &m :
-   valR res <> valR arg{m} /\ valR res = valR arg{m}] = 0%r. smt(@Distr).
+   W64x2N.valR res <> valR arg{m} /\ W64x2N.valR res = valR arg{m}] = 0%r. smt(@Distr).
 smt().
 qed.
 
@@ -855,14 +862,14 @@ auto.
 qed.
 
 module MM = {
-  proc ith_bit (kk:W64.t Array32.t, ctr:W64.t) : W64.t = {
+  proc ith_bit (kk:W64.t A.t, ctr:W64.t) : W64.t = {
     var bit:W64.t;
     var c1:W64.t;
     var c2:W64.t;
     var r:W64.t;
     c1 <- (ctr `>>` (W8.of_int 6));
     c2 <- (ctr - (c1 * (W64.of_int 64)));
-    r <- kk.[(W64.to_uint c1)]%Array32;
+    r <- kk.[(W64.to_uint c1)]%A;
     bit <@ IB.ith_bit64 (r, c2);
     return (bit);
   }
@@ -901,7 +908,7 @@ smt().
 rewrite  shr_div_le.
 auto. simplify. 
 smt (@W64 @IntDiv).
-sim.
+sim. wp. skip. auto.
 qed.
 
 lemma ith_bit_lemma_cspec :
@@ -917,7 +924,7 @@ progress. smt(). smt().
 symmetry. conseq ith_bit_lemmaEq. auto. auto.
 proc.
 seq 3 0 : (to_uint c1{1} = (to_uint ctr{1} %/ 64) /\ to_uint c2{1} = (to_uint ctr{1} %% 64) /\ to_uint ctr{1} = ctr{2}
-  /\ r{1} = kk{1}.[(to_uint ctr{1} %/ 64)]%Array32 /\ r{2} = kk{1} /\ 0 <= ctr{2} && ctr{2} < 64*nlimbs ).
+  /\ r{1} = kk{1}.[(to_uint ctr{1} %/ 64)]%A /\ r{2} = kk{1} /\ 0 <= ctr{2} && ctr{2} < 64*nlimbs ).
 wp.  skip. progress.
 rewrite shr_div_le. auto. smt(@Ring).
 rewrite modzE.
@@ -951,25 +958,26 @@ rewrite /ith_bitR. rewrite /Rbits. rewrite /valR.
 rewrite /ith_bit.
 rewrite /as_word.
 rewrite /as_w64.
-have ->: (kk{1}.[to_uint ctr{1} %/ 64])%Array32.[to_uint ctr{1} %% 64]
+have ->: (kk{1}.[to_uint ctr{1} %/ 64])%A.[to_uint ctr{1} %% 64]
   = nth false (BS2Int.int2bs (64 * nlimbs) ((valR kk{1}))%W64xN) (to_uint ctr{1}) .
 rewrite - get_w2bits.
-rewrite - get_to_list.
-have -> : (W64.w2bits (nth witness ((to_list kk{1}))%Array32 (to_uint ctr{1} %/ 64)))
- = ((nth witness (map W64.w2bits (to_list kk{1}))%Array32 (to_uint ctr{1} %/ 64))).
+rewrite /A."_.[_]".
+rewrite - A.get_to_list.
+have -> : (W64.w2bits (nth witness ((to_list kk{1}))%A (to_uint ctr{1} %/ 64)))
+ = ((nth witness (map W64.w2bits (to_list kk{1}))%A (to_uint ctr{1} %/ 64))).
 rewrite - (nth_map witness witness W64.w2bits). progress.   smt(). smt(@W64xN).
 auto.
-have -> : (nth witness (map W64.w2bits ((to_list kk{1}))%Array32)
+have -> : (nth witness (map W64.w2bits ((to_list kk{1}))%A)
      (to_uint ctr{1} %/ 64))
- = (nth [] (map W64.w2bits ((to_list kk{1}))%Array32)
+ = (nth [] (map W64.w2bits ((to_list kk{1}))%A)
      (to_uint ctr{1} %/ 64)).
 rewrite (nth_change_dfl [] witness). progress.  smt(). smt(@W64xN @List). auto.
-rewrite - (BitChunking.nth_flatten false 64 (map W64.w2bits ((to_list kk{1}))%Array32) (to_uint ctr{1})).
+rewrite - (BitChunking.nth_flatten false 64 (map W64.w2bits ((to_list kk{1}))%A) (to_uint ctr{1})).
 rewrite  List.allP. progress.
-have : exists z, z \in ((to_list kk{1}))%Array32 /\ x = W64.w2bits z.
+have : exists z, z \in ((to_list kk{1}))%A /\ x = W64.w2bits z.
 apply mapP. auto. elim. progress.
-have ->: (flatten (map W64.w2bits ((to_list kk{1}))%Array32))  = (int2bs (64*nlimbs) ((valR kk{1}))%W64xN).
-have -> : (valR kk{1})%W64xN = bs2int (flatten (map W64.w2bits ((to_list kk{1}))%Array32)).
+have ->: (flatten (map W64.w2bits ((to_list kk{1}))%A))  = (int2bs (64*nlimbs) ((valR kk{1}))%W64xN).
+have -> : (valR kk{1})%W64xN = bs2int (flatten (map W64.w2bits ((to_list kk{1}))%A)).
 rewrite /bnk.
 do? (rewrite range_ltn; first by trivial).
 simplify. rewrite range_geq. auto. auto.
@@ -986,7 +994,7 @@ simplify.
 (* have ->:  18446744073709551616 ^ 0 = 1. smt(@Ring). *)
 (* simplify. *)
 smt(@Ring).
-have ->: 64*nlimbs = size (flatten (map W64.w2bits ((to_list kk{1}))%Array32)).
+have ->: 64*nlimbs = size (flatten (map W64.w2bits ((to_list kk{1}))%A)).
 rewrite /to_list.
 do? (rewrite mkseqS'; first by trivial).
 rewrite mkseq0. simplify.
@@ -1010,69 +1018,75 @@ seq 2 0 : (i{1} = 0 /\ a{2} = x{1} /\ b{2} = y{1} /\ swap_0{1} = as_w64 c{2} /\
 wp. skip. progress. smt(@W64). smt(@W64).
 while {1} (0 <= i{1} /\ ((as_bool swap_0{1} => mask{1} = (of_int 18446744073709551615)%W64 )
               /\ (as_bool swap_0{1} = false => mask{1} = (of_int 0)%W64)) 
-   /\ (forall j, 0 <= j < i{1} => (x{1}.[j])%Array32 = (if as_bool swap_0{1} then (b{2}.[j]) else (a{2}.[j]))%Array32 )  
-   /\ (forall j, 0 <= j < i{1} => (y{1}.[j])%Array32 = (if as_bool swap_0{1} then (a{2}.[j]) else (b{2}.[j]))%Array32 )  
-   /\ (forall j, i{1} <= j => (x{1}.[j])%Array32 =  (a{2}.[j]))%Array32
-   /\ (forall j, i{1} <= j => (y{1}.[j])%Array32 =  (b{2}.[j]))%Array32
+   /\ (forall j, 0 <= j < i{1} => (x{1}.[j])%A = (if as_bool swap_0{1} then (b{2}.[j]) else (a{2}.[j]))%A )  
+   /\ (forall j, 0 <= j < i{1} => (y{1}.[j])%A = (if as_bool swap_0{1} then (a{2}.[j]) else (b{2}.[j]))%A )  
+   /\ (forall j, i{1} <= j => (x{1}.[j])%A =  (a{2}.[j]))%A
+   /\ (forall j, i{1} <= j => (y{1}.[j])%A =  (b{2}.[j]))%A
  ) (nlimbs - i{1} + 1).
 progress. wp.  skip.  progress.   smt().
-case (j <  i{hr}). progress. smt(@Array32).
+case (j <  i{hr}). progress. smt(@A).
 progress.
 have : j = i{hr}. smt().
 progress.
+rewrite - /A."_.[_]".
+rewrite - /A."_.[_<-_]".
 have ->: (x{hr}.[i{hr} <-
-    x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%Array32
- = (x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%Array32. smt(@Array32).
+    x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%A
+ = (x{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%A. smt(@A).
 case (as_bool swap_0{hr}). progress.
 rewrite H4. auto.  rewrite H0. auto. rewrite H5. auto. rewrite - ones64. 
-have -> : ((a{m}.[i{hr}])%Array32 `^` (b{m}.[i{hr}])%Array32 `&`
- (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%Array32 `^` ((b{m}.[i{hr}])%Array32 `&`
+have -> : ((a{m}.[i{hr}])%A `^` (b{m}.[i{hr}])%A `&`
+ (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%A `^` ((b{m}.[i{hr}])%A `&`
  (of_int W64.max_uint)%W64).
-pose x := a{m}.[i{hr}]%Array32.
-pose y := b{m}.[i{hr}]%Array32.
+pose x := a{m}.[i{hr}]%A.
+pose y := b{m}.[i{hr}]%A.
 pose z := (of_int W64.max_uint)%W64.
 rewrite andwDl.
 have ->: (x `&` z) = x. smt (W64.andw1_s).
 auto.
-have ->: ((b{m}.[i{hr}])%Array32 `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%Array32). 
-pose y := b{m}.[i{hr}]%Array32.
+have ->: ((b{m}.[i{hr}])%A `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%A). 
+pose y := b{m}.[i{hr}]%A.
 pose z := (of_int W64.max_uint)%W64.
 smt (W64.andw1_s).
 smt(@W64).
 progress. rewrite H4. auto.  rewrite H1. smt(). auto. 
-case (j <  i{hr}). progress. smt(@Array32).
+case (j <  i{hr}). progress. smt(@A).
 progress.
 have : j = i{hr}. smt().
 progress.
+rewrite - /A."_.[_]".
+rewrite - /A."_.[_<-_]".
 have ->: (y{hr}.[i{hr} <-
-   y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%Array32
- = (y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%Array32. smt(@Array32).
+   y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr})].[i{hr}])%A
+ = (y{hr}.[i{hr}] `^` (x{hr}.[i{hr}] `^` y{hr}.[i{hr}] `&` mask{hr}))%A. smt(@A).
 case (as_bool swap_0{hr}). progress.
 rewrite H4. auto.  rewrite H0. auto. rewrite H5. auto. rewrite - ones64. 
-have -> : ((a{m}.[i{hr}])%Array32 `^` (b{m}.[i{hr}])%Array32 `&`
- (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%Array32 `^` ((b{m}.[i{hr}])%Array32 `&`
+have -> : ((a{m}.[i{hr}])%A `^` (b{m}.[i{hr}])%A `&`
+ (of_int W64.max_uint)%W64) = a{m}.[i{hr}]%A `^` ((b{m}.[i{hr}])%A `&`
  (of_int W64.max_uint)%W64). 
-pose x := a{m}.[i{hr}]%Array32.
-pose y := b{m}.[i{hr}]%Array32.
+pose x := a{m}.[i{hr}]%A.
+pose y := b{m}.[i{hr}]%A.
 pose z := (of_int W64.max_uint)%W64.
 rewrite andwDl.
 have ->: (x `&` z) = x. smt (W64.andw1_s).
 auto.
-have ->: ((b{m}.[i{hr}])%Array32 `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%Array32).
-pose y := b{m}.[i{hr}]%Array32.
+have ->: ((b{m}.[i{hr}])%A `&` (of_int W64.max_uint)%W64) = ((b{m}.[i{hr}])%A).
+pose y := b{m}.[i{hr}]%A.
 pose z := (of_int W64.max_uint)%W64.
 smt (W64.andw1_s).
 smt(@W64).
 progress. rewrite H4. auto.  rewrite H1. smt(). smt(@W64).
-smt(@Array32). smt(@Array32). smt().
+smt(@A). smt(@A). smt().
 skip. progress. smt().   smt().   smt(). 
 case (c{2} = false). progress.  
-apply Array32.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
-apply Array32.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply A.ext_eq.  progress. 
+rewrite - /A."_.[_]".
+rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply A.ext_eq.  progress. rewrite - /A."_.[_]". rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
 progress. have ->: c{2} = true. smt(). simplify.
 progress. 
-apply Array32.ext_eq.  progress. rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
-apply Array32.ext_eq.  progress. rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply A.ext_eq.  progress. rewrite - /A."_.[_]". rewrite H5. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
+apply A.ext_eq.  progress. rewrite - /A."_.[_]". rewrite H6. progress. smt(). rewrite /as_bool. rewrite /as_w64. simplify. smt(@W64).
 qed.
 
 
