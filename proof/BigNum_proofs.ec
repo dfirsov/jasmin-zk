@@ -289,14 +289,14 @@ equiv muln_spec aa bb:
  M.bn_muln ~ ASpecFp.muln:
   ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ aa = a{1} /\ bb = b{1}
   ==> 
-  ImplZZ2 res{1}.`4 res{2}
+  W64x2N.valR res{1}.`4 = res{2}
      /\ res{1}.`1 = W64.zero /\ !res{1}.`2 /\ !res{1}.`3 /\ valR2 res{1}.`4 = valR aa * valR bb.
 proof.
 transitivity 
  MulOps.mulR
  ( ={a,b} ==> res{1}.`2=res{2}.`1 /\ res{1}.`3=res{2}.`2 /\ res{1}.`4=res{2}.`3 /\  res{1}.`1 = W64.zero  )
  ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ aa = a{1} /\ bb = b{1}
-   ==> !res{1}.`1 /\ !res{1}.`2 /\ ImplZZ2 res{1}.`3 res{2} /\ valR2 res{1}.`3 = valR aa * valR bb).
+   ==> !res{1}.`1 /\ !res{1}.`2 /\ W64x2N.valR res{1}.`3 = res{2} /\ valR2 res{1}.`3 = valR aa * valR bb).
 + by move=> /> &1 &2 H1 H2; exists (a{1},b{1}).
 + by move=> /> /#.
 + proc; simplify. wp.
@@ -310,7 +310,7 @@ apply modz_small. split. smt(). smt(). smt(). smt(). smt().
   transitivity {1}
     { (_of,_cf,r) <@ MulOps.mulR(a,b); }
     ( ={a,b} ==> ={_cf,_of,r} )
-    ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ aa = a{1} /\ bb = b{1} ==> !_cf{1} /\ !_of{1} /\ ImplZZ2 r{1} r{2} /\ valR2 r{1} = valR aa * valR bb ).
+    ( ImplZZ a{1} a{2} /\ ImplZZ b{1} b{2} /\ aa = a{1} /\ bb = b{1} ==> !_cf{1} /\ !_of{1} /\ W64x2N.valR r{1} = r{2} /\ valR2 r{1} = valR aa * valR bb ).
   progress. exists a{1} b{1}; auto.
   + by move=> /> *.
   + by inline MulOps.mulR; sim.
@@ -319,24 +319,6 @@ qed.
 
 
 
-lemma oneRE: ImplZZ oneR 1.
-rewrite /oneR /valR /bnk.
-do? (rewrite range_ltn; first by trivial ).
-simplify. rewrite range_geq. auto.
-do rewrite big_consT.
-rewrite big_nil.
- have -> : dig ((A.of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)))%A 0 = 1.
- simplify. smt(@W64 @A).
- have q : forall x, 0 < x < nlimbs => dig ((A.of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)))%A x = 0.
- move => x xp. rewrite /dig.
-   have ->: to_uint ((A.of_list W64.zero (W64.one :: nseq (nlimbs - 1) W64.zero)).[x])%A = 0. 
-    do? (rewrite nseqS'; first by trivial). simplify. 
-   rewrite nseq0. 
-  have -> : (A.of_list W64.zero [W64.one; W64.zero ]).[x]%A = W64.zero.  
-smt(A.get_of_list). smt().
-smt(@List).  
-do? (rewrite q; first smt()). auto.
-qed.
 
 
 lemma bn_set1_correct :

@@ -23,14 +23,20 @@ equiv mulm_cspec:
 proc. 
 call bnreduce_spec.
 ecall (muln_spec a{1} b{1}).
-wp. skip.
+wp. skip. simplify.
 move => &1 &2 H1. split. smt().
 move => q1 r1 r2 r3 . split. simplify. rewrite - r3.
 smt(@W64xN @W64x2N).
    split.  simplify. smt().
 split. simplify. smt.
 split.  smt (@W64xN).
-split.  smt (W64xN.R.bnk_cmp). simplify. smt(@W64x2N).
+split.  simplify. split. 
+elim r3. move => q q2. rewrite - q. smt(@W64x2N).
+move => q. 
+elim r3.  move => q2. rewrite - q2. elim H1. progress.
+have ->: valR r1.`4 = (W64xN.R2.bnk dnlimbs r1.`4). auto.
+rewrite H5. smt(@W64xN @Int).
+smt(@W64x2N).
 qed.
 
 
