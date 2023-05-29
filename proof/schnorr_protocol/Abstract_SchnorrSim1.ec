@@ -364,6 +364,7 @@ proc.
 call D_guess_prop.  call (_:true). wp. call (_:true). rnd. skip. progress. smt(). smt().
 qed.
 
+
 local lemma allinone_2 &m ya wa P: Pr[Sim1'.allinone(ya, wa) @ &m :  P res] = Pr[Sim1'.allinone''(ya, wa) @ &m :  P res ].
 byequiv (_: ={arg,glob D, glob V, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl} ==> _). proc.
 inline Sim1'.allinone'.
@@ -381,11 +382,9 @@ rewrite (run_allinone &m ya wa (fun (x : bool * bool) => x.`2 )). simplify.
 rewrite (allinone_1 &m ya wa (fun x => x)). simplify.
 rewrite (allinone_2 &m ya wa (fun (x: bool * bool) => x.`1 /\ x.`2)). simplify.
 byphoare (_: arg = (ya,wa) /\ (glob V, glob D,  glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl){m} = (glob V, glob D, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl) ==> _).
-
 proc. simplify.
 seq 1 : (rd)  Pr[Sim1'.allinone'(ya, wa) @ &m : res.`2] (1%r / (size DZmodP.Support.enum)%r) Pr[Sim1'.allinone'(ya, wa) @ &m : !res.`2] 0%r. 
 auto.
-
 call (allinine_3 &m ya wa (fun x => x) ).
 skip. simplify. auto. rnd. skip. progress. rewrite H. simplify. 
 rewrite /DZmodP.dunifin.
@@ -397,10 +396,6 @@ hoare. auto.
 progress. smt().
 auto. auto. auto.
 qed.
-
-
-
-
 
 
 local lemma sim1zk &m ya wa :
