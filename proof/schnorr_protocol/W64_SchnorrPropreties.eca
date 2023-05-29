@@ -1,7 +1,6 @@
 require import AllCore Distr DInterval List Int IntDiv.
 
 from Jasmin require import JModel JBigNum.
-require import Array32 Array64 Array128.
 
 require import W64_SchnorrProtocol.
 require import BigNum_spec.
@@ -101,7 +100,7 @@ module  AWrapE(A:ZKRewindableMaliciousProverJ) : ZKRewindableMaliciousProverG = 
 
 module (ExtractorJ : ExtractorJ)(P : ZKRewindableMaliciousProverJ) = {
   module SA = SpecialSoundnessAdversaryG(AWrapE(P))
-  proc extract(p : W64.t Array32.t) : W64.t Array32.t = {
+  proc extract(p : W64xN.R.t) : W64xN.R.t = {
     var t1,t2;
     (t1,t2) <@ SA.attack(inzmod (valR p));
     return bn_ofint (special_soundness_extractG t1 t2);
@@ -169,7 +168,7 @@ module  AWrap(A:ZKMaliciousProverJ) : ZKMaliciousProverG = {
 }.
 
 
-lemma soundness_same (s : W64.t Array32.t) &m : forall (A <: ZKMaliciousProverJ),
+lemma soundness_same (s : W64xN.R.t) &m : forall (A <: ZKMaliciousProverJ),
    Pr[ SoundnessJ(A,JVerifier).main(s)@&m : res]
    = Pr[ SoundnessG(AWrap(A),SchnorrVerifier).run(inzmod (W64xN.valR s))@&m : res].
 move => A. byequiv. proc.

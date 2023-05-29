@@ -177,11 +177,11 @@ qed.
 
 
 require import BarrettRedInt Real RealExp. 
-require import Array64 AuxLemmas.
+require import AuxLemmas.
 op Ri : int = nasty_id (4 ^ (64 * nlimbs) %/ p).
 lemma Ri_def : Ri = (4 ^ (64 * nlimbs) %/ p).
 rewrite /Ri. smt(nasty_id). qed.
-op R : W64.t Array64.t = W64xN.R2.bn_ofint Ri.
+op R : W64xN.R2.t = W64xN.R2.bn_ofint Ri.
 
 lemma R_prop : W64x2N.valR R = 4 ^ (64 * nlimbs) %/ p.
 rewrite /R.

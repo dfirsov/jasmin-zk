@@ -1,35 +1,35 @@
 require import AllCore.
 from Jasmin require import JModel.
-require import Array32 Array64 Array128.
 
 
 require import W64_SchnorrExtract.
+require import BigNum_spec.
 
 module JProver = M(Syscall).
 module JVerifier = M(Syscall).
 
 module type ZKProverJ = {
-  proc response (witness0:W64.t Array32.t, secret_power:W64.t Array32.t,
-                 challenge:W64.t Array32.t) : W64.t Array32.t 
-  proc commitment () : W64.t Array32.t * W64.t Array32.t  
+  proc response (witness0: W64xN.R.t, secret_power:W64xN.R.t,
+                 challenge:W64xN.R.t) : W64xN.R.t 
+  proc commitment () : W64xN.R.t * W64xN.R.t  
 }.
 
 
 module type ZKMaliciousProverJ = {
-  proc commitment() : W64.t Array32.t 
-  proc response(challenge:W64.t Array32.t) : W64.t Array32.t 
+  proc commitment() : W64xN.R.t 
+  proc response(challenge:W64xN.R.t) : W64xN.R.t 
 }.
 
 
 module type ZKVerifierJ = {
-   proc verify(statement : W64.t Array32.t, commitment : W64.t Array32.t, challenge_0 : W64.t Array32.t, response : W64.t Array32.t) :
+   proc verify(statement : W64xN.R.t, commitment : W64xN.R.t, challenge_0 : W64xN.R.t, response : W64xN.R.t) :
     W64.t  
-  proc challenge() : W64.t Array32.t 
+  proc challenge() : W64xN.R.t 
 }.
 
 
 module CompletenessJ(P:ZKProverJ,V:ZKVerifierJ) = {
-  proc main(s:W64.t Array32.t, w:W64.t Array32.t) = {
+  proc main(s:W64xN.R.t, w:W64xN.R.t) = {
     var z, c, r,t,v;
     (z,r) <@ P.commitment();
     c <@ V.challenge();
@@ -42,7 +42,7 @@ module CompletenessJ(P:ZKProverJ,V:ZKVerifierJ) = {
 
 
 module SoundnessJ(P:ZKMaliciousProverJ, V:ZKVerifierJ) = {
-  proc main(s:W64.t Array32.t) = {
+  proc main(s:W64xN.R.t) = {
     var z, c,t,v;
     z <@ P.commitment();
     c <@ V.challenge();
@@ -58,8 +58,8 @@ type sbits.                     (* rewinding parameter type *)
 
 
 module type ZKRewindableMaliciousProverJ = {
-  proc response (challenge:W64.t Array32.t) : W64.t Array32.t
-  proc commitment () : W64.t Array32.t 
+  proc response (challenge:W64xN.R.t) : W64xN.R.t
+  proc commitment () : W64xN.R.t 
   (* rewinding interface *)
   proc getState() : sbits 
   proc setState(b : sbits) : unit 
@@ -67,6 +67,6 @@ module type ZKRewindableMaliciousProverJ = {
 
 
 module type ExtractorJ(P: ZKRewindableMaliciousProverJ) = {
-  proc extract(statement: W64.t Array32.t): W64.t Array32.t
+  proc extract(statement: W64xN.R.t): W64xN.R.t
 }.
 
