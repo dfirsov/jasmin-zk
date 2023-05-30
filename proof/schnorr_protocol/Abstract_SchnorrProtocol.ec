@@ -26,6 +26,7 @@ type dl_chal = zmod.              (* challenge *)
 
 
 op challenges_list : dl_chal list.
+axiom challenges_list_size : 0 < size challenges_list.
 
 op (^^) (g : group)(p : zmod): group = g ^ (asint p).
 
@@ -63,6 +64,7 @@ clone include GenericSigmaProtocol with
   op zk_relation           <- zk_relation.
   (* TODO proof* or make this theory abstract *)
 
+print List.
 (* Honest Prover *)
 module HP : HonestProver = {
  var pa : dl_stat
@@ -76,6 +78,7 @@ module HP : HonestProver = {
  }
 
  proc response(b : dl_chal) : dl_resp = {
+     b <- (b \in challenges_list) ? b : List.head witness challenges_list;
     return r + b * wa;
  }  
 }.
@@ -116,9 +119,14 @@ local lemma dl_complete_h (p : dl_stat) (w : dl_wit) :
   completeness_relation p w =>
    hoare [ Completeness(HP,HV).run : arg = (p,w) ==> res ].
 progress.
-proc. inline*.  wp. 
+proc. inline*.
+  (* rcondf 13. wp. rnd. wp.  rnd. wp. skip. progress. *)
+  (* smt(@Distr challenges_list_size). *)
+wp. 
 rnd. wp.  rnd.  wp. 
 skip. progress.
+have ->: x2 \in challenges_list. smt(@Distr challenges_list_size). simplify. 
+
 rewrite /verify_transcript. simplify.
 rewrite /dl_verify. simplify.   rewrite /(^^).
 pose ch := x2.
@@ -268,7 +276,6 @@ qed.
 
 end section.
 
-
 section.
 declare module P <: RewMaliciousProver{-HV}.
 declare axiom P_response_ll : islossless P.response.
@@ -291,7 +298,6 @@ lemma dl_statistical_PoK &m s:
    (Pr[Soundness(P, HV).run(s) @ &m : res]^2 -
   1%r / (size challenges_list)%r
            * Pr[Soundness(P, HV).run(s) @ &m : res]).
-
 apply (Perfect.statistical_extractability P  _ _ _ _ &m s  ).
 apply rewindable_P_plus. apply P_response_ll. apply P_commitment_ll.
 apply dl_perfect_special_soundness.
@@ -328,7 +334,7 @@ module Sim1(V : RewMaliciousVerifier)  = {
   proc sinit(y : dl_stat) : zmod * group * zmod = {
     var r,bb;
     r  <$ DZmodP.dunifin;
-    bb <$ DZmodP.dunifin;
+    bb <$ duniform challenges_list;
     return (bb, (g ^^ r) * (inv (y ^^ bb)), r);
   }
   proc run(Ny : dl_stat) : bool * summary  = {
@@ -336,6 +342,7 @@ module Sim1(V : RewMaliciousVerifier)  = {
     vstat <@ V.getState();
     (b',z,r) <@ sinit(Ny);
     b  <@ V.challenge(Ny,z);
+    b <- (b \in challenges_list) ? b : List.head witness challenges_list;
     result <@ V.summitup(Ny,r);
     if(b <> b'){
       V.setState(vstat);
@@ -385,10 +392,10 @@ call (_: true ==> true). auto. skip. auto.
 call (s2 V_v).
 skip. progress.
 wp.
-seq 3 : (vstat = fA V_v /\ x.`1 = V_v) 1%r.
-call (_:true).  call (_:true). call (_:true). rnd. rnd. skip. auto. skip. auto.
-simplify. call V_summitup_ll. call V_challenge_ll.
-inline*.  wp. rnd. rnd. wp. skip. progress. smt (@DZmodP @Distr). smt (@DZmodP @Distr).
+seq 4 : (vstat = fA V_v /\ x.`1 = V_v) 1%r.
+call (_:true).  wp. call (_:true). call (_:true). rnd. rnd. skip. auto. skip. auto.
+simplify. call V_summitup_ll. wp. call V_challenge_ll.
+inline*.  wp. rnd. rnd. wp. skip. progress. smt (challenges_list_size @Distr). smt (@DZmodP @Distr).
 case (b = b').
 rcondf 1. skip. auto. skip. auto.
 rcondt 1. skip. auto. call (s5 V_v). skip. auto. 
@@ -396,14 +403,13 @@ progress.
 have -> : tt = x.`2. smt().
 smt().
 hoare. simplify.
-call (_:true). call (_:true). call (_:true). rnd. rnd. skip. auto.
+call (_:true). wp. call (_:true). call (_:true). rnd. rnd. skip. auto.
 skip. auto. auto.  hoare. simplify. 
 call (s3 V_v). skip. progress. auto.
 qed.
 
 
 end section.
-
 
 section.
 
@@ -438,7 +444,7 @@ local module Sim1'  = {
   proc sinit() : zmod * group * zmod  = {
     var r,bb;
     r  <$ DZmodP.dunifin;
-    bb <$ DZmodP.dunifin;
+    bb <$ duniform challenges_list;
     return (bb, g ^^ r,r);
   }
     
@@ -446,6 +452,7 @@ local module Sim1'  = {
     var z,r,b',b,ryb,result, rd;
     (b',z,r) <@ sinit();
     b  <@ V.challenge(Ny,z);
+    b <- (b \in challenges_list) ? b : List.head witness challenges_list;
     ryb  <- r + b * w;
     result <@ V.summitup(Ny,ryb);
     rd <@ D.guess(Ny, w, result);    
@@ -455,9 +462,10 @@ local module Sim1'  = {
  proc allinone(Ny : dl_stat, w : dl_wit) = {
     var r,bb,b',b,ryb,result, rd;
     r  <$ DZmodP.dunifin;
-    bb <$ DZmodP.dunifin;
+    bb <$ duniform challenges_list;
     b' <- bb;
     b  <@ V.challenge(Ny,g ^^ r);
+    b <- (b \in challenges_list) ? b : List.head witness challenges_list;
     ryb  <- r + b * w;
     result <@ V.summitup(Ny,ryb);
     rd <@ D.guess(Ny, w, result);
@@ -468,6 +476,7 @@ local module Sim1'  = {
     var r,b,ryb,result, rd;
     r  <$ DZmodP.dunifin;
     b  <@ V.challenge(Ny,g ^^ r);
+    b <- (b \in challenges_list) ? b : List.head witness challenges_list;
     ryb  <- r + b * w;
     result <@ V.summitup(Ny,ryb);
     rd <@ D.guess(Ny, w, result);
@@ -477,7 +486,7 @@ local module Sim1'  = {
  proc allinone''(Ny : dl_stat, w : dl_wit) = {
     var b,b',rd;
     (b,rd) <@ allinone'(Ny,w);
-    b' <$ DZmodP.dunifin;
+    b' <$ duniform challenges_list;
     return (b = b', rd);
   } 
 
@@ -496,7 +505,7 @@ inline*. sp.
 call (_:true).  simplify.  
 wp. simplify. call (_:true).
 wp. swap {2} 2 -1.
- rnd . rnd{2}.    skip. progress . 
+ rnd . rnd{2}.    skip. progress.  smt(@Distr challenges_list_size).
 qed.
 
 require import IntDiv.
@@ -565,7 +574,7 @@ seq 1 1 : (={glob V,b',z,Ny,w, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl}
          /\ ((ya),wa) = (Ny{2},w{2})
          /\ r0{1}  - wa * b'{1} = r{2}).
 call (_:true). skip. progress. 
-sp. simplify.
+sp. progress. simplify.
 exists* b'{1}. elim*. progress.
 exists* b0{1}. elim*. progress.
 wp.  simplify.
@@ -595,6 +604,7 @@ conseq (qkok ya wa (fun x => true) ii). smt().
 progress. smt().
 qed.
 
+
 local lemma run_allinone &m ya wa P: Pr[Sim1'.run(ya, wa) @ &m :  P res] = Pr[Sim1'.allinone(ya, wa) @ &m :  P res].
 byequiv (_: ={arg,glob D, glob V, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl} ==> _). proc.
 call D_guess_prop. progress.
@@ -602,8 +612,9 @@ call (_:true). wp.  simplify.
 call (_:true). inline*. wp.  rnd.  rnd. skip. progress.  auto. auto.
 qed.
 
+
 local lemma sim1'notnot &m ya wa: 
-     Pr[Sim1'.run(ya, wa) @ &m :  res.`1] = (1%r / (size DZmodP.Support.enum)%r).
+     Pr[Sim1'.run(ya, wa) @ &m :  res.`1] = (1%r / (size challenges_list)%r).
 proof.
 have ->: Pr[Sim1'.run(ya, wa) @ &m :  res.`1] = Pr[Sim1'.allinone(ya, wa) @ &m :  res.`1].
 byequiv (_: ={arg,glob D, glob V, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl} ==> _). proc.
@@ -611,29 +622,27 @@ call D_guess_prop. progress.
 call (_:true). wp.  simplify.
 call (_:true). inline*. wp.  rnd.  rnd. skip. progress.  auto. auto.
 byphoare. proc. inline*. simplify.
-swap [2..3] 4. wp.
-seq 5 : true (1%r) (1%r / (size DZmodP.Support.enum)%r) 1%r 0%r.
+swap [2..3] 5. wp.
+seq 6 : true (1%r) (1%r / (size challenges_list)%r) 1%r 0%r ((b \in challenges_list)). 
+call (_:true). call (_:true). wp. call (_:true).  rnd. skip. progress.
+smt(@List challenges_list_size).
 auto. call D_guess_ll.
 call summitup_ll. wp.
 call challenge_ll. wp. rnd. skip. progress. smt(@Distr @DZmodP).
 rnd. skip. progress.
-rewrite /DZmodP.dunifin.
 have ->: ((=) b{hr}) = pred1 b{hr}.
 apply fun_ext. smt().
-rewrite  duniform1E.
-
-have ->: b{hr} \in DZmodP.Support.enum. smt(@DZmodP). simplify. 
-have ->: (undup DZmodP.Support.enum) = (DZmodP.Support.enum). smt(@List @DZmodP). auto.
+rewrite  duniform1E. rewrite H. simplify. admit.
 exfalso. auto. auto.  auto. auto.
 qed.
 
 
 local lemma simnresnotnot ya wa : zk_relation ya wa =>
-  phoare[ RD(Sim1(V),D).run : arg = (ya, wa) ==>  (fst res.`2) ] = (1%r / (size DZmodP.Support.enum)%r).
+  phoare[ RD(Sim1(V),D).run : arg = (ya, wa) ==>  (fst res.`2) ] = (1%r / (size challenges_list)%r).
 move => ii.
 bypr. progress.
 rewrite H. clear H.
-have <-: Pr[Sim1'.run(ya,wa) @ &m :  res.`1] = inv (size DZmodP.Support.enum)%r.
+have <-: Pr[Sim1'.run(ya,wa) @ &m :  res.`1] = inv (size challenges_list)%r.
 apply sim1'notnot.
 byequiv (_: ={glob D, glob V, arg, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl} /\ arg{1} =  (ya,wa) ==> (fst res.`2){1} = res.`1{2}). 
 conseq (ssim ya wa ii). auto. auto. smt().
@@ -655,8 +664,9 @@ local lemma allinone_1 &m ya wa P: Pr[Sim1'.allinone(ya, wa) @ &m :  P res.`2] =
 byequiv (_: ={arg,glob D, glob V, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl} ==> _). proc.
 call D_guess_prop. progress.
 call (_:true). wp.  simplify.
-call (_:true). inline*. wp.  rnd {1}.  rnd. skip. progress.  auto. auto.
+call (_:true). inline*. wp.  rnd {1}.  rnd. skip. progress.  smt(@Distr challenges_list_size). auto. auto.
 qed.
+
 
 local lemma allinine_3 &m ya wa P : phoare [ Sim1'.allinone' : arg = (ya,wa) /\ (glob V, glob D,  glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl){m} = (glob V, glob D, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl)  ==> P res.`2 ] = (Pr[Sim1'.allinone'(ya, wa) @ &m :  P res.`2 ]).
 bypr. progress. byequiv (:  ={glob V, glob D, arg, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl} ==> _).
@@ -668,7 +678,7 @@ qed.
 local lemma allinone_2 &m ya wa P: Pr[Sim1'.allinone(ya, wa) @ &m :  P res] = Pr[Sim1'.allinone''(ya, wa) @ &m :  P res ].
 byequiv (_: ={arg,glob D, glob V, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl} ==> _). proc.
 inline Sim1'.allinone'.
-swap {2} 9 -5.
+swap {2} 10 -6.
 wp. call D_guess_prop. progress.
 call (_:true). wp.  simplify.
 call (_:true). inline*. wp.  rnd .  rnd. wp. skip. progress.  auto. auto.
@@ -677,31 +687,29 @@ qed.
 
 local lemma sd &m ya wa  : 
      Pr[ Sim1'.allinone(ya,wa) @ &m : res.`1 /\ res.`2 ]
-    = (1%r / (size DZmodP.Support.enum)%r) * Pr[ Sim1'.run(ya,wa) @ &m : res.`2 ].
+    = (1%r / (size challenges_list)%r) * Pr[ Sim1'.run(ya,wa) @ &m : res.`2 ].
 rewrite (run_allinone &m ya wa (fun (x : bool * bool) => x.`2 )). simplify.
 rewrite (allinone_1 &m ya wa (fun x => x)). simplify.
 rewrite (allinone_2 &m ya wa (fun (x: bool * bool) => x.`1 /\ x.`2)). simplify.
 byphoare (_: arg = (ya,wa) /\ (glob V, glob D,  glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl){m} = (glob V, glob D, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl) ==> _).
 proc. simplify.
-seq 1 : (rd)  Pr[Sim1'.allinone'(ya, wa) @ &m : res.`2] (1%r / (size DZmodP.Support.enum)%r) Pr[Sim1'.allinone'(ya, wa) @ &m : !res.`2] 0%r. 
+seq 1 : rd  Pr[Sim1'.allinone'(ya, wa) @ &m : res.`2] (1%r / (size challenges_list)%r) Pr[Sim1'.allinone'(ya, wa) @ &m : !res.`2] 0%r (b \in challenges_list).  admit.
 auto.
 call (allinine_3 &m ya wa (fun x => x) ).
-skip. simplify. auto. rnd. skip. progress. rewrite H. simplify. 
+skip. simplify. auto. rnd. skip. progress. rewrite H0. simplify. 
 rewrite /DZmodP.dunifin.
 have ->: (fun (x : zmod) => b{hr} = x) = pred1 b{hr}. apply fun_ext. smt().
-rewrite duniform1E. 
-have ->: b{hr} \in DZmodP.Support.enum. smt(@DZmodP). simplify. 
-have ->: (undup DZmodP.Support.enum) = (DZmodP.Support.enum). smt(@List @DZmodP). auto.
+rewrite duniform1E.  rewrite H. simplify. admit.
 hoare. auto.
 progress. smt().
-auto. auto. auto.
+progress. auto. auto. 
 qed.
 
 
 local lemma sim1zk &m ya wa :
   zk_relation ya wa =>
     Pr[RD(Sim1(V), D).run(ya, wa) @ &m : fst res.`2 /\ res.`1]
-     = Pr[ZKReal(HP, V, D).run(ya, wa) @ &m : res] / (size DZmodP.Support.enum)%r.
+     = Pr[ZKReal(HP, V, D).run(ya, wa) @ &m : res] / (size challenges_list)%r.
 proof.     
 move => ii.
 have ->:     Pr[RD(Sim1(V), D).run(ya, wa) @ &m : fst res.`2 /\ res.`1]
@@ -717,7 +725,7 @@ qed.
     
 
 lemma sim1_succ &m stat :  in_language zk_relation stat =>
- Pr[Sim1(V).run(stat) @ &m : res.`1] = (1%r / (size DZmodP.Support.enum)%r).
+ Pr[Sim1(V).run(stat) @ &m : res.`1] = (1%r / (size challenges_list)%r).
 proof. progress.
 elim H. move => w wrel.
 have ->: Pr[Sim1(V).run(stat) @ &m : res.`1] 
@@ -741,9 +749,9 @@ progress.
 rewrite sim1zk.  auto.
 rewrite (sim1_succ &m p ). exists w. auto.
 simplify.
-have ->: Pr[ZKReal(HP, V, D).run(p, w) @ &m : res] * (size DZmodP.Support.enum)%r / (size DZmodP.Support.enum)%r
+have ->: Pr[ZKReal(HP, V, D).run(p, w) @ &m : res] * (size challenges_list)%r / (size challenges_list)%r
  = Pr[ZKReal(HP, V, D).run(p, w) @ &m : res].
-smt.
+smt(challenges_list_size).
 have : Pr[ZKReal(HP, V, D).run(p, w) @ &m : res] =
   Pr[ZKD(HP, V, D).main(p, w) @ &m : res] .
 byequiv (_: ={glob D, glob V, arg, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl} /\ arg{1} =  (p,w) ==> _). proc. call D_guess_prop. sim. smt(). auto. smt().
@@ -791,10 +799,10 @@ lemma qr_statistical_zk stat wit &m:
         zk_relation stat wit =>
         let real_prob = Pr[ZKReal(HP, V, D).run(stat, wit) @ &m : res] in
         let ideal_prob = Pr[ZKIdeal(SimN(Sim1), V, D).run(stat, wit) @ &m : res] in
-          `|ideal_prob - real_prob| <= 2%r * (1%r - (1%r / (size DZmodP.Support.enum)%r)) ^ N.
+          `|ideal_prob - real_prob| <= 2%r * ((1%r - (1%r / (size challenges_list)%r)) ^ N).
 proof.
   progress.
-apply (statistical_zk 0%r (1%r / (size DZmodP.Support.enum)%r) _ HP Sim1  V D _ _ _ _ _  stat wit &m);auto. apply Sim1_run_ll. apply V_summitup_ll. apply V_challenge_ll. 
+apply (statistical_zk 0%r (1%r / (size challenges_list)%r) _ HP Sim1  V D _ _ _ _ _  stat wit &m);auto. apply Sim1_run_ll. apply V_summitup_ll. apply V_challenge_ll. 
 apply D_guess_ll.  conseq  D_guess_prop. auto.
    apply (sim1_rew_ph V). 
  apply V_summitup_ll. apply V_challenge_ll.  apply (rewindable_A_plus V).
