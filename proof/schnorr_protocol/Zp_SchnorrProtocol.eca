@@ -346,6 +346,96 @@ auto.
 qed.
 
 
+
+
+
+module type MaliciousVerifierG = {
+  proc challenge(s : statement, z : commitment) : challenge
+  proc summitup(r : response) : summary
+}.
+
+module type ZKDistinguisherG  = {
+  proc guess(statement : statement, witness : witness, summary : summary) : bool 
+}.
+
+
+module ZKRealG(P : ZKProverG, V : MaliciousVerifierG, D : ZKDistinguisherG) = {
+  proc run(statement : statement, witness : witness) : bool = {
+    var commit, secret,  challenge, response, summary, guess;    
+    (commit, secret) <@ P.commitment();
+    challenge <@ V.challenge(statement, commit);
+    response <@ P.response(witness, secret, challenge);
+    summary <@ V.summitup(response);
+    guess <@ D.guess(statement, witness, summary);
+    return guess;
+  }
+}.
+
+section.
+
+declare module V <: MaliciousVerifierG {-HP}.
+declare module D <: ZKDistinguisherG.
+
+declare axiom summitup_ll  :  islossless V.summitup.
+declare axiom challenge_ll :  islossless V.challenge.
+declare axiom D_guess_ll : islossless D.guess.
+declare axiom D_guess_prop : equiv [ D.guess ~ D.guess : ={arg, glob V} ==> ={res} ].
+
+local module V' : MaliciousVerifier = {
+  proc challenge(s : dl_stat, d :  dl_com) : dl_chal = {
+      var c;
+      c <@ V.challenge(Sub.val s, Sub.val d);
+      return (EG.inzmod c);
+  }
+  
+  proc summitup(s : dl_stat, d : dl_resp) : summary  = {
+      var c;
+      c <@ V.summitup(EG.asint d);
+      return c;    
+  }
+}.
+
+local module D' : ZKDistinguisher = {
+  proc guess(statement : dl_stat, witness : dl_wit, summary : summary) : bool = {
+    var r;
+    r <@ D.guess(Sub.val statement, EG.asint witness, summary);
+    return r;
+  }
+}.
+
+
+
+local lemma zk_real_same &m ss ww: 
+ Pr[ZKRealG(SchnorrProver, V,D).run(ss,ww)@&m : res]
+ = Pr[ZKReal(HP, V',D').run(Sub.insubd ss,EG.inzmod ww)@&m : res].
+byequiv. proc.
+inline D'.guess. 
+wp. call D_guess_prop.
+simplify. wp.
+inline V'.summitup. wp. 
+call (_:true).
+simplify.
+wp.  
+call response_eq. simplify.
+inline V'.challenge. wp.  
+call (_:true).
+wp.  
+call (commitment_eq (Sub.insubd ss) (EG.inzmod ww)).  
+skip. progress. admit. smt().
+smt(@EG).
+smt(@EG).
+smt(@EG).
+admit.
+auto.
+auto.
+qed.
+
+
+
+
+
+
+
 lemma completenessG (ss : statement) (ww : witness) &m: completeness_relationG ss ww =>
    Pr[ CompletenessG(SchnorrProver, SchnorrVerifier).main(ss,ww)@&m : res] = 1%r.
 progress.

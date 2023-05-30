@@ -692,8 +692,9 @@ rewrite (allinone_1 &m ya wa (fun x => x)). simplify.
 rewrite (allinone_2 &m ya wa (fun (x: bool * bool) => x.`1 /\ x.`2)). simplify.
 byphoare (_: arg = (ya,wa) /\ (glob V, glob D,  glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl){m} = (glob V, glob D, glob ZK.Hyb.Count, glob ZK.Hyb.HybOrcl) ==> _).
 proc. simplify.
-seq 1 : rd  Pr[Sim1'.allinone'(ya, wa) @ &m : res.`2] (1%r / (size challenges_list)%r) Pr[Sim1'.allinone'(ya, wa) @ &m : !res.`2] 0%r (b \in challenges_list).  admit.
-auto.
+seq 1 : rd  Pr[Sim1'.allinone'(ya, wa) @ &m : res.`2] (1%r / (size challenges_list)%r) Pr[Sim1'.allinone'(ya, wa) @ &m : !res.`2] 0%r (b \in challenges_list).  
+inline Sim1'.allinone'. wp. call (_:true).  call (_:true).  wp. call (_:true). rnd. wp. skip. progress.
+smt(@List challenges_list_size).
 call (allinine_3 &m ya wa (fun x => x) ).
 skip. simplify. auto. rnd. skip. progress. rewrite H0. simplify. 
 rewrite /DZmodP.dunifin.
