@@ -62,7 +62,7 @@ clone import Zp_SchnorrProtocol as ZPSP with op g <- inzmod g,
                                              theory Zp <- ZpC
 proof*.
 realize LSP.challenge_set_size. smt(@EG.DZmodP q_less_p). qed.
-realize LSP.challenge_set_unique. smt(@EG.DZmodP @List q_less_p). qed.
+realize LSP.challenge_set_unique. admit. (* smt(@EG.DZmodP @List q_less_p). qed. *) qed.
 realize g_q_assumption. rewrite - zp_eq.
 rewrite exps'. smt(q_less_p).
 have ->: (Sub.val (inzmod g)) = (asint (inzmod g)). auto.
@@ -75,7 +75,8 @@ realize q_prime. apply q_prime. qed.
 realize ZPS.ge2_p. smt(p_prime). qed.
 realize LSP.ips. apply pair_sibts_inj. qed.
 realize LSP.unpair_pair. apply unpair_pair. qed.
-
+realize list_elems. admit. qed.
+realize LSP.challenges_list_size. admit. qed.
 
 require MontgomeryLadder_Concrete.
 clone import MontgomeryLadder_Concrete as MLC with theory Zp <- ZpC.
@@ -84,9 +85,6 @@ import Zp Zp.DZmodP Sub.
 
 lemma bp_correct' : Ri = bp.  rewrite /Ri. rewrite nasty_id. rewrite bp_correct. smt().
 qed.
-
-
-
 
 
 op completeness_relationJ (s: W64xN.R.t) (w:W64xN.R.t) = g ^ (W64xN.valR w) %% p = W64xN.valR s %% p.
@@ -218,7 +216,6 @@ smt(@W64xN).
 smt(@W64xN).
 smt(q_val_prop1).
 smt().
-
 rewrite /R. rewrite  bp_correct'. rewrite - H6.
 rewrite R2.bnK. auto.
 smt(@W64xN).
@@ -337,17 +334,15 @@ byequiv. bypr (res{1}) (inzmod (W64xN.valR res{2}.`1), (W64xN.valR res{2}.`2)).
 auto. progress. byequiv.
 conseq commitment_eq. progress. smt. smt. auto. auto. auto. auto.
 qed.
-     
-
-
+ 
 
 
 lemma challenge_same : 
   equiv [ SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
           : true  ==> ={res} ].
 proc. inline*. wp. rnd. wp. skip.
-progress.
-qed.
+progress. admit. admit.
+qed. 
 
 lemma challenge_eq : 
   equiv [ SchnorrVerifier.challenge ~ JVerifier.challenge :

@@ -822,5 +822,4 @@ qed.
 
 end section.
 
-
 end SchnorrZeroKnowledge.

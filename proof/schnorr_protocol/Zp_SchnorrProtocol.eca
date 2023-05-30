@@ -81,7 +81,7 @@ module SchnorrProver : ZKProverG = {
   }
   proc response(w: witness, r:secret, c: challenge) : response = {
     c <- (c \in challenges_list_zp) ? c : 0;
-    return r + c * w;
+    return (r + c * w) %% q;
   }
 }.
 
@@ -239,7 +239,7 @@ lemma response_eq :
   w{1} %% q = EG.asint HP.wa{2}
   /\ r{1} %% q = EG.asint HP.r{2}
   /\ c{1} %% q = EG.asint b{2}
-  ==> res{1} %% q = EG.asint res{2}
+  ==> res{1} = EG.asint res{2}
 ]. 
 proof. proc. simplify.
 wp. skip. progress.
@@ -337,6 +337,7 @@ smt(@EG). smt(@EG).
 smt(@EG @IntDiv).
 smt.
 rewrite Sub.insubdK. assumption. auto.
+smt(@EG).
 auto.
 auto.
 qed.
@@ -481,9 +482,7 @@ inline P'.commitment. wp.
 call (_:true). wp.  skip. progress.
 rewrite Sub.insubdK. smt. auto.
 rewrite Sub.insubdK. smt. auto. 
-
 case (z{1} = Zp.zero).
-
 inline*. wp.
 call {1} P_response_ll.
 call {2} P_response_ll. auto.
@@ -520,7 +519,6 @@ call (_:true). rnd EG.inzmod EG.asint. wp.
 inline P'.commitment. wp.
 call (_:true). wp.  skip. progress.
 smt.
-
 rewrite duniform1E_uniq. 
 apply map_inj_in_uniq.  smt. smt().
 rewrite duniform1E_uniq. auto.
