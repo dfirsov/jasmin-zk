@@ -16,6 +16,7 @@ proof prime_p.  realize prime_p. apply q_prime. qed.
 
 
 
+
 (* synonyms for readability  *)
 type dl_stat = group.            (* statement *)
 type dl_wit  = zmod.              (* witness *)
@@ -23,6 +24,8 @@ type dl_com  = group.            (* commitment *)
 type dl_resp = zmod.              (* response *)
 type dl_chal = zmod.              (* challenge *)
 
+
+op challenges_list : dl_chal list.
 
 op (^^) (g : group)(p : zmod): group = g ^ (asint p).
 
@@ -53,7 +56,7 @@ clone include GenericSigmaProtocol with
   type witness         <= dl_wit,
   type response        <= dl_resp,
   type challenge       <= dl_chal,
-  op challenge_set     <=  DZmodP.Support.enum,
+  op challenge_set     <=  challenges_list,
   op verify_transcript     <- verify_transcript,
   op soundness_relation    <- soundness_relation,
   op completeness_relation <- completeness_relation,
@@ -286,7 +289,7 @@ declare axiom rewindable_P_plus :
 lemma dl_statistical_PoK &m s: 
   Pr[Extractor(P).extract(s) @ &m : soundness_relation s res ] >=
    (Pr[Soundness(P, HV).run(s) @ &m : res]^2 -
-  1%r / (size DZmodP.Support.enum)%r
+  1%r / (size challenges_list)%r
            * Pr[Soundness(P, HV).run(s) @ &m : res]).
 
 apply (Perfect.statistical_extractability P  _ _ _ _ &m s  ).
