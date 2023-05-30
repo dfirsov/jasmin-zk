@@ -80,7 +80,7 @@ module SchnorrProver : ZKProverG = {
     return (ZModpField.exp g r, r);
   }
   proc response(w: witness, r:secret, c: challenge) : response = {
-    c <- (c \in challenges_list_zp) ? c : 0;
+    c <- (c %% q \in challenges_list_zp) ? c %% q : 0;
     return (r + c * w) %% q;
   }
 }.
@@ -219,6 +219,27 @@ rewrite EG.inzmodK.
 rewrite exp_lemma4. apply g_unit. apply g_q_assumption. auto.
 qed.
 
+
+lemma nosmt in_chall_map b :
+  (b \in map EG.inzmod challenges_list_zp) = ((EG.asint b) \in challenges_list_zp).
+ have d1 : (b \in map EG.inzmod challenges_list_zp) => ((EG.asint b)%EG \in challenges_list_zp).
+   move => q.
+  have : (EG.inzmod ((EG.asint b))) \in (map EG.inzmod challenges_list_zp).  smt(@EG).
+  move => qq. 
+  have : exists x, x \in challenges_list_zp /\ (EG.inzmod (EG.asint b)) = EG.inzmod x.
+   apply mapP. apply qq. elim.
+   move => x. elim. move => xk. 
+   rewrite EG.asintK. progress.
+   rewrite EG.inzmodK. smt(@IntDiv list_elems). 
+  simplify. 
+ have d2 : ((EG.asint b)%EG \in challenges_list_zp) => (b \in map EG.inzmod challenges_list_zp).
+   move => q.
+   have ->: b = EG.inzmod (EG.asint b). smt(@EG).
+   smt(@List).
+   smt().
+qed.
+
+
 lemma challenge_eq  cc ss: 
  equiv [ SchnorrVerifier.challenge ~ HV.challenge : arg{2} = (ss,cc) ==> res{1} = EG.asint res{2} 
  /\ HV.c{2} = cc
@@ -228,11 +249,15 @@ lemma challenge_eq  cc ss:
 proof. proc. wp. 
 rnd EG.inzmod EG.asint. wp.  skip. progress.
 smt(@EG). 
-admit.                          (* need idea *)
+rewrite duniform1E_uniq. 
+apply map_inj_in_uniq. smt. smt().
+rewrite duniform1E_uniq. smt().
+rewrite in_chall_map. smt(@List).
 smt(@Distr @List).
 rewrite EG.inzmodK.
 smt.
 qed.
+    
 
 lemma response_eq : 
  equiv [ SchnorrProver.response ~ HP.response : 
@@ -244,15 +269,16 @@ lemma response_eq :
 proof. proc. simplify.
 wp. skip. progress.
 have ->: (b{2})%EG \in  map EG.inzmod challenges_list_zp
- = c{1} \in challenges_list_zp.
-admit.                          (* need idea *)
-case (c{1} \in challenges_list_zp).
+ = c{1} %% q \in challenges_list_zp.
+rewrite H1. apply in_chall_map.
+case (c{1} %% q \in challenges_list_zp).
 progress.
 rewrite EG.addE.
 rewrite EG.mulE.
 rewrite - H0 - H1 - H. 
-rewrite modzMm.
-rewrite modzDm.
+rewrite - modzDm.
+congr. congr. congr.
+smt(@IntDiv).
 auto.
 progress.
 rewrite EG.addE.
@@ -526,7 +552,11 @@ rewrite duniform1E_uniq. auto.
   have ->: (EG.asint c1R)%EG \in challenges_list_zp.
   have : (EG.inzmod ((EG.asint c1R))) \in (map EG.inzmod challenges_list_zp). smt(@Distr).
   move => qq. 
-  admit.                        (* need idea *)
+  have : exists x, x \in challenges_list_zp /\ (EG.inzmod (EG.asint c1R)) = EG.inzmod x.
+   apply mapP. apply qq. elim.
+   move => x. elim. move => xk. 
+   rewrite EG.asintK. progress.
+   rewrite EG.inzmodK. smt(@IntDiv list_elems). 
   simplify. smt(@List).
 smt(@Distr @List).
 rewrite EG.inzmodK.  smt(list_elems @IntDiv @Distr).
