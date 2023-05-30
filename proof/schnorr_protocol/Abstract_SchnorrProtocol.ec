@@ -16,7 +16,6 @@ proof prime_p.  realize prime_p. apply q_prime. qed.
 
 
 
-
 (* synonyms for readability  *)
 type dl_stat = group.            (* statement *)
 type dl_wit  = zmod.              (* witness *)
@@ -64,7 +63,7 @@ clone include GenericSigmaProtocol with
   op zk_relation           <- zk_relation.
   (* TODO proof* or make this theory abstract *)
 
-print List.
+
 (* Honest Prover *)
 module HP : HonestProver = {
  var pa : dl_stat
