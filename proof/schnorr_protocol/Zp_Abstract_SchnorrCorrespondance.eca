@@ -138,6 +138,15 @@ lemma nosmt in_chall_map b :
 qed.
 
 
+lemma nosmt inzmod_inj_on_challanges_list_zp : forall (x y : int),
+  x \in challenges_list_zp =>
+  y \in challenges_list_zp => (EG.inzmod x) = (EG.inzmod y) => x = y.
+progress.
+  have : x %% q = y %% q.   
+  apply (EG.eq_inzmod x y). auto.
+  smt(list_elems @IntDiv).
+qed.
+
 lemma challenge_eq  cc ss: 
  equiv [ SchnorrVerifier.challenge ~ HV.challenge : arg{2} = (ss,cc) ==> res{1} = EG.asint res{2} 
  /\ HV.c{2} = cc
@@ -148,8 +157,10 @@ proof. proc. wp.
 rnd EG.inzmod EG.asint. wp.  skip. progress.
 smt(@EG). 
 rewrite duniform1E_uniq. 
-apply map_inj_in_uniq. smt. smt().
-rewrite duniform1E_uniq. smt().
+apply map_inj_in_uniq. 
+apply inzmod_inj_on_challanges_list_zp.
+apply challenges_list_zp_uniq.
+rewrite duniform1E_uniq. apply challenges_list_zp_uniq.
 rewrite in_chall_map. smt(@List).
 smt(@Distr @List).
 rewrite EG.inzmodK.
@@ -182,7 +193,21 @@ progress.
 rewrite EG.addE.
 rewrite EG.mulE.
 rewrite /challenges_list_zp. simplify.
-smt(@IntDiv @EG).
+have ->: (EG.asint (head witness (map EG.inzmod challenges_list_zp))) = head witness challenges_list_zp.
+  have ->: (head witness (map EG.inzmod challenges_list_zp)) = (EG.inzmod (head witness (challenges_list_zp))).
+   smt(@List challenges_list_zp_size).
+   rewrite EG.inzmodK.
+   have fact : head witness challenges_list_zp \in challenges_list_zp. smt(@List challenges_list_zp_size).
+   smt(@IntDiv list_elems).
+rewrite - H0.
+rewrite - H.
+pose x := head witness challenges_list_zp.
+have <-: (r{1} + x * (w{1} )) %% q = (r{1} %% q + x * (w{1} %% q) %% q) %% q.
+rewrite -  modzDm.
+congr. congr.
+congr.
+smt(@IntDiv).
+auto.
 qed.
 
 

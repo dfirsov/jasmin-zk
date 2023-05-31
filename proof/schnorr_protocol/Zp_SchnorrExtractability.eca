@@ -118,7 +118,7 @@ inline*. wp.
 call {1} P_response_ll.
 call {2} P_response_ll. auto.
 rnd {1}.  rnd{2}.
-wp. skip. progress. smt(@Distr). smt(@Distr).
+wp. skip. progress. smt(@Distr challenges_list_zp_size). smt(@Distr challenges_list_zp_size).
 have q : ZModpField.exp g result0  = zero.
 rewrite H4. rewrite H. smt.
 have : false. smt. auto.
@@ -151,8 +151,8 @@ inline P'.commitment. wp.
 call (_:true). wp.  skip. progress.
 smt.
 rewrite duniform1E_uniq. 
-apply map_inj_in_uniq.  smt. smt().
-rewrite duniform1E_uniq. auto.
+apply map_inj_in_uniq. apply inzmod_inj_on_challanges_list_zp.  apply challenges_list_zp_uniq.
+rewrite duniform1E_uniq. apply challenges_list_zp_uniq.
   have ->: c1R \in map EG.inzmod challenges_list_zp. smt(@Distr). simplify.
   have ->: (EG.asint c1R)%EG \in challenges_list_zp.
   have : (EG.inzmod ((EG.asint c1R))) \in (map EG.inzmod challenges_list_zp). smt(@Distr).
@@ -194,7 +194,7 @@ apply q.
 auto.
 auto.
 have  :   Pr[Soundness(P', HV).run((Sub.insubd sz)%Sub) @ &m : res] ^ 2 -
-  1%r / (size challenges_list_zp)%r *
+  1%r / (size (map EG.inzmod challenges_list_zp))%r *
   Pr[Soundness(P', HV).run((Sub.insubd sz)%Sub) @ &m : res] <=
   Pr[Extractor(P').extract((Sub.insubd sz)%Sub) @ &m :
      soundness_relation ((Sub.insubd sz))%Sub res]. 
@@ -202,6 +202,7 @@ apply (dl_statistical_PoK P' _ _ _ &m (Sub.insubd sz)).
 proc. call P_response_ll. auto.
 proc. call P_commitment_ll. auto.
 apply rewindable_P_plus.
+have ->: (size (map EG.inzmod challenges_list_zp)) = (size challenges_list_zp). smt(@List).
 pose a:= Pr[Soundness(P', HV).run((Sub.insubd sz)) @ &m : res].
 pose b:= Pr[Extractor(P').extract((Sub.insubd sz)%Sub) @ &m :
    soundness_relation ((Sub.insubd sz))%Sub res].

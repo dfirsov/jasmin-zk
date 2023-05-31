@@ -195,7 +195,7 @@ auto.
 auto.
 qed.
 
-lemma zp_schnorr_statistical_zk (stat : statement) (wit : witness) &m:
+lemma zero_knowledgeG (stat : statement) (wit : witness) &m:
   zk_relationG stat wit =>
   let ideal_prob = Pr[ZKIdealG(SimNG, V, D).run(stat, wit)@&m : res] in
   let real_prob = Pr[ZKRealG(SchnorrProver,V,D).run(stat,wit)@&m : res] in
@@ -203,6 +203,7 @@ lemma zp_schnorr_statistical_zk (stat : statement) (wit : witness) &m:
 move => zk_rel_stat_wit. simplify.
 rewrite zk_real_same. auto.
 rewrite - zk_ideal_same. auto.
+have ->: (size challenges_list_zp) = (size (map EG.inzmod challenges_list_zp)). smt(@List).
 apply (schnorr_statistical_zk (V'(V)) (D'(D)) _ _ _ _ _ _ _ _ _ (Sub.insubd stat) 
  (EG.inzmod wit) &m).
 apply Sim1_run_ll.
