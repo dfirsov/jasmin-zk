@@ -306,27 +306,6 @@ end section.
 
 
 
-abstract theory SchnorrZeroKnowledge.
-
-
-op n : int.
-axiom n_pos : 1 <= n.
-
-clone import ZeroKnowledge as ZK with
-  op n <= n                     
-proof*. 
-realize n_pos. apply n_pos. qed.
-
-op N : int.
-axiom N_pos : 0 <= N.
-  
-clone import OneShotSimulator as OSS with
-  op N <= N
-proof *.
-realize N_pos. apply N_pos. qed.
-
-
-
 
 (* one-time simulator *)
 module Sim1(V : RewMaliciousVerifier)  = {
@@ -349,6 +328,29 @@ module Sim1(V : RewMaliciousVerifier)  = {
     return (b = b', result);
   }
 }.
+
+
+abstract theory SchnorrZeroKnowledge.
+
+
+op n : int.
+axiom n_pos : 1 <= n.
+
+clone import ZeroKnowledge as ZK with
+  op n <= n                     
+proof*. 
+realize n_pos. apply n_pos. qed.
+
+op N : int.
+axiom N_pos : 0 <= N.
+  
+clone import OneShotSimulator as OSS with
+  op N <= N
+proof *.
+realize N_pos. apply N_pos. qed.
+
+
+
 
 section.
 
@@ -795,7 +797,7 @@ declare axiom rewindable_V_plus :
          islossless V.setState).
 
 import Statistical.
-lemma qr_statistical_zk stat wit &m:
+lemma schnorr_statistical_zk stat wit &m:
         zk_relation stat wit =>
         let real_prob = Pr[ZKReal(HP, V, D).run(stat, wit) @ &m : res] in
         let ideal_prob = Pr[ZKIdeal(SimN(Sim1), V, D).run(stat, wit) @ &m : res] in

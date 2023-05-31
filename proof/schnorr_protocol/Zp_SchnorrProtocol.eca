@@ -359,6 +359,19 @@ module type ZKDistinguisherG  = {
 }.
 
 
+module type RewMaliciousVerifierG = {
+  proc challenge(s : statement, z : commitment) : challenge
+  proc summitup(r : response) : summary
+  proc getState() : sbits 
+  proc setState(b : sbits) : unit 
+}.
+
+
+module type SimulatorG(V0 : RewMaliciousVerifierG)  = {
+  proc simulate(statement : statement) : summary
+}.
+
+
 module ZKRealG(P : ZKProverG, V : MaliciousVerifierG, D : ZKDistinguisherG) = {
   proc run(statement : statement, witness : witness) : bool = {
     var commit, secret,  challenge, response, summary, guess;    
@@ -371,17 +384,82 @@ module ZKRealG(P : ZKProverG, V : MaliciousVerifierG, D : ZKDistinguisherG) = {
   }
 }.
 
+
+module ZKIdealG(S : SimulatorG, V0 : RewMaliciousVerifierG,
+               D0 : ZKDistinguisherG) = {
+  proc run(statement : statement, witness : witness) : bool = {
+    var summary : summary;
+    var guess : bool;
+    summary <@ S(V0).simulate(statement);
+    guess <@ D0.guess(statement, witness, summary);
+    return guess;
+  }
+}.
+
+
+
 section.
 
-declare module V <: MaliciousVerifierG {-HP}.
-declare module D <: ZKDistinguisherG.
+clone import SchnorrZeroKnowledge as SZK.
 
-declare axiom summitup_ll  :  islossless V.summitup.
-declare axiom challenge_ll :  islossless V.challenge.
+
+declare module V <: RewMaliciousVerifierG {-HP, -ZK.Hyb.Count, -ZK.Hyb.HybOrcl}.
+declare module D <: ZKDistinguisherG{-HP, -ZK.Hyb.Count, -ZK.Hyb.HybOrcl}.
+
+
+declare axiom Sim1_run_ll : forall (V0 <: RewMaliciousVerifier), 
+ islossless V0.challenge 
+  => islossless V0.summitup => islossless Sim1(V0).run.
+declare axiom V_summitup_ll : islossless V.summitup. 
+declare axiom V_challenge_ll : islossless V.challenge.
 declare axiom D_guess_ll : islossless D.guess.
-declare axiom D_guess_prop : equiv [ D.guess ~ D.guess : ={arg, glob V} ==> ={res} ].
+declare axiom P_response_ll : islossless HP.response.
+declare axiom P_commitment_ll : islossless HP.commitment.
+declare axiom simn_simulate_ll : forall (V0 <: RewMaliciousVerifier), islossless V0.challenge
+  => islossless V0.summitup => islossless OSS.SimN(Sim1, V0).simulate.
+declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg} ==> ={res} ].
 
-local module V' : MaliciousVerifier = {
+(* rewindability assumption *)
+declare axiom rewindable_V_plus :
+        (exists (f : glob V -> sbits),
+         injective f /\
+         (forall &m, Pr[ V.getState() @ &m : (glob V) = ((glob V){m})
+                                          /\ res = f ((glob V){m} ) ] = 1%r) /\
+         (forall &m b (x: glob V), b = f x =>
+           Pr[V.setState(b) @ &m : glob V = x] = 1%r) /\
+         islossless V.setState).
+
+
+
+
+op zk_relationG (s : statement) (w : witness) = 
+   0 <= w < q /\  (ZModpField.exp g w) = s.
+
+
+lemma zk_relationG_implies_unit_s s w : 
+  zk_relationG s w => unit s.
+move => zk_rel.
+elim zk_rel. elim.
+move => _ _ eq.
+rewrite - eq.
+apply exp_lemma6. apply g_unit.
+qed.
+
+
+lemma zk_relations_compatible (s : statement) (w : witness) : 
+  zk_relationG s w => zk_relation (Sub.insubd s) (EG.inzmod w).
+progress. rewrite /zk_relation /IsDL.
+elim H. elim. progress.
+have ->: ZModpField.exp g w = ZModpField.exp g (w %% q).
+rewrite - (exp_mod g w q). apply g_q_assumption. auto.
+rewrite - lll.  apply g_unit.
+rewrite /(^^).
+rewrite EG.inzmodK.
+auto.
+qed.    
+
+
+module V'(V : RewMaliciousVerifierG) : RewMaliciousVerifier = {
   proc challenge(s : dl_stat, d :  dl_com) : dl_chal = {
       var c;
       c <@ V.challenge(Sub.val s, Sub.val d);
@@ -393,9 +471,11 @@ local module V' : MaliciousVerifier = {
       c <@ V.summitup(EG.asint d);
       return c;    
   }
+  proc getState = V.getState
+  proc setState = V.setState
 }.
 
-local module D' : ZKDistinguisher = {
+module D'(D : ZKDistinguisherG) : ZKDistinguisher = {
   proc guess(statement : dl_stat, witness : dl_wit, summary : summary) : bool = {
     var r;
     r <@ D.guess(Sub.val statement, EG.asint witness, summary);
@@ -404,31 +484,136 @@ local module D' : ZKDistinguisher = {
 }.
 
 
+local module Sim1G(V : RewMaliciousVerifierG) = {
+  module S = Sim1(V'(V))
+  proc run(Ny : statement) : bool * summary = {
+    var r;
+    r <@ S.run(Sub.insubd Ny);        
+    return r;
+  }
+}.
 
-local lemma zk_real_same &m ss ww: 
- Pr[ZKRealG(SchnorrProver, V,D).run(ss,ww)@&m : res]
- = Pr[ZKReal(HP, V',D').run(Sub.insubd ss,EG.inzmod ww)@&m : res].
+local module SimNG(V0 : RewMaliciousVerifierG) = {
+  module A = Sim1G(V0)
+  
+  proc simulate(statement : statement) : summary = {
+    var c : int;
+    var r : bool * summary;
+    
+    c <- 1;
+    r <- (false, witness);
+    while (c <= N /\ ! r.`1){
+      r <@ A.run(statement);
+      c <- c + 1;
+    }    
+    return r.`2;
+  }
+}.
+
+
+
+local lemma zk_sim1_same ss:
+ equiv [ Sim1G(V).run ~ Sim1(V'(V)).run :
+   arg{1} = ss 
+   /\ arg{2} = Sub.insubd ss
+   /\  ={glob V} ==> ={res, glob V}].
+proc. 
+inline*. 
+wp.
+seq 15 14 : (={result,b,b',vstat,glob V}).
+wp. call (_:true). simplify.
+wp. simplify.
+call (_:true). wp. 
+rnd.  rnd.  wp. call (_:true). wp. 
+skip. progress.
+if. auto.
+call (_:true). skip. progress.
+skip.  auto.
+qed.
+
+
+local lemma zk_ideal_same &m stat wit : zk_relationG stat wit =>
+  Pr[ZKIdeal(OSS.SimN(Sim1), V'(V), D'(D)).run(Sub.insubd stat, EG.inzmod wit)@&m : res]
+  = Pr[ZKIdealG(SimNG, V, D).run(stat, wit)@&m : res].
+move => wit_normal.
 byequiv. proc.
-inline D'.guess. 
+inline D'(D).guess.
+wp.
+call D_guess_prop.
+wp. 
+inline OSS.SimN(Sim1, V'(V)).simulate.
+inline SimNG(V).simulate.
+wp. sp. simplify.
+while (={c, glob V} /\ r0{1} = r{2} /\ statement1{1} = Sub.insubd statement0{2} /\ statement0{2} = stat).
+wp.
+symmetry.
+call (zk_sim1_same stat).
+skip. progress.
+skip. progress. smt().
+rewrite Sub.insubdK /P. 
+apply (zk_relationG_implies_unit_s statement{2} witness{2});auto.
+auto.
+rewrite EG.inzmodK. smt(@IntDiv).
+auto.
+auto.
+qed.
+
+local lemma zk_real_same &m ss ww: zk_relationG ss ww =>
+ Pr[ZKRealG(SchnorrProver, V,D).run(ss,ww)@&m : res]
+ = Pr[ZKReal(HP, V'(V),D'(D)).run(Sub.insubd ss,EG.inzmod ww)@&m : res].
+move => zk_rel_ss_ww.
+byequiv. proc.
+inline D'(D).guess. 
 wp. call D_guess_prop.
 simplify. wp.
-inline V'.summitup. wp. 
+inline V'(V).summitup. wp. 
 call (_:true).
 simplify.
 wp.  
 call response_eq. simplify.
-inline V'.challenge. wp.  
+inline V'(V).challenge. wp.  
 call (_:true).
 wp.  
 call (commitment_eq (Sub.insubd ss) (EG.inzmod ww)).  
-skip. progress. admit. smt().
+skip. progress. 
+rewrite Sub.insubdK /P. 
+apply (zk_relationG_implies_unit_s statement{1} witness{1}). auto. auto. 
+smt().
 smt(@EG).
 smt(@EG).
 smt(@EG).
-admit.
+rewrite EG.inzmodK. 
+smt(@IntDiv).
 auto.
 auto.
 qed.
+
+local lemma zp_schnorr_statistical_zk (stat : statement) (wit : witness) &m:
+  zk_relationG stat wit =>
+  let ideal_prob = Pr[ZKIdealG(SimNG, V, D).run(stat, wit)@&m : res] in
+  let real_prob = Pr[ZKRealG(SchnorrProver,V,D).run(stat,wit)@&m : res] in
+ `|ideal_prob - real_prob| <= 2%r * ((1%r - (1%r / (size challenges_list_zp)%r)) ^ N).
+move => zk_rel_stat_wit. simplify.
+rewrite zk_real_same. auto.
+rewrite - zk_ideal_same. auto.
+apply (schnorr_statistical_zk (V'(V)) (D'(D)) _ _ _ _ _ _ _ _ _ (Sub.insubd stat) 
+ (EG.inzmod wit) &m).
+apply Sim1_run_ll.
+proc. call V_summitup_ll. auto.
+proc. call V_challenge_ll. auto.
+proc. call D_guess_ll. auto.
+apply P_response_ll. 
+apply P_commitment_ll. 
+apply simn_simulate_ll.
+proc. call D_guess_prop. skip. auto. simplify.
+apply rewindable_V_plus.
+apply zk_relations_compatible.
+auto.
+qed.
+
+
+end section.
+
 
 
 
