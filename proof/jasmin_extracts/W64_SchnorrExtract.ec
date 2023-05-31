@@ -1484,6 +1484,25 @@ module M(SC:Syscall_t) = {
     return (commitment_0, secret_power);
   }
   
+  proc check_challenge (challenge_0:W64.t Array32.t) : W64.t Array32.t = {
+    
+    var value_zero:W64.t Array32.t;
+    var value_one:W64.t Array32.t;
+    var eq1:W64.t;
+    var eq2:W64.t;
+    var cond:bool;
+    value_one <- witness;
+    value_zero <- witness;
+    value_zero <@ bn_set0 (value_zero);
+    value_one <@ bn_set1 (value_one);
+    eq1 <@ bn_eq (challenge_0, value_zero);
+    eq2 <@ bn_eq (challenge_0, value_one);
+    eq1 <- (eq1 `|` eq2);
+    cond <- (eq1 = (W64.of_int 0));
+    challenge_0 <@ bn_cmov (cond, challenge_0, value_zero);
+    return (challenge_0);
+  }
+  
   proc response (witness0:W64.t Array32.t, secret_power:W64.t Array32.t,
                  challenge_0:W64.t Array32.t) : W64.t Array32.t = {
     
@@ -1500,6 +1519,7 @@ module M(SC:Syscall_t) = {
     challenge_0 <@ bn_breduce_small (exp_barrett, challenge_0, exp_order);
     secret_power <@ bn_breduce_small (exp_barrett, secret_power, exp_order);
     witness0 <@ bn_breduce_small (exp_barrett, witness0, exp_order);
+    challenge_0 <@ check_challenge (challenge_0);
     product <@ bn_mulm (exp_barrett, exp_order, challenge_0, witness0);
     response_0 <@ bn_addm (exp_order, secret_power, product);
     return (response_0);

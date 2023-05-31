@@ -1,3 +1,4 @@
+pragma Goals:printall.
 require import AllCore Distr DInterval List Int IntDiv.
 require import AuxLemmas.
 
@@ -10,7 +11,35 @@ require import BarrettReduction_Concrete.
 require import BigNum_spec BigNum_proofs.
 import W64xN R.                 
 
-require Zp_SchnorrProtocol.
+module Skip = {
+  proc run() = {}
+}.
+
+lemma skip_run &m : Pr[Skip.run()@&m : true] = 1%r.
+byphoare. proc. auto. auto. auto. qed.
+
+lemma check_challenge_eq c : equiv [ M.check_challenge ~ Skip.run : arg{1} = c 
+  ==> W64xN.valR res{1} = if W64xN.valR c \in [0;1] then W64xN.valR c else 0  ].
+proc.  sp.
+ecall {1} (bn_cmov_correct cond{1} challenge_0{1} value_zero{1}).
+wp.
+ecall {1} (bn_eq_correct challenge_0{1} value_one{1}). 
+ecall {1} (bn_eq_correct challenge_0{1} value_zero{1}). 
+call {1} bn_set1_correct.  
+call {1} bn_set0_correct.  
+skip. progress.
+smt(@W64 @W64xN).
+qed.
+
+lemma check_challenge_ph c : phoare [ M.check_challenge : arg = c 
+  ==> W64xN.valR res = if W64xN.valR c \in [0;1] then W64xN.valR c else 0  ] = 1%r.
+bypr. progress.
+rewrite - (skip_run &m). 
+byequiv. 
+conseq (check_challenge_eq arg{m}). auto.
+auto.
+qed.
+
 
 op p, q, bp, bq, g : int.
 
@@ -54,11 +83,14 @@ rewrite ZModpField.exprSr. auto. rewrite zp_mul H0. smt(@IntDiv).
 qed.
 
 
+
+require Zp_SchnorrProtocol.
 clone import Zp_SchnorrProtocol as ZPSP with op g <- inzmod g,
                                              type LSP.sbits <- sbits,
                                              op q <- q,
                                              op LSP.pair_sbits <- pair_sbits,
                                              op LSP.unpair <- unpair,
+                                             op challenges_list_zp <= [0;1],
                                              theory Zp <- ZpC
 proof*.
 realize LSP.challenge_set_size. smt(@EG.DZmodP q_less_p). qed.
@@ -77,6 +109,9 @@ realize LSP.ips. apply pair_sibts_inj. qed.
 realize LSP.unpair_pair. apply unpair_pair. qed.
 realize list_elems. admit. qed.
 realize LSP.challenges_list_size. admit. qed.
+realize challenges_list_zp_uniq. auto. qed.
+realize challenges_list_zp_size. auto. qed.
+realize LSP.challenges_list_uniq. smt. qed.
 
 require MontgomeryLadder_Concrete.
 clone import MontgomeryLadder_Concrete as MLC with theory Zp <- ZpC.
@@ -166,6 +201,57 @@ rewrite xxx. auto.
 qed.
 
 
+
+
+lemma response_eq : 
+  equiv [ SchnorrProver.response ~ JProver.response :
+        w{1}   %% q  = (valR (witness0{2}) )  %% q
+    /\  r{1}   %% q  = (valR secret_power{2}) %% q
+    /\  c{1}   %% q  = (valR challenge_0{2})  %% q
+    ==> res{1} %% q  = (valR res{2}) ].
+proc. sp. simplify.
+ecall {2} (bn_addm_ph secret_power{2} product{2} exp_order{2}). simplify. 
+ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} exp_order{2}). simplify.
+ecall {2} (check_challenge_ph challenge_0{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph witness0{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph secret_power{2} exp_order{2}). simplify.
+ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
+call{2} bn_set_bq_correct. simplify.
+call{2} bn_set_q_correct. simplify.
+skip. 
+progress. rewrite H3. rewrite ri_un. rewrite /ri. rewrite H2. rewrite bq_correct.  smt().
+smt. 
+smt(@W64xN).
+smt(@W64xN).
+rewrite H2.   smt (q_val_prop1).
+smt.
+smt.
+smt(@W64xN).
+smt.
+smt(@W64xN).
+rewrite H2. smt (q_val_prop1).
+smt(@W64xN).
+rewrite H2. smt.
+smt(@W64xN).
+smt.
+smt(@W64xN).
+rewrite H2. smt.
+smt(@W64xN).
+rewrite H2. smt.
+rewrite - H39.
+rewrite - H34. 
+rewrite H2.
+rewrite H27.
+rewrite  H19 H2. rewrite - H0.
+rewrite H28.
+rewrite  H1.
+rewrite H11.
+rewrite H2.
+rewrite - H.
+(* rewrite modzMml. *)
+rewrite modzMmr. 
+smt (modzDmr modzDml).
+qed.
 
 
 
@@ -337,6 +423,9 @@ qed.
  
 
 
+
+
+
 lemma challenge_same : 
   equiv [ SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
           : true  ==> ={res} ].
@@ -359,53 +448,4 @@ smt(q_less_p).
 qed.
 
 
-lemma response_eq : 
-  equiv [ SchnorrProver.response ~ JProver.response :
-        w{1}   %% q  = (valR (witness0{2}) )  %% q
-    /\  r{1}   %% q  = (valR secret_power{2}) %% q
-    /\  c{1}   %% q  = (valR challenge_0{2})  %% q
-    ==> res{1} %% q  = (valR res{2}) ].
-proc. sp. simplify.
-ecall {2} (bn_addm_ph secret_power{2} product{2} exp_order{2}). simplify. 
-ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} exp_order{2}). simplify.
-ecall {2} (bnreduce_small_spec_ph witness0{2} exp_order{2}). simplify.
-ecall {2} (bnreduce_small_spec_ph secret_power{2} exp_order{2}). simplify.
-ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
-call{2} bn_set_bq_correct. simplify.
-call{2} bn_set_q_correct. simplify.
-wp.
-skip. 
-progress. rewrite H3. rewrite ri_un. rewrite /ri. rewrite H2. rewrite bq_correct.  smt().
-smt. 
-smt(@W64xN).
-smt(@W64xN).
-rewrite H2.   smt (q_val_prop1).
-smt.
-smt.
-smt(@W64xN).
-smt.
-smt(@W64xN).
-rewrite H2. smt (q_val_prop1).
-smt(@W64xN).
-rewrite H2. smt.
-smt(@W64xN).
-smt.
-smt(@W64xN).
-rewrite H2. smt.
-smt(@W64xN).
-rewrite H2. smt.
-rewrite - H38.
-rewrite - H33. 
-rewrite H2.
-rewrite H27.
-rewrite  H19 H2. rewrite - H0.
-rewrite  H11 H2. rewrite - H1.
-rewrite - H.
-rewrite modzMml.
-rewrite modzMmr. 
-have -> : (r{1} + c{1} * w{1}) %% q
-  = (r{1} %% q + (c{1} * w{1}) %% q ) %% q.
-smt (modzDmr modzDml).
-done.
-qed.
 

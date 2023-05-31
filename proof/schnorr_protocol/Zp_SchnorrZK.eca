@@ -20,7 +20,7 @@ declare axiom Sim1_run_ll : forall (V0 <: RewMaliciousVerifier),
 declare axiom V_summitup_ll : islossless V.summitup. 
 declare axiom V_challenge_ll : islossless V.challenge.
 declare axiom D_guess_ll : islossless D.guess.
-declare axiom P_response_ll : islossless HP.response.
+declare axiom P_response_ll : islossless HP.response. (* TODO *)
 declare axiom P_commitment_ll : islossless HP.commitment.
 declare axiom simn_simulate_ll : forall (V0 <: RewMaliciousVerifier), islossless V0.challenge
   => islossless V0.summitup => islossless OSS.SimN(Sim1, V0).simulate.
@@ -40,7 +40,7 @@ declare axiom rewindable_V_plus :
 
 
 op zk_relationG (s : statement) (w : witness) = 
-   0 <= w < q /\  (ZModpField.exp g w) = s.
+   0 <= w < q /\ ZModpField.exp g w = s.
 
 
 lemma zk_relationG_implies_unit_s s w : 

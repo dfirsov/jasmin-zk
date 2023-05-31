@@ -3687,6 +3687,42 @@ module M(SC:Syscall_t) = {
     return (commitment_0, secret_power);
   }
   
+  proc check_challenge (challenge_0:W64.t Array32.t) : W64.t Array32.t = {
+    var aux_1: bool;
+    var aux_0: W64.t;
+    var aux: W64.t Array32.t;
+    
+    var value_zero:W64.t Array32.t;
+    var value_one:W64.t Array32.t;
+    var eq1:W64.t;
+    var eq2:W64.t;
+    var cond:bool;
+    value_one <- witness;
+    value_zero <- witness;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_set0 (value_zero);
+    value_zero <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_set1 (value_one);
+    value_one <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_0 <@ bn_eq (challenge_0, value_zero);
+    eq1 <- aux_0;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_0 <@ bn_eq (challenge_0, value_one);
+    eq2 <- aux_0;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_0 <- (eq1 `|` eq2);
+    eq1 <- aux_0;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_1 <- (eq1 = (W64.of_int 0));
+    cond <- aux_1;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ bn_cmov (cond, challenge_0, value_zero);
+    challenge_0 <- aux;
+    return (challenge_0);
+  }
+  
   proc response (witness0:W64.t Array32.t, secret_power:W64.t Array32.t,
                  challenge_0:W64.t Array32.t) : W64.t Array32.t = {
     var aux: W64.t Array32.t;
@@ -3715,6 +3751,9 @@ module M(SC:Syscall_t) = {
     leakages <- LeakAddr([]) :: leakages;
     aux <@ bn_breduce_small (exp_barrett, witness0, exp_order);
     witness0 <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ check_challenge (challenge_0);
+    challenge_0 <- aux;
     leakages <- LeakAddr([]) :: leakages;
     aux <@ bn_mulm (exp_barrett, exp_order, challenge_0, witness0);
     product <- aux;

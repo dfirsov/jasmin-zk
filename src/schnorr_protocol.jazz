@@ -36,6 +36,24 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
 }
 
 
+inline fn check_challenge(stack u64[nlimbs] challenge) 
+ -> (stack u64[nlimbs]){
+ stack u64[nlimbs] value_one value_zero result;
+ reg u64 eq1 eq2;
+ reg bool cond;
+
+ value_zero = bn_set0(value_zero);
+ value_one  = bn_set1(value_one);
+
+ eq1 = bn_eq(challenge,value_zero); 
+ eq2 = bn_eq(challenge,value_one);
+ eq1 |= eq2;
+ cond = (eq1 == 0);
+ challenge = bn_cmov(cond, challenge, value_zero);
+ return challenge;
+}
+
+
 inline fn response(stack u64[nlimbs] witness0 secret_power challenge) 
  -> (stack u64[nlimbs]){
   stack u64[dnlimbs] exp_barrett;
@@ -47,6 +65,8 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
   challenge    = bn_breduce_small(exp_barrett, challenge, exp_order);
   secret_power = bn_breduce_small(exp_barrett, secret_power, exp_order);
   witness0     = bn_breduce_small(exp_barrett, witness0, exp_order);
+
+  challenge = check_challenge(challenge); // make sure that chellenge \in [0;1], otherwise return 0;
 
   product  = bn_mulm(exp_barrett, exp_order, challenge, witness0);
   response = bn_addm(exp_order, secret_power, product);
