@@ -484,7 +484,7 @@ module D'(D : ZKDistinguisherG) : ZKDistinguisher = {
 }.
 
 
-local module Sim1G(V : RewMaliciousVerifierG) = {
+module Sim1G(V : RewMaliciousVerifierG) = {
   module S = Sim1(V'(V))
   proc run(Ny : statement) : bool * summary = {
     var r;
@@ -493,7 +493,7 @@ local module Sim1G(V : RewMaliciousVerifierG) = {
   }
 }.
 
-local module SimNG(V0 : RewMaliciousVerifierG) = {
+module SimNG(V0 : RewMaliciousVerifierG) = {
   module A = Sim1G(V0)
   
   proc simulate(statement : statement) : summary = {
@@ -588,7 +588,7 @@ auto.
 auto.
 qed.
 
-local lemma zp_schnorr_statistical_zk (stat : statement) (wit : witness) &m:
+lemma zp_schnorr_statistical_zk (stat : statement) (wit : witness) &m:
   zk_relationG stat wit =>
   let ideal_prob = Pr[ZKIdealG(SimNG, V, D).run(stat, wit)@&m : res] in
   let real_prob = Pr[ZKRealG(SchnorrProver,V,D).run(stat,wit)@&m : res] in
