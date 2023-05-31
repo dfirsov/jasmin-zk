@@ -1,0 +1,44 @@
+require import Int IntDiv Real Distr List StdOrder.
+import Ring.IntID IntOrder.
+
+require Zp_Abstract_SchnorrCorrespondance.
+clone import Zp_Abstract_SchnorrCorrespondance as Zp_SchnorrCorrespondanceProofs.
+import Zp_SchnorrInstance Zp ZPS LSP.
+
+
+lemma completeness_relation_compatible : forall s w, completeness_relationG s w => completeness_relation (Sub.insubd s) (EG.inzmod w).
+move => s w h. rewrite /completeness_relationG /completeness_relation /IsDL /=. (* move => eq. *)
+rewrite /(^^).
+rewrite EG.inzmodK.
+rewrite - pow_mod. 
+rewrite lll. apply g_unit. auto.
+rewrite - bbb.
+rewrite - h. auto.
+qed.
+
+
+lemma completenessG (ss : statement) (ww : witness) &m: 
+ completeness_relationG ss ww =>
+   Pr[ CompletenessG(SchnorrProver, SchnorrVerifier).main(ss,ww)@&m : res] = 1%r.
+progress.
+have statement_not_zero : unit ss. rewrite - H. apply exp_lemma6. apply g_unit.
+rewrite /completeness_relation /IsDL in H.
+rewrite - (LSP.dl_completeness (Sub.insubd ss) (EG.inzmod ww) &m). 
+  apply completeness_relation_compatible. auto.
+byequiv (_: _ ==> _). proc.
+call (verify_eq). simplify.
+call (response_eq). simplify.
+ecall (challenge_eq commit{2} s{2}). 
+ecall (commitment_eq s{2} w{2}). 
+skip. progress.
+smt(@EG). smt(@EG).
+smt(@EG @IntDiv).
+smt.
+rewrite Sub.insubdK. assumption. auto.
+smt(@EG).
+auto.
+auto.
+qed.
+
+
+

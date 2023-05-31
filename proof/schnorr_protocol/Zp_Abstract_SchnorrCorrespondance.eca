@@ -1,0 +1,245 @@
+require import Int IntDiv.
+require import Real.
+require import Distr.
+require import List.
+require import StdOrder.
+import Ring.IntID IntOrder.
+
+require Zp_SchnorrProtocol.
+
+clone import Zp_SchnorrProtocol as Zp_SchnorrInstance.
+import Zp ZPS LSP.
+
+lemma exp_lemma6 (z : zmod) : unit z => forall n,  unit (ZModpField.exp z n).
+progress. apply ZModpRing.unitrX. auto.
+qed.
+
+
+lemma lll'' (z : zmod) : unit z => forall x, x < 0 => Zps.(^) (Sub.insubd z) x = Zps.inv (Zps.(^) (Sub.insubd z) (- x)).
+smt().
+qed.
+
+lemma lll (z : zmod) : unit z => forall x, Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
+move => zu.
+move => x.
+case (0 <= x).  apply lll'. auto.
+move => xl.
+rewrite lll''. auto. smt().
+rewrite lll'. auto. smt().
+smt(@ZModpField @Sub).       
+qed.
+
+lemma bbb : forall (a b : zmods), (Sub.val a = Sub.val b) <=> (a = b). smt. qed.
+lemma aaa : forall (a b : zmod), (unit a) => (unit b) => (Sub.insubd a = Sub.insubd b) => (a = b). smt(@Sub). qed.
+
+lemma completeness_relation_compatible : forall s w, completeness_relationG s w => completeness_relation (Sub.insubd s) (EG.inzmod w).
+move => s w h. rewrite /completeness_relationG /completeness_relation /IsDL /=. (* move => eq. *)
+rewrite /(^^).
+rewrite EG.inzmodK.
+rewrite - pow_mod. 
+rewrite lll. apply g_unit. auto.
+rewrite - bbb.
+rewrite - h. auto.
+qed.
+
+
+lemma completeness_relation_compatible' : forall s w, unit s => completeness_relation (Sub.insubd s) (EG.inzmod w) => completeness_relationG s w.
+move => s w su . rewrite /completeness_relation /completeness_relationG /IsDL /=. 
+rewrite /(^^).
+rewrite EG.inzmodK.
+rewrite - pow_mod. 
+rewrite lll. apply g_unit. auto.
+rewrite - bbb.
+rewrite Sub.val_insubd.
+have ->: (Sub.P ((ZModpField.exp g w))). rewrite /P. 
+apply exp_lemma6. apply g_unit. simplify.
+rewrite Sub.insubdK. rewrite /P. 
+assumption. auto.
+qed.
+
+
+
+lemma llll (x y : zmod) : unit x => unit y => (Zps.( * ) (Sub.insubd x)  (Sub.insubd y) )= Sub.insubd (x * y).
+progress. smt. qed.
+
+
+lemma exp_lemma4 : forall (x : zmod) (n : int), unit x => (ZModpField.exp x q) = one =>  (ZModpField.exp x n) = Sub.val ((Sub.insubd x) ^^ (EG.inzmod n)). 
+proof. progress. rewrite /(^^). rewrite lll. auto.
+rewrite  EG.inzmodK.
+have ->: (ZModpField.exp x (n %% q)) = (ZModpField.exp x n). smt.
+rewrite Sub.insubdK.
+smt.
+auto.
+qed.
+
+
+lemma exp_lemma5 : forall (z : zmod) (n : int), unit z => 0 <= n => (ZModpField.exp z q) = one  => Sub.insubd z ^^ (EG.inzmod n) = (Zps.(^) (Sub.insubd z) n).
+progress. rewrite /(^^). 
+rewrite lll. auto. 
+rewrite - bbb.
+rewrite Sub.insubdK. rewrite /P. smt.
+have ->: (EG.asint ((EG.inzmod n))%EG) = n %% q. smt.
+rewrite lll. auto.  
+rewrite Sub.insubdK. smt.
+rewrite (Zp.exp_mod z n q _). auto. auto.
+qed. 
+
+
+lemma nosmt dokas : forall s w, s = ZModpField.exp g w => ZModpField.exp s q = one.
+progress. 
+have ->: (ZModpField.exp ((ZModpField.exp g w)) q) = (((ZModpField.exp g (w * q)))). 
+ rewrite - ZModpField.exprM. auto.
+have -> : w * q = q * w. smt().
+have ->: (ZModpField.exp g (q * w)) = (ZModpField.exp ((ZModpField.exp g q)) w).
+rewrite  ZModpField.exprM. auto.
+rewrite  g_q_assumption. smt(@ZModpField).
+qed.
+  
+lemma commitment_eq ss ww : 
+ equiv [ SchnorrProver.commitment ~ HP.commitment : arg{2} = (ss,ww) ==> res{1}.`1 = (Sub.val res{2}) 
+ /\ res{1}.`2 = EG.asint HP.r{2} 
+ /\ HP.pa{2} = ss
+ /\ HP.wa{2} = ww
+].
+proof. proc.
+rnd EG.inzmod EG.asint. wp.  skip. progress.
+smt(@EG). 
+rewrite /EG.DZmodP.dunifin.
+rewrite /EG.DZmodP.Support.enum.
+rewrite duniform1E_uniq. smt(@List @EG).
+rewrite duniform1E_uniq. smt(@List @EG).
+simplify. smt(@EG @Distr @List).
+rewrite EG.inzmodK.
+ have f1 : rL \in range 0 q.
+ smt(@Distr).
+ have f2 : 0 <= rL < q. smt(@List).
+ smt(@IntDiv).
+rewrite exp_lemma4. apply g_unit. apply g_q_assumption. auto.
+qed.
+
+
+lemma nosmt in_chall_map b :
+  (b \in map EG.inzmod challenges_list_zp) = ((EG.asint b) \in challenges_list_zp).
+ have d1 : (b \in map EG.inzmod challenges_list_zp) => ((EG.asint b)%EG \in challenges_list_zp).
+   move => q.
+  have : (EG.inzmod ((EG.asint b))) \in (map EG.inzmod challenges_list_zp).  smt(@EG).
+  move => qq. 
+  have : exists x, x \in challenges_list_zp /\ (EG.inzmod (EG.asint b)) = EG.inzmod x.
+   apply mapP. apply qq. elim.
+   move => x. elim. move => xk. 
+   rewrite EG.asintK. progress.
+   rewrite EG.inzmodK. smt(@IntDiv list_elems). 
+  simplify. 
+ have d2 : ((EG.asint b)%EG \in challenges_list_zp) => (b \in map EG.inzmod challenges_list_zp).
+   move => q.
+   have ->: b = EG.inzmod (EG.asint b). smt(@EG).
+   smt(@List).
+   smt().
+qed.
+
+
+lemma challenge_eq  cc ss: 
+ equiv [ SchnorrVerifier.challenge ~ HV.challenge : arg{2} = (ss,cc) ==> res{1} = EG.asint res{2} 
+ /\ HV.c{2} = cc
+ /\ HV.s{2} = ss
+ /\ HV.ch{2} = res{2}
+].
+proof. proc. wp. 
+rnd EG.inzmod EG.asint. wp.  skip. progress.
+smt(@EG). 
+rewrite duniform1E_uniq. 
+apply map_inj_in_uniq. smt. smt().
+rewrite duniform1E_uniq. smt().
+rewrite in_chall_map. smt(@List).
+smt(@Distr @List).
+rewrite EG.inzmodK.
+smt.
+qed.
+    
+
+lemma response_eq : 
+ equiv [ SchnorrProver.response ~ HP.response : 
+  w{1} %% q = EG.asint HP.wa{2}
+  /\ r{1} %% q = EG.asint HP.r{2}
+  /\ c{1} %% q = EG.asint b{2}
+  ==> res{1} = EG.asint res{2}
+]. 
+proof. proc. simplify.
+wp. skip. progress.
+have ->: (b{2})%EG \in  map EG.inzmod challenges_list_zp
+ = c{1} %% q \in challenges_list_zp.
+rewrite H1. apply in_chall_map.
+case (c{1} %% q \in challenges_list_zp).
+progress.
+rewrite EG.addE.
+rewrite EG.mulE.
+rewrite - H0 - H1 - H. 
+rewrite - modzDm.
+congr. congr. congr.
+smt(@IntDiv).
+auto.
+progress.
+rewrite EG.addE.
+rewrite EG.mulE.
+rewrite /challenges_list_zp. simplify.
+smt(@IntDiv @EG).
+qed.
+
+
+lemma verify_eq : 
+ equiv [ SchnorrVerifier.verify ~ HV.verify : 
+   s{1} <> zero
+  /\ s{1} = Sub.val HV.s{2}
+  /\ z{1} = Sub.val HV.c{2}
+  /\ c{1} %% q = EG.asint HV.ch{2}
+  /\ t{1} %% q = EG.asint r{2}
+     ==> res{1} = res{2}
+]. 
+proc. simplify. skip.
+move => &1 &2 [h1]. progress.
+rewrite /verify_transcript. simplify.
+rewrite /lift2.
+case ((ZModpField.exp ((Sub.val HV.s{2})) q) = one).
+move => G2. 
+rewrite exp_lemma4. apply g_unit. apply g_q_assumption.
+rewrite exp_lemma4. smt.   assumption. simplify.
+have  <-: ((Sub.val ((Sub.insubd ((Sub.val HV.s{2}))) ^^ (EG.inzmod q))) = one)
+ = ((Zps.(^) HV.s{2}  q) = (Sub.insubd one)).
+rewrite - bbb.
+rewrite exp_lemma5. smt.  smt(q_prime).
+auto.
+rewrite Sub.insubdK.  rewrite /P. smt.
+have -> : (Sub.insubd ((Sub.val HV.s{2})))
+ = HV.s{2}.
+rewrite Sub.valKd. auto. auto.
+rewrite Sub.valKd.
+have -> : ((Sub.val (HV.s{2} ^^ (EG.inzmod q)%EG))%Sub = one). 
+rewrite - G2.
+smt.
+simplify.
+rewrite - bbb.
+rewrite Sub.insubdK.
+rewrite /P.
+apply ZModpRing.unitrMr.
+rewrite /(^^).
+smt(@Sub).
+smt(@Sub).
+have ->:  (Sub.insubd g) ^^ (EG.inzmod t{1})
+         = ((Sub.insubd g) ^^ r{2}).
+   rewrite /(^^). rewrite - H0.
+   rewrite EG.inzmodK. auto.
+have ->: (HV.s{2} ^^ (EG.inzmod c{1}))
+ = (HV.s{2} ^^ HV.ch{2}).
+ rewrite /(^^). rewrite - H.
+   rewrite EG.inzmodK. auto.
+auto.
+simplify.
+move => eone.
+have -> : (Zps.(^) HV.s{2} q) <> (Sub.insubd one).
+ have->: HV.s{2} = Sub.insubd (Sub.val HV.s{2}).
+ smt.
+rewrite lll. smt.
+smt. simplify.
+auto.
+qed.
+

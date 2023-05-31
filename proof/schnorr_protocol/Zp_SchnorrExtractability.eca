@@ -1,0 +1,229 @@
+require import Int IntDiv Real Distr List StdOrder.
+import Ring.IntID IntOrder.
+
+require Zp_Abstract_SchnorrCorrespondance.
+clone import Zp_Abstract_SchnorrCorrespondance as Zp_SchnorrCorrespondanceProofs.
+import Zp_SchnorrInstance Zp ZPS LSP Rew.
+
+
+module SpecialSoundnessAdversaryG(P : ZKRewindableMaliciousProverG)  = {
+  proc attack(statement:statement):(commitment * int * response) * (commitment * int * response) = {
+    var i,c1,c2,r1,r2,pstate;
+    i <@ P.commitment();
+    c1 <$ duniform challenges_list_zp;
+    pstate <@ P.getState();
+    r1 <@ P.response(c1);
+    c2 <$ duniform challenges_list_zp;
+    P.setState(pstate);
+    r2 <@ P.response(c2);
+    return ((i,c1,r1), (i,c2,r2));
+  }
+}.
+
+
+op special_soundness_extractG (t1 t2 : commitment * challenge * response): witness = 
+ EG.asint (special_soundness_extract witness (Sub.insubd t1.`1, EG.inzmod t1.`2, EG.inzmod t1.`3) (Sub.insubd t2.`1, EG.inzmod t2.`2,EG.inzmod t2.`3)).
+
+module (ExtractorG : ExtractorG)(P : ZKRewindableMaliciousProverG) = {  
+  module SA = SpecialSoundnessAdversaryG(P)
+  proc extract(p : statement) : witness = {
+    var t1,t2;
+    (t1,t2) <@ SA.attack(p);
+    return special_soundness_extractG t1 t2;
+ }
+}.
+
+
+section.
+
+declare module P <: ZKRewindableMaliciousProverG{-HV}.
+declare axiom P_response_ll : islossless P.response.
+declare axiom P_commitment_ll : islossless P.commitment.
+
+(* rewindability assumption *)
+declare axiom rewindable_P_plus :
+        (exists (f : glob P -> sbits),
+         injective f /\
+        (forall &m, Pr[ P.getState() @ &m : (glob P) = ((glob P){m})
+                                          /\ res = f ((glob P){m} ) ] = 1%r) /\
+        (forall &m b (x: glob P), b = f x =>
+           Pr[P.setState(b) @ &m : glob P = x] = 1%r) /\ islossless P.setState).
+
+
+
+
+local module P' = {
+  proc commitment(s : dl_stat) : dl_com  = {
+    var r;
+    r <@ P.commitment();
+    return (Sub.insubd r);
+  }  
+  proc response(challenge : dl_chal) : dl_resp  = {
+    var r;
+    r <@ P.response( EG.asint challenge);
+    return (EG.inzmod r);
+  }  
+  proc getState = P.getState
+  proc setState = P.setState
+}.
+
+
+
+lemma lles (a b : real) : 0%r <= a <= 1%r => 0%r <= b <= 1%r 
+  => a  <= b  =>  a ^ 2 <= b ^ 2.
+smt(@RealOrder).
+qed.
+
+lemma lles2 (a b x y : real) : 0%r <= a <= x => 0%r <= b <= y
+  => a * b <= x * y.
+smt(@Real @RealOrder).
+qed.
+
+lemma lles3 (a b : real) : 0%r < a => 0%r <= a * b => 0%r <= b.
+progress.
+smt(@Real @RealOrder).
+qed.
+
+
+lemma extractabilityG &m (sz : zmod): 
+  Pr[ExtractorG(P).extract(sz) @ &m : completeness_relationG sz res ] >=
+  (Pr[SoundnessG(P, SchnorrVerifier).run(sz) @ &m : res] ^ 2
+       - 1%r / (size challenges_list_zp)%r
+           * Pr[SoundnessG(P, SchnorrVerifier).run(sz) @ &m : res]).
+proof. 
+(* s = zero *)
+case (sz = zero). move => s_is_zero.
+  have ->: Pr[SoundnessG(P, SchnorrVerifier).run(sz) @ &m : res] = 0%r.
+  pose ss := sz.
+  byphoare (_: arg = sz ==> _). proc. hoare.
+  inline*. wp.  call (_:true). wp. rnd. call(_:true). skip. progress. rewrite s_is_zero. 
+  have ->: ZModpField.exp zero  q = zero. 
+    rewrite (ZModpField.expr0z q). smt(q_prime).
+  smt(@Zp). auto. auto. simplify.
+  have ->: 0%r ^ 2 = 0%r. smt(@Real). 
+  rewrite Pr[mu_ge0]. auto.
+(* s <> zero *)
+move => s_not_zero.
+have soundness_less : Pr[SoundnessG(P, SchnorrVerifier).run(sz) @ &m : res]
+ <= Pr[Soundness(P', HV).run(Sub.insubd sz) @ &m : res].
+byequiv (_: _ ==> _).
+proc.
+seq 1 1 : ((z{1} <> zero => z{1} = Sub.val commit{2}) /\ (glob P){1} = (glob P){2} /\ s{1} = sz /\ Sub.val statement{2} = sz).
+inline P'.commitment. wp.
+call (_:true). wp.  skip. progress.
+rewrite Sub.insubdK. smt. auto.
+rewrite Sub.insubdK. smt. auto. 
+case (z{1} = Zp.zero).
+inline*. wp.
+call {1} P_response_ll.
+call {2} P_response_ll. auto.
+rnd {1}.  rnd{2}.
+wp. skip. progress. smt(@Distr). smt(@Distr).
+have q : ZModpField.exp g result0  = zero.
+rewrite H4. rewrite H. smt.
+have : false. smt. auto.
+smt. smt.
+call verify_eq. simplify.
+inline P'.response.
+wp. call (_: true).
+wp.  simplify.
+ecall (challenge_eq commit{2} statement{2}). 
+skip. progress.
+auto.
+smt(@EG).
+smt(@EG).
+smt(@EG).
+auto.
+auto.
+have -> : Pr[ExtractorG(P).extract(sz) @ &m : completeness_relationG sz  res ] 
+ = Pr[Extractor(P').extract(Sub.insubd sz) @ &m : soundness_relation (Sub.insubd sz) res].
+byequiv. proc.
+inline ExtractorG(P).SA.attack.
+inline Extractor(P').SA.attack.
+wp. simplify.
+inline P'.response. wp.
+call (_:true). wp.
+call (_:true).
+rnd EG.inzmod EG.asint. 
+wp. call (_:true). wp.
+call (_:true). rnd EG.inzmod EG.asint. wp.  
+inline P'.commitment. wp.
+call (_:true). wp.  skip. progress.
+smt.
+rewrite duniform1E_uniq. 
+apply map_inj_in_uniq.  smt. smt().
+rewrite duniform1E_uniq. auto.
+  have ->: c1R \in map EG.inzmod challenges_list_zp. smt(@Distr). simplify.
+  have ->: (EG.asint c1R)%EG \in challenges_list_zp.
+  have : (EG.inzmod ((EG.asint c1R))) \in (map EG.inzmod challenges_list_zp). smt(@Distr).
+  move => qq. 
+  have : exists x, x \in challenges_list_zp /\ (EG.inzmod (EG.asint c1R)) = EG.inzmod x.
+   apply mapP. apply qq. elim.
+   move => x. elim. move => xk. 
+   rewrite EG.asintK. progress.
+   rewrite EG.inzmodK. smt(@IntDiv list_elems). 
+  simplify. smt(@List).
+smt(@Distr @List).
+rewrite EG.inzmodK.  smt(list_elems @IntDiv @Distr).
+smt(@Distr @List).
+rewrite EG.inzmodK. 
+smt(list_elems @IntDiv @Distr).
+have -> : LSP.soundness_relation  =  LSP.completeness_relation. auto.
+rewrite completeness_relation_compatible. simplify.
+rewrite /completeness_relationG. rewrite - H11.  rewrite /special_soundness_extractG /special_soundness_extract. simplify.
+rewrite EG.mulE.
+smt.
+have -: soundness_relation ((Sub.insubd p{1}))%Sub
+      (special_soundness_extract ((Sub.insubd p{1}))%Sub
+         ((Sub.insubd result_R)%Sub, (EG.inzmod c1L)%EG, (EG.inzmod result_R1)%EG)
+         ((Sub.insubd result_R)%Sub, (EG.inzmod c2L)%EG, (EG.inzmod result_R2)%EG)). auto.
+rewrite /soundness_relation /IsDL /special_soundness_extract. simplify.
+rewrite /special_soundness_extractG. simplify. rewrite /special_soundness_extract.
+simplify. 
+rewrite /completeness_relationG.
+rewrite EG.mulE.
+rewrite - exp_mod. apply g_q_assumption.
+rewrite /(^^).
+rewrite EG.mulE.
+rewrite lll. apply g_unit.
+rewrite - exp_mod.  apply g_q_assumption.
+move => q. apply aaa. 
+smt(@ZModpField g_unit).
+apply Zp.unitE. auto.
+apply q.
+auto.
+auto.
+have  :   Pr[Soundness(P', HV).run((Sub.insubd sz)%Sub) @ &m : res] ^ 2 -
+  1%r / (size challenges_list_zp)%r *
+  Pr[Soundness(P', HV).run((Sub.insubd sz)%Sub) @ &m : res] <=
+  Pr[Extractor(P').extract((Sub.insubd sz)%Sub) @ &m :
+     soundness_relation ((Sub.insubd sz))%Sub res]. 
+apply (dl_statistical_PoK P' _ _ _ &m (Sub.insubd sz)).
+proc. call P_response_ll. auto.
+proc. call P_commitment_ll. auto.
+apply rewindable_P_plus.
+pose a:= Pr[Soundness(P', HV).run((Sub.insubd sz)) @ &m : res].
+pose b:= Pr[Extractor(P').extract((Sub.insubd sz)%Sub) @ &m :
+   soundness_relation ((Sub.insubd sz))%Sub res].
+pose c := (size challenges_list_zp)%r.
+pose q := Pr[SoundnessG(P, SchnorrVerifier).run(sz) @ &m : res].
+progress.
+case ((q ^ 2 - q / c) <= 0%r). smt.
+move => pos. have impfact :  0%r < q * (q - 1%r / c). timeout 10. smt(@Real @RealOrder).
+have : q <= a. auto. move => aq.
+have ls1 : 0%r <= a <= 1%r. smt.
+have ls2 : 0%r <= q <= 1%r. smt.
+have : q ^ 2 - q / c  <=  a ^ 2 - a / c .
+ have ->: q ^ 2 - q/c = q * (q  - 1%r/c). smt(@Real).
+ have ->: a ^ 2 - a/c = a * (a  - 1%r/c). smt(@Real).
+ have z: (q - 1%r / c) <= (a - 1%r / c). smt(@Real).
+ apply lles2.  split. smt(@Real @RealOrder).
+auto. 
+split. 
+apply (lles3 q). smt(@Real @RealOrder). smt(@Real @RealOrder).
+auto.
+smt(@Real @RealOrder).
+qed.
+
+
+end section.
