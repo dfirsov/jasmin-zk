@@ -82,24 +82,24 @@ progress. rewrite exprSr. auto.
 rewrite ZModpField.exprSr. auto. rewrite zp_mul H0. smt(@IntDiv). 
 qed.
 
-
+op g_top = g.
 
 require Zp_SchnorrProtocol.
-clone import Zp_SchnorrProtocol as ZPSP with op g <- inzmod g,
-                                             type LSP.sbits <- sbits,
-                                             op q <- q,
-                                             op LSP.pair_sbits <- pair_sbits,
-                                             op LSP.unpair <- unpair,
+clone  Zp_SchnorrProtocol as ZPSP with op g <= inzmod g_top,
+                                             type LSP.sbits <= sbits,
+                                             op q <= q,
+                                             op LSP.pair_sbits <= pair_sbits,
+                                             op LSP.unpair <= unpair,
                                              op challenges_list_zp <= [0;1],
-                                             theory Zp <- ZpC
+                                             theory Zp <= ZpC
 proof*.
 realize LSP.challenge_set_size. smt(@EG.DZmodP q_less_p). qed.
 realize LSP.challenge_set_unique. admit. (* smt(@EG.DZmodP @List q_less_p). qed. *) qed.
 realize g_q_assumption. rewrite - zp_eq.
 rewrite exps'. smt(q_less_p).
-have ->: (Sub.val (inzmod g)) = (asint (inzmod g)). auto.
+have ->: (Sub.val (Zp.inzmod g_top)) = (asint (inzmod g_top)). auto.
 rewrite inzmodK.
- have ->: g %% p = g. smt(@IntDiv g_less_p). rewrite g_correct.
+ have ->: g_top %% p = g_top. smt(@IntDiv g_less_p). rewrite g_correct.
 rewrite /ZPS.ZpF.one /ZpC.one. 
 have ->: (Sub.val (inzmod 1)) = (asint (inzmod 1)). auto.
 rewrite inzmodK. smt(@IntDiv p_less_modulusR). qed.
@@ -112,6 +112,7 @@ realize LSP.challenges_list_size. admit. qed.
 realize challenges_list_zp_uniq. auto. qed.
 realize challenges_list_zp_size. auto. qed.
 realize LSP.challenges_list_uniq. smt. qed.
+
 
 require MontgomeryLadder_Concrete.
 clone import MontgomeryLadder_Concrete as MLC with theory Zp <- ZpC.
@@ -190,7 +191,7 @@ qed.
 
 lemma completness_compat s w : 
  completeness_relationJ s w
- =  completeness_relationG (inzmod (valR s)) (valR w).
+ =  ZPSP.completeness_relationG (inzmod (valR s)) (valR w).
 (* move => s_not_zero. *)
 rewrite /completeness_relationJ /completeness_relation /IsDL.
 rewrite /completeness_relationG.
@@ -204,7 +205,7 @@ qed.
 
 
 lemma response_eq : 
-  equiv [ SchnorrProver.response ~ JProver.response :
+  equiv [ ZPSP.SchnorrProver.response ~ JProver.response :
         w{1}   %% q  = (valR (witness0{2}) )  %% q
     /\  r{1}   %% q  = (valR secret_power{2}) %% q
     /\  c{1}   %% q  = (valR challenge_0{2})  %% q
@@ -256,7 +257,7 @@ qed.
 
 
 lemma verify_eq : 
-  equiv [ SchnorrVerifier.verify ~ JVerifier.verify :
+  equiv [ ZPSP.SchnorrVerifier.verify ~ JVerifier.verify :
           Sub.val(s{1}) = valR statement{2}    %% p
        /\ Sub.val(z{1}) = valR commitment_0{2} %% p
        /\ c{1} %% q = (valR (challenge_0{2}))  %% q
@@ -309,13 +310,13 @@ smt().
 smt(@W64xN).
 smt().
 rewrite H7. smt(g_less_p).
-  have sq_fact: ((ZModpField.exp s{1} q) = ZPS.ZpF.one)
+  have sq_fact: ((ZModpField.exp s{1} q) = ZPSP.ZPS.ZpF.one)
             = (result15 = W64.one). 
   rewrite H58. rewrite H56. rewrite H15. rewrite H5. rewrite H3. rewrite H57.
   have ->: (valR statement{2} %% p) = val s{1}. smt().
   have ->: (ZModpField.exp s{1} q) = s{1} ^^ q. 
     rewrite /(^^). smt(@ZModpField).
-    rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPS.ZpF.one xxx.  
+    rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPSP.ZPS.ZpF.one xxx.  
     smt.
 rewrite sq_fact.
 have ->: (result12 `&` result15 = W64.one) 
@@ -341,7 +342,7 @@ auto. auto.
 rewrite /(^).
 have ->: val (ZModpField.exp (inzmod g) t{1})  = val (ZModpField.exp (inzmod g) (t{1} %% q)).
 rewrite /(^^).
-rewrite (exp_mod (inzmod g) t{1} q). rewrite g_q_assumption. auto.
+rewrite (exp_mod (inzmod g) t{1} q). rewrite ZPSP.g_q_assumption. auto.
 auto.
 rewrite  exps'. smt(@IntDiv). auto. rewrite /g /p. 
 rewrite inzpKK.
@@ -387,7 +388,7 @@ qed.
 
 
 lemma commit_same : 
-  equiv [ SchnorrProver.commitment ~ ASpecFp_Schnorr.commit 
+  equiv [ ZPSP.SchnorrProver.commitment ~ ASpecFp_Schnorr.commit 
           : true  ==> ={res} ].
 proc. 
 inline *. wp.  simplify. sp.
@@ -400,7 +401,7 @@ auto.
 qed.
 
 lemma commitment_eq : 
-  equiv [ SchnorrProver.commitment ~ JProver.commitment :
+  equiv [ ZPSP.SchnorrProver.commitment ~ JProver.commitment :
   true
   ==> (val res{1}.`1) = (valR res{2}.`1)
     /\ res{1}.`2 = (valR res{2}.`2) ].
@@ -415,26 +416,25 @@ qed.
 
 
 lemma commitment_pr_eq P &m : 
-  Pr[ SchnorrProver.commitment() @&m : P res ] = Pr[ JProver.commitment() @&m : P (inzmod (W64xN.valR res.`1), (W64xN.valR res.`2)) ].
+  Pr[ ZPSP.SchnorrProver.commitment() @&m : P res ] = Pr[ JProver.commitment() @&m : P (inzmod (W64xN.valR res.`1), (W64xN.valR res.`2)) ].
 byequiv. bypr (res{1}) (inzmod (W64xN.valR res{2}.`1), (W64xN.valR res{2}.`2)).
 auto. progress. byequiv.
 conseq commitment_eq. progress. smt. smt. auto. auto. auto. auto.
 qed.
- 
 
 
 
 
 
 lemma challenge_same : 
-  equiv [ SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
+  equiv [ ZPSP.SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
           : true  ==> ={res} ].
 proc. inline*. wp. rnd. wp. skip.
 progress. admit. admit.
 qed. 
 
 lemma challenge_eq : 
-  equiv [ SchnorrVerifier.challenge ~ JVerifier.challenge :
+  equiv [ ZPSP.SchnorrVerifier.challenge ~ JVerifier.challenge :
   true ==> res{1} = (valR res{2}) ].
 transitivity ASpecFp_Schnorr.challenge
   (true ==> ={res})
