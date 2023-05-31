@@ -1,0 +1,87 @@
+require import AllCore Distr DInterval List Int IntDiv.
+
+from Jasmin require import JModel JBigNum.
+
+require import W64_SchnorrProtocol.
+require import BigNum_spec.
+import W64xN. 
+
+
+require W64_Zp_SchnorrCorrespondance.
+clone import W64_Zp_SchnorrCorrespondance as Ind.
+
+require Zp_SchnorrZK.
+clone Zp_SchnorrZK as ZSZK with 
+   theory Zp_SchnorrCorrespondanceProofs.Zp_SchnorrInstance <- ZPSP.
+
+
+
+
+section ZeroKnowledge.
+
+
+
+declare module V <: RewMaliciousVerifierJ.
+declare module D <: ZKDistinguisherJ.
+
+declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg} ==> ={res} ].
+
+module VWrap(A:RewMaliciousVerifierJ) : ZPSP.RewMaliciousVerifierG = {
+  proc challenge(s : ZPSP.statement, z : ZPSP.commitment) : ZPSP.challenge  = {
+     var c;
+     c <@ A.challenge(W64xN.R.bn_ofint (ZpC.asint s), W64xN.R.bn_ofint (ZpC.asint z));
+     return ((W64xN.valR c ));
+  }
+  proc summitup(r : ZPSP.response) : ZPSP.LSP.summary  = {
+    var summary;
+    summary <@ A.summitup(W64xN.R.bn_ofint r);
+    return summary;
+  }  
+
+  proc getState = A.getState
+  proc setState = A.setState
+}.
+
+module DWrap(A: ZKDistinguisherJ) : ZPSP.ZKDistinguisherG = {
+  proc guess(statement : ZPSP.statement, witness : ZPSP.witness, summary : sbits) = {
+    var r;
+    r <@ A.guess(W64xN.R.bn_ofint (ZpC.asint statement), W64xN.R.bn_ofint witness, summary);
+    return r;
+  }
+}.
+
+
+local lemma zk_real_same &m ss ww: zk_relationJ ss ww =>
+ Pr[ZKRealJ(JProver, V, D).run(ss, ww)@&m : res]
+  = Pr[ZPSP.ZKRealG(ZPSP.SchnorrProver, VWrap(V), DWrap(D)).run(ZPSP.Zp.inzmod (W64xN.valR ss), W64xN.valR ww)@&m : res].
+progress.
+byequiv.
+proc.
+inline DWrap(D).guess. wp. 
+call D_guess_prop. 
+wp. inline VWrap(V).summitup.
+wp. call (_:true).
+wp. symmetry. call response_eq. simplify.
+inline VWrap(V).challenge.  wp.
+call (_:true). wp.
+call commitment_eq. skip. progress. 
+  rewrite (ZpC.inzmodK (W64xN.valR statement{2})).
+  admit.
+
+
+
+rewrite  /asint H4. smt(@R).
+smt().
+rewrite H5. auto.
+  have ->: result_L0 = valR result_R1. rewrite - H10. smt(@IntDiv).
+  smt(@R @IntDiv).
+admit.
+  smt(@R @IntDiv).
+
+
+auto.
+auto.
+qed.
+
+
+end section ZeroKnowledge.

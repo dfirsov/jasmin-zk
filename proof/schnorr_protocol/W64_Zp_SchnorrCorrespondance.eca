@@ -124,6 +124,7 @@ qed.
 
 
 op completeness_relationJ (s: W64xN.R.t) (w:W64xN.R.t) = g ^ (W64xN.valR w) %% p = W64xN.valR s %% p.
+op zk_relationJ (s: W64xN.R.t) (w:W64xN.R.t) =  (W64xN.valR w) < q /\ (g ^ (W64xN.valR w) %% p = W64xN.valR s %% p).
 
 
 op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ q).
@@ -209,7 +210,7 @@ lemma response_eq :
         w{1}   %% q  = (valR (witness0{2}) )  %% q
     /\  r{1}   %% q  = (valR secret_power{2}) %% q
     /\  c{1}   %% q  = (valR challenge_0{2})  %% q
-    ==> res{1} %% q  = (valR res{2}) ].
+    ==> res{1} %% q  = (valR res{2}) /\ 0 <= res{1} < q  ].
 proc. sp. simplify.
 ecall {2} (bn_addm_ph secret_power{2} product{2} exp_order{2}). simplify. 
 ecall {2} (bn_mulm_correct challenge_0{2} witness0{2} exp_order{2}). simplify.
@@ -252,6 +253,7 @@ rewrite - H.
 (* rewrite modzMml. *)
 rewrite modzMmr. 
 smt (modzDmr modzDml).
+smt(@IntDiv).
 qed.
 
 

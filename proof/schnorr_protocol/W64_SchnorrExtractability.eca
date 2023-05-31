@@ -56,7 +56,7 @@ smt(@LSP.EG). move => pos.
 smt(@LSP.EG q_less_p p_less_modulusR).
 qed.
 
-    (* LSP.soundness_relation  (ZPS.Sub.insubd (inzmod (valR s))) (LSP.EG.inzmod (valR res)) *)
+
 lemma extractability_same : forall (P <:  ZKRewindableMaliciousProverJ) s &m,
  Pr[ ExtractorJ(P).extract(s) @&m: completeness_relationJ s res ] 
   = Pr[ ZSC.ExtractorG(AWrapE(P)).extract((inzmod (valR s))) @&m: completeness_relationG  (inzmod (valR s)) res ].
