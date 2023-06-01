@@ -41,7 +41,8 @@ qed.
 
 import MLC. 
 import ZpC.
-lemma qqqq x : 0 <= x => (g ^ x %% ZpC.p) <> 0.
+
+local lemma qqqq x : 0 <= x => (g ^ x %% ZpC.p) <> 0.
 move => xnonzero.
 case ((g ^ x %% ZpC.p = 0)).
 move => q. simplify.

@@ -15,7 +15,6 @@ clone Zp_SchnorrExtractability as ZSC with
    theory Zp_SchnorrCorrespondanceProofs.Zp_SchnorrInstance <- ZPSP.
 
 
-section Extractability.
 
 import ZPSP.
 import ZpC DZmodP.
@@ -39,6 +38,19 @@ module  AWrapE(A:ZKRewindableMaliciousProverJ) : ZKRewindableMaliciousProverG = 
 }.
 
 
+module  AWrap(A:ZKMaliciousProverJ) : ZKMaliciousProverG = {
+  proc commitment() : commitment  = {
+     var c;
+     c <@ A.commitment();
+     return (inzmod (valR c ));
+  }
+  proc response(c:challenge) : response = {
+   var r;
+   r <@ A.response(bn_ofint c);
+   return (valR r);
+  }  
+}.
+
 
 module (ExtractorJ : ExtractorJ)(P : ZKRewindableMaliciousProverJ) = {
   module SA = ZSC.SpecialSoundnessAdversaryG(AWrapE(P))
@@ -50,14 +62,19 @@ module (ExtractorJ : ExtractorJ)(P : ZKRewindableMaliciousProverJ) = {
 }.
 
 
-lemma q_less_modulusR x : 0 <= LSP.EG.asint x < modulusR.
+
+
+section.
+
+
+local lemma q_less_modulusR x : 0 <= LSP.EG.asint x < modulusR.
 split.
 smt(@LSP.EG). move => pos.
 smt(@LSP.EG q_less_p p_less_modulusR).
 qed.
 
 
-lemma extractability_same : forall (P <:  ZKRewindableMaliciousProverJ) s &m,
+local lemma extractability_same : forall (P <:  ZKRewindableMaliciousProverJ) s &m,
  Pr[ ExtractorJ(P).extract(s) @&m: completeness_relationJ s res ] 
   = Pr[ ZSC.ExtractorG(AWrapE(P)).extract((inzmod (valR s))) @&m: completeness_relationG  (inzmod (valR s)) res ].
 progress. 
@@ -93,24 +110,7 @@ qed.
 
 
 
-section.
-
-
-module  AWrap(A:ZKMaliciousProverJ) : ZKMaliciousProverG = {
-  proc commitment() : commitment  = {
-     var c;
-     c <@ A.commitment();
-     return (inzmod (valR c ));
-  }
-  proc response(c:challenge) : response = {
-   var r;
-   r <@ A.response(bn_ofint c);
-   return (valR r);
-  }  
-}.
-
-
-lemma soundness_same (s : W64xN.R.t) &m : forall (A <: ZKMaliciousProverJ),
+local lemma soundness_same (s : W64xN.R.t) &m : forall (A <: ZKMaliciousProverJ),
    Pr[ SoundnessJ(A,JVerifier).main(s)@&m : res]
    = Pr[ SoundnessG(AWrap(A),SchnorrVerifier).run(inzmod (W64xN.valR s))@&m : res].
 move => A. byequiv. proc.
@@ -123,6 +123,7 @@ inline AWrap(A).commitment.
 wp. call (_:true). simplify. skip.
 progress. smt. smt. smt. smt. auto. auto.
 qed.
+
 
 
 declare module P <: ZKRewindableMaliciousProverJ{-LSP.HV}.
@@ -159,4 +160,4 @@ qed.
 
 end section.
 
-end section Extractability.
+

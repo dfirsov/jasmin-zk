@@ -14,18 +14,6 @@ require Zp_SchnorrZK.
 clone Zp_SchnorrZK as ZSZK with 
    theory Zp_SchnorrCorrespondanceProofs.Zp_SchnorrInstance <- ZPSP.
 
-
-
-
-section ZeroKnowledge.
-
-
-
-declare module V <: RewMaliciousVerifierJ.
-declare module D <: ZKDistinguisherJ.
-
-declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg} ==> ={res} ].
-
 module VWrap(A:RewMaliciousVerifierJ) : ZPSP.RewMaliciousVerifierG = {
   proc challenge(s : ZPSP.statement, z : ZPSP.commitment) : ZPSP.challenge  = {
      var c;
@@ -51,9 +39,119 @@ module DWrap(A: ZKDistinguisherJ) : ZPSP.ZKDistinguisherG = {
 }.
 
 
+module Sim1J(V : RewMaliciousVerifierJ) = {
+  module S = ZSZK.Sim1G(VWrap(V))
+  proc run(Ny : W64xN.R.t) : bool * sbits = {
+    var r;
+    r <@ S.run(ZpC.inzmod (W64xN.valR Ny));
+    return r;
+  }
+}.
+
+
+
+module SimNJ(V0 : RewMaliciousVerifierJ) = {
+  module A = Sim1J(V0)
+  
+  proc simulate(statement : W64xN.R.t) : sbits = {
+    var c : int;
+    var r : bool * sbits;
+    
+    c <- 1;
+    r <- (false, witness);
+    while (c <= ZSZK.SZK.N /\ ! r.`1){
+      r <@ A.run(statement);
+      c <- c + 1;
+    }    
+    return r.`2;
+  }
+}.
+
+   
+
+   
+section ZeroKnowledge.
+
+declare module V <: RewMaliciousVerifierJ{-ZPSP.LSP.HP, -ZSZK.SZK.ZK.Hyb.Count, -ZSZK.SZK.ZK.Hyb.HybOrcl}.
+declare module D <: ZKDistinguisherJ{-ZPSP.LSP.HP, -ZSZK.SZK.ZK.Hyb.Count, -ZSZK.SZK.ZK.Hyb.HybOrcl}.
+
+
+
+
+declare axiom Sim1_run_ll : forall (V0 <: RewMaliciousVerifierJ), 
+ islossless V0.challenge 
+  => islossless V0.summitup => islossless Sim1J(V0).run.
+declare axiom V_summitup_ll : islossless V.summitup. 
+declare axiom V_challenge_ll : islossless V.challenge.
+declare axiom D_guess_ll : islossless D.guess.
+declare axiom P_response_ll : islossless JProver.response. (* TODO *)
+declare axiom P_commitment_ll : islossless JProver.commitment.
+declare axiom simn_simulate_ll : forall (V0 <: RewMaliciousVerifierJ), islossless V0.challenge
+  => islossless V0.summitup => islossless SimNJ(V0).simulate.
+declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg} ==> ={res} ].
+
+
+(* rewindability assumption *)
+declare axiom rewindable_V_plus :
+        (exists (f : glob V -> sbits),
+         injective f /\
+         (forall &m, Pr[ V.getState() @ &m : (glob V) = ((glob V){m})
+                                          /\ res = f ((glob V){m} ) ] = 1%r) /\
+         (forall &m b (x: glob V), b = f x =>
+           Pr[V.setState(b) @ &m : glob V = x] = 1%r) /\
+         islossless V.setState).
+
+
+local lemma zk_sim1_same ss:
+ equiv [ Sim1J(V).run ~ ZSZK.Sim1G(VWrap(V)).run :
+   arg{1} = ss 
+   /\ arg{2} = ZpC.inzmod (W64xN.valR ss)
+   /\  ={glob V} ==> ={res, glob V}].
+proc. 
+inline*. 
+wp.
+seq 21 20 : (={result,b,b',vstat,glob V}).
+wp. call (_:true). simplify.
+wp. simplify.
+call (_:true). wp. 
+rnd.  rnd.  wp. call (_:true). wp. 
+skip. progress.
+if. auto.
+call (_:true). skip. progress.
+skip.  auto.
+qed.
+
+
+local lemma zk_ideal_same &m stat wit : zk_relationJ stat wit =>
+  Pr[ZPSP.ZKIdealG(ZSZK.SimNG, VWrap(V), DWrap(D)).run(ZpC.inzmod (W64xN.valR stat), W64xN.valR wit)@&m : res]
+  = Pr[ZKIdealJ(SimNJ, V, D).run(stat, wit)@&m : res].
+move => wit_normal.
+byequiv. proc.
+inline DWrap(D).guess.
+wp.
+call D_guess_prop.
+wp. 
+inline ZSZK.SimNG(VWrap(V)).simulate.
+inline SimNJ(V).simulate.
+wp. sp. simplify.
+while (={c, glob V} /\ r0{1} = r{2} /\ statement1{1} = ZpC.inzmod (W64xN.valR statement0{2}) /\ statement0{2} = stat).
+wp.
+symmetry.
+call (zk_sim1_same stat).
+skip. progress.
+skip. progress. smt().
+rewrite ZpC.inzmodK /P. 
+search W64xN.R.bn_ofint.
+have ->: valR statement{2} %% p = valR statement{2}. admit.
+rewrite  R.bnK. auto.
+rewrite  R.bnK. auto.
+auto. auto.
+qed.
+
+
 local lemma zk_real_same &m ss ww: zk_relationJ ss ww =>
  Pr[ZKRealJ(JProver, V, D).run(ss, ww)@&m : res]
-  = Pr[ZPSP.ZKRealG(ZPSP.SchnorrProver, VWrap(V), DWrap(D)).run(ZPSP.Zp.inzmod (W64xN.valR ss), W64xN.valR ww)@&m : res].
+  = Pr[ZPSP.ZKRealG(ZPSP.SchnorrProver, VWrap(V), DWrap(D)).run(ZpC.inzmod (W64xN.valR ss), W64xN.valR ww)@&m : res].
 progress.
 byequiv.
 proc.
@@ -67,9 +165,6 @@ call (_:true). wp.
 call commitment_eq. skip. progress. 
   rewrite (ZpC.inzmodK (W64xN.valR statement{2})).
   admit.
-
-
-
 rewrite  /asint H4. smt(@R).
 smt().
 rewrite H5. auto.
@@ -77,10 +172,35 @@ rewrite H5. auto.
   smt(@R @IntDiv).
 admit.
   smt(@R @IntDiv).
-
-
 auto.
 auto.
+qed.
+
+
+
+
+lemma zero_knowledgeJ (stat : W64xN.R.t) (wit : W64xN.R.t) &m:
+  zk_relationJ stat wit =>
+  let ideal_prob = Pr[ZKIdealJ(SimNJ, V, D).run(stat, wit)@&m : res] in
+  let real_prob = Pr[ZKRealJ(JProver, V, D).run(stat, wit)@&m : res] in
+
+ `|ideal_prob - real_prob| <= 2%r * ((1%r - (1%r / (size [0; 1])%r)) ^ ZSZK.SZK.N).
+move => zk_rel_stat_wit.
+rewrite zk_real_same. auto.
+rewrite - zk_ideal_same. auto.
+apply (ZSZK.zero_knowledgeG (VWrap(V)) (DWrap(D)) _ _ _ _ _   ( ZpC.inzmod (W64xN.valR stat) )
+ (W64xN.valR wit) &m _).
+proc. call V_summitup_ll. auto.
+proc. call V_challenge_ll. auto.
+proc. call D_guess_ll. auto.
+proc. call D_guess_prop. skip. auto. simplify.
+apply rewindable_V_plus.
+rewrite /zk_relationG. split. split. smt(@R). smt().
+  have completeness : (ZPSP.completeness_relationG ((ZpC.inzmod (valR stat))) (valR wit)).
+    have q : completeness_relationJ stat wit.
+    smt().
+    rewrite - Ind.completness_compat.     auto.
+    smt().
 qed.
 
 

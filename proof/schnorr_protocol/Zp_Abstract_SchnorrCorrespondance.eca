@@ -8,6 +8,9 @@ import Ring.IntID IntOrder.
 require Zp_SchnorrProtocol.
 
 clone import Zp_SchnorrProtocol as Zp_SchnorrInstance.
+
+
+
 import Zp ZPS LSP.
 
 lemma exp_lemma6 (z : zmod) : unit z => forall n,  unit (ZModpField.exp z n).

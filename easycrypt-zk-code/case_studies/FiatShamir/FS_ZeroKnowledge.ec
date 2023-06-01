@@ -8,11 +8,6 @@ proof*.
 
 import Statistical.
 
-(* (* importing statistical zero knowledge  *) *)
-(* clone import Statistical with op epsilon <- 0%r,   (* conditional probability of indistinguishability *) *)
-(*                               op sigma <- 1%r/2%r (* success-event *) *)
-(* proof*. *)
-(* realize epsilon_pos. auto. qed. *)
 
 (* importing the rewinding framework *)
 require  RewBasics.
@@ -29,8 +24,7 @@ section. (* modules and their losslessness assumptions  *)
 declare module V <: RewMaliciousVerifier{-ZK.Hyb.HybOrcl,-ZK.Hyb.Count,-HP}.
 declare module D <: ZKDistinguisher{-ZK.Hyb.HybOrcl,-ZK.Hyb.Count, -HP}.
 
-declare axiom Sim1_run_ll : forall (V0 <: RewMaliciousVerifier), islossless V0.challenge 
-  => islossless V0.summitup => islossless Sim1(V0).run.
+declare axiom Sim1_run_ll : islossless Sim1(V).run.
 declare axiom V_summitup_ll : islossless V.summitup. 
 declare axiom V_challenge_ll : islossless V.challenge.
 declare axiom D_guess_ll : islossless D.guess.

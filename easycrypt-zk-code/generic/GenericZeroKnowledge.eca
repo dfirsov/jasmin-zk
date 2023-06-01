@@ -795,8 +795,7 @@ proof *.
   }.
 
 
-   declare axiom sim1_run_ll : forall (V0 <: RewMaliciousVerifier),
-        islossless V0.challenge => islossless V0.summitup => islossless Sim1(V0).run.
+   declare axiom sim1_run_ll :  islossless Sim1(V).run.
    declare axiom V_summitup_ll  : islossless V.summitup.
    declare axiom V_challenge_ll : islossless V.challenge.
    declare axiom D_guess_ll     : islossless D.guess.
@@ -876,7 +875,7 @@ sim.  skip. progress. auto. auto.
      apply (one_to_many_zk  Sim1' D _  _ _ _ _ &m  stat wit sigma epsilon N
         Pr[ZKD(HonestProver, V, D).main(stat, wit) @ &m : res]  _ _ _).
      conseq D_guess_prop. auto.
-     apply (sim1_run_ll V). apply V_challenge_ll. apply V_summitup_ll. 
+     apply sim1_run_ll. 
      move => x. 
      proc*. 
      call (sim1_rew_ph (x.`4, x.`5)).
@@ -910,8 +909,7 @@ sim.  skip. progress. auto. auto.
   declare module V <: RewMaliciousVerifier {-Sim1, -HonestProver,-Hyb.Count, -Hyb.HybOrcl}.
   declare module D <: ZKDistinguisher{-HonestProver}.
 
-  declare axiom sim1_run_ll : forall (V0 <: RewMaliciousVerifier), islossless V0.challenge
-    => islossless V0.summitup => islossless Sim1(V0).run.
+  declare axiom sim1_run_ll : islossless Sim1(V).run.
   declare axiom V_summitup_ll  : islossless V.summitup.
   declare axiom V_challenge_ll : islossless V.challenge.
   declare axiom D_guess_ll     : islossless D.guess.

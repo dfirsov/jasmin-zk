@@ -13,18 +13,11 @@ clone import SchnorrZeroKnowledge as SZK.
 declare module V <: RewMaliciousVerifierG {-HP, -ZK.Hyb.Count, -ZK.Hyb.HybOrcl}.
 declare module D <: ZKDistinguisherG{-HP, -ZK.Hyb.Count, -ZK.Hyb.HybOrcl}.
 
-
-declare axiom Sim1_run_ll : forall (V0 <: RewMaliciousVerifier), 
- islossless V0.challenge 
-  => islossless V0.summitup => islossless Sim1(V0).run.
 declare axiom V_summitup_ll : islossless V.summitup. 
 declare axiom V_challenge_ll : islossless V.challenge.
 declare axiom D_guess_ll : islossless D.guess.
-declare axiom P_response_ll : islossless HP.response. (* TODO *)
-declare axiom P_commitment_ll : islossless HP.commitment.
-declare axiom simn_simulate_ll : forall (V0 <: RewMaliciousVerifier), islossless V0.challenge
-  => islossless V0.summitup => islossless OSS.SimN(Sim1, V0).simulate.
 declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg} ==> ={res} ].
+
 
 (* rewindability assumption *)
 declare axiom rewindable_V_plus :
@@ -204,15 +197,11 @@ move => zk_rel_stat_wit. simplify.
 rewrite zk_real_same. auto.
 rewrite - zk_ideal_same. auto.
 have ->: (size challenges_list_zp) = (size (map EG.inzmod challenges_list_zp)). smt(@List).
-apply (schnorr_statistical_zk (V'(V)) (D'(D)) _ _ _ _ _ _ _ _ _ (Sub.insubd stat) 
+apply (schnorr_statistical_zk (V'(V)) (D'(D)) _ _ _ _ _  (Sub.insubd stat) 
  (EG.inzmod wit) &m).
-apply Sim1_run_ll.
 proc. call V_summitup_ll. auto.
 proc. call V_challenge_ll. auto.
 proc. call D_guess_ll. auto.
-apply P_response_ll. 
-apply P_commitment_ll. 
-apply simn_simulate_ll.
 proc. call D_guess_prop. skip. auto. simplify.
 apply rewindable_V_plus.
 apply zk_relations_compatible.

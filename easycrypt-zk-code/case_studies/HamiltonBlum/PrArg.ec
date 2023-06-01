@@ -5,6 +5,8 @@ require import StdRing StdOrder StdBigop.
 import BRM.
 
 
+prover ["Alt-Ergo" "Z3" "CVC4"].
+
 (*
 
 The section below contains the derivation of the zero-knowledge upper-bound for a Blum-protocol
