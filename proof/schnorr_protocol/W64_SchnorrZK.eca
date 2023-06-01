@@ -122,6 +122,7 @@ skip.  auto.
 qed.
 
 
+
 local lemma zk_ideal_same &m stat wit : zk_relationJ stat wit =>
   Pr[ZPSP.ZKIdealG(ZSZK.SimNG, VWrap(V), DWrap(D)).run(ZpC.inzmod (W64xN.valR stat), W64xN.valR wit)@&m : res]
   = Pr[ZKIdealJ(SimNJ, V, D).run(stat, wit)@&m : res].
@@ -141,8 +142,9 @@ call (zk_sim1_same stat).
 skip. progress.
 skip. progress. smt().
 rewrite ZpC.inzmodK /P. 
-search W64xN.R.bn_ofint.
-have ->: valR statement{2} %% p = valR statement{2}. admit.
+have ->: valR statement{2} %% p = valR statement{2}.  
+    have : 0 <= valR statement{2} < p. smt(@R).
+    smt(@IntDiv).
 rewrite  R.bnK. auto.
 rewrite  R.bnK. auto.
 auto. auto.
@@ -164,13 +166,16 @@ inline VWrap(V).challenge.  wp.
 call (_:true). wp.
 call commitment_eq. skip. progress. 
   rewrite (ZpC.inzmodK (W64xN.valR statement{2})).
-  admit.
+  have ->: (valR statement{2} %% p) = valR statement{2}.
+    have : 0 <= valR statement{2} < p. smt(@R).
+    smt(@IntDiv).
+  rewrite R.bnK. auto.
 rewrite  /asint H4. smt(@R).
 smt().
 rewrite H5. auto.
   have ->: result_L0 = valR result_R1. rewrite - H10. smt(@IntDiv).
   smt(@R @IntDiv).
-admit.
+  smt(@R @IntDiv @ZpC).
   smt(@R @IntDiv).
 auto.
 auto.

@@ -124,7 +124,7 @@ qed.
 
 
 op completeness_relationJ (s: W64xN.R.t) (w:W64xN.R.t) = g ^ (W64xN.valR w) %% p = W64xN.valR s %% p.
-op zk_relationJ (s: W64xN.R.t) (w:W64xN.R.t) =  (W64xN.valR w) < q /\ (g ^ (W64xN.valR w) %% p = W64xN.valR s %% p).
+op zk_relationJ (s: W64xN.R.t) (w:W64xN.R.t) =  (W64xN.valR w) < q /\ (W64xN.valR s) < p /\ (g ^ (W64xN.valR w) %% p = W64xN.valR s %% p).
 
 
 op Rip : int = nasty_id (4 ^ (dnlimbs * nlimbs) %/ q).
