@@ -300,21 +300,57 @@ inline fn bn_rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs]
 }
 
 
-// used by Tiago for testing
-export fn zk_expm(reg u64 result_p base_p exp_p barrett_p mod_p) 
+inline fn uniform_binary_choice(stack u64[nlimbs] a b) -> (stack u64[nlimbs])
+{
+   stack u8[1] byte_p;
+   reg ptr u8[1] _byte_p;
+   reg u8 r;
+   reg bool cond;
+
+   byte_p[0] = 0;
+   _byte_p = byte_p;
+   byte_p = #randombytes(_byte_p);   
+   r = byte_p[0];
+   r &= 1;
+
+   cond = r == 0;
+
+   a = bn_cmov(cond,b,a);
+
+   return a;
+
+}
+
+
+
+// jasminc bn_generic_extra.jazz -o bn_generic_extra.s
+export fn binsample(reg u64 result_p) 
 { 
-  stack u64[nlimbs] result base exp mod;
-  stack u64[dnlimbs] barrett;
-
+  stack u64[nlimbs] a b result;
   result_p = result_p;
-  base     = bn_load(base_p);
-  exp      = bn_load(exp_p);
-  mod      = bn_load(mod_p);
-  barrett  = dbn_load(barrett_p);
 
-  result = bn_expm(barrett, mod, base, exp);
-
+  a = bn_set1(a);
+  b = bn_set0(b);
+  
+  result = uniform_binary_choice(a,b);
   bn_store(result_p, result);
 }
+
+
+// export fn zk_expm(reg u64 result_p base_p exp_p barrett_p mod_p) 
+// { 
+//   stack u64[nlimbs] result base exp mod;
+//   stack u64[dnlimbs] barrett;
+
+//   result_p = result_p;
+//   base     = bn_load(base_p);
+//   exp      = bn_load(exp_p);
+//   mod      = bn_load(mod_p);
+//   barrett  = dbn_load(barrett_p);
+
+//   result = bn_expm(barrett, mod, base, exp);
+  
+//   bn_store(result_p, result);
+// }
 
 

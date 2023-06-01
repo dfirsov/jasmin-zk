@@ -76,19 +76,14 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
 
 
 
-inline fn challenge_indexed() -> (inline int, stack u64[nlimbs]){
-  stack u64[nlimbs] challenge exp_order;
-  inline int i;
-  exp_order = bn_set_q(exp_order);  
-  i, challenge = bn_rsample(exp_order);
-  return (i, challenge);
-}
-
 
 inline fn challenge() -> stack u64[nlimbs]{
-  stack u64[nlimbs] challenge exp_order;
-  exp_order = bn_set_q(exp_order);  
-  _, challenge = bn_rsample(exp_order);
+  stack u64[nlimbs] value_zero value_one challenge;
+  
+  value_zero = bn_set0(value_zero);
+  value_one  = bn_set1(value_one);
+  challenge  = uniform_binary_choice(value_zero, value_one);
+
   return challenge;
 }
 

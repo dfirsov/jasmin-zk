@@ -135,7 +135,6 @@ rewrite /Rip. smt(nasty_id). qed.
 
 lemma inzpKK: forall (z : int), val (inzmod z) = z %% p. smt(@ZpC). qed.
 
-  
 module ASpecFp_Schnorr = {
  proc commit(h : zmod, w : W64xN.R.t) : zmod * int = {
    var r;
@@ -146,7 +145,7 @@ module ASpecFp_Schnorr = {
   } 
   proc challenge() : int = {
    var r;
-   r <@ ASpecFp.rsample(q);
+   r <$ duniform [0;1] ;
    return r;
   }
 }.
@@ -204,26 +203,50 @@ qed.
 
 
 
-
-lemma challenge_same : 
-  equiv [ ZPSP.SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
-          : true  ==> ={res} ].
-proc. inline*. wp. rnd. wp. skip.
-progress. admit. admit.
-qed. 
+require import BinUniSample_proof.
 
 lemma challenge_eq : 
   equiv [ ZPSP.SchnorrVerifier.challenge ~ JVerifier.challenge :
   true ==> res{1} = (valR res{2}) ].
-transitivity ASpecFp_Schnorr.challenge
-  (true ==> ={res})
-  (true
-  ==> (res{1}) = (valR res{2})). auto. auto.
-apply challenge_same.
-proc. 
-symmetry. call rsample_aspec.
-call{1} bn_set_q_correct. wp. skip. progress.
-smt(q_less_p).
+symmetry.
+transitivity BUS.BinSampleSpec.spec
+  (arg{2} = (W64xN.R.bn_ofint 0, W64xN.R.bn_ofint 1) ==> res{1} =  res{2} )
+  (arg{1} = (W64xN.R.bn_ofint 0, W64xN.R.bn_ofint 1)
+  ==> valR res{1} = res{2}). 
+progress. smt().
+smt().
+proc*.
+inline JVerifier.challenge. wp.
+ecall  (uniform_binary_choice_eq).
+call {1} bn_set1_correct.
+call {1} bn_set0_correct.
+wp. skip. progress.
+smt(@R).
+smt(@R).
+proc.
+rnd valR R.bn_ofint.
+skip. progress.
+rewrite R.bn_ofintK.
+have q : cR \in [0;1]. smt(@Distr).
+smt(@IntDiv @List).
+have q : cR \in [0;1]. smt(@Distr). clear H0 H.
+rewrite duniform1E.
+rewrite duniform1E. rewrite q.
+have ->: bn_ofint cR \in [bn_ofint 0; bn_ofint 1]  = true. smt(@List).
+have ->: (undup [bn_ofint 0; bn_ofint 1]) = [bn_ofint 0; bn_ofint 1].
+simplify.
+  have ->: bn_ofint 0 <> bn_ofint 1. 
+    case (bn_ofint 0 = bn_ofint 1).  move => gg.
+     have : valR (bn_ofint 0) = valR (bn_ofint 1). smt().
+     rewrite bn_ofintK.      rewrite bn_ofintK. simplify. smt(@IntDiv). simplify. auto.
+  simplify. auto. simplify. auto.
+have : rL \in [bn_ofint 0; bn_ofint 1]. smt(@Distr).
+simplify.
+elim. progress. rewrite bn_ofintK. smt(@IntDiv @Distr).
+ progress. rewrite bn_ofintK. 
+  have ->: 1 %% modulusR = 1. smt(@IntDiv).
+  smt(@Distr).
+rewrite bnK. auto.
 qed.
 
 

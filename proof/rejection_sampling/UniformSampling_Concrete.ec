@@ -308,7 +308,6 @@ lemma jsmd_supp : size (to_seq (support jsmD)) = size (to_seq (support D)).
 rewrite size_map. auto.
  have ->: size (map W64xN.valR (to_seq (support jsmD))) = size (to_seq (support D)). 
 apply qq.  
-search uniq map.
 rewrite map_inj_in_uniq. progress. clear H H0. smt.
 smt.
 smt.
