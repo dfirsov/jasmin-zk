@@ -1,16 +1,23 @@
 require import AllCore IntDiv CoreMap List Distr.
 from Jasmin require import JModel.
 
-require import Array32 Array64 Array128 Array256.
-require import WArray256 WArray512 WArray1024.
+require import Array1 Array32 Array64 Array128 Array256.
+require import WArray1 WArray256 WArray512 WArray1024.
 
 
 
 module type Syscall_t = {
+  proc randombytes_1(_:W8.t Array1.t) : W8.t Array1.t
   proc randombytes_256(_:W8.t Array256.t) : W8.t Array256.t
 }.
 
 module Syscall : Syscall_t = {
+  proc randombytes_1(a:W8.t Array1.t) : W8.t Array1.t = {
+    a <$ dmap WArray1.darray
+         (fun a => Array1.init (fun i => WArray1.get8 a i));
+    return a;
+  }
+  
   proc randombytes_256(a:W8.t Array256.t) : W8.t Array256.t = {
     a <$ dmap WArray256.darray
          (fun a => Array256.init (fun i => WArray256.get8 a i));
@@ -1531,6 +1538,44 @@ module M(SC:Syscall_t) = {
     
     }
     return (i, byte_p);
+  }
+  
+  proc uniform_binary_choice (a:W64.t Array32.t, b:W64.t Array32.t) : 
+  W64.t Array32.t = {
+    var aux_1: bool;
+    var aux: W8.t;
+    var aux_0: W8.t Array1.t;
+    var aux_2: W64.t Array32.t;
+    
+    var byte_p:W8.t Array1.t;
+    var _byte_p:W8.t Array1.t;
+    var r:W8.t;
+    var cond:bool;
+    _byte_p <- witness;
+    byte_p <- witness;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- (W8.of_int 0);
+    leakages <- LeakAddr([0]) :: leakages;
+    byte_p.[0] <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_0 <- byte_p;
+    _byte_p <- aux_0;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_0 <@ SC.randombytes_1 (_byte_p);
+    byte_p <- aux_0;
+    leakages <- LeakAddr([0]) :: leakages;
+    aux <- byte_p.[0];
+    r <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <- (r `&` (W8.of_int 1));
+    r <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_1 <- (r = (W8.of_int 0));
+    cond <- aux_1;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_2 <@ bn_cmov (cond, b, a);
+    a <- aux_2;
+    return (a);
   }
   
   proc bn_set_p (p:W64.t Array32.t) : W64.t Array32.t = {
@@ -3763,40 +3808,23 @@ module M(SC:Syscall_t) = {
     return (response_0);
   }
   
-  proc challenge_indexed () : int * W64.t Array32.t = {
-    var aux_0: int;
-    var aux: W64.t Array32.t;
-    
-    var i:int;
-    var challenge_0:W64.t Array32.t;
-    var exp_order:W64.t Array32.t;
-    challenge_0 <- witness;
-    exp_order <- witness;
-    leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_q (exp_order);
-    exp_order <- aux;
-    leakages <- LeakAddr([]) :: leakages;
-    (aux_0, aux) <@ bn_rsample (exp_order);
-    i <- aux_0;
-    challenge_0 <- aux;
-    return (i, challenge_0);
-  }
-  
   proc challenge () : W64.t Array32.t = {
-    var aux_0: int;
     var aux: W64.t Array32.t;
     
     var challenge_0:W64.t Array32.t;
-    var exp_order:W64.t Array32.t;
-    var  _0:int;
+    var value_zero:W64.t Array32.t;
+    var value_one:W64.t Array32.t;
     challenge_0 <- witness;
-    exp_order <- witness;
+    value_one <- witness;
+    value_zero <- witness;
     leakages <- LeakAddr([]) :: leakages;
-    aux <@ bn_set_q (exp_order);
-    exp_order <- aux;
+    aux <@ bn_set0 (value_zero);
+    value_zero <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    (aux_0, aux) <@ bn_rsample (exp_order);
-     _0 <- aux_0;
+    aux <@ bn_set1 (value_one);
+    value_one <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ uniform_binary_choice (value_zero, value_one);
     challenge_0 <- aux;
     return (challenge_0);
   }

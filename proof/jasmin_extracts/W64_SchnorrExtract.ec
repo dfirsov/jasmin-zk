@@ -1,16 +1,23 @@
 require import AllCore IntDiv CoreMap List Distr.
 from Jasmin require import JModel.
 
-require import Array32 Array64 Array128 Array256.
-require import WArray256 WArray512 WArray1024.
+require import Array1 Array32 Array64 Array128 Array256.
+require import WArray1 WArray256 WArray512 WArray1024.
 
 
 
 module type Syscall_t = {
+  proc randombytes_1(_:W8.t Array1.t) : W8.t Array1.t
   proc randombytes_256(_:W8.t Array256.t) : W8.t Array256.t
 }.
 
 module Syscall : Syscall_t = {
+  proc randombytes_1(a:W8.t Array1.t) : W8.t Array1.t = {
+    a <$ dmap WArray1.darray
+         (fun a => Array1.init (fun i => WArray1.get8 a i));
+    return a;
+  }
+  
   proc randombytes_256(a:W8.t Array256.t) : W8.t Array256.t = {
     a <$ dmap WArray256.darray
          (fun a => Array256.init (fun i => WArray256.get8 a i));
@@ -809,6 +816,25 @@ module M(SC:Syscall_t) = {
     return (i, byte_p);
   }
   
+  proc uniform_binary_choice (a:W64.t Array32.t, b:W64.t Array32.t) : 
+  W64.t Array32.t = {
+    
+    var byte_p:W8.t Array1.t;
+    var _byte_p:W8.t Array1.t;
+    var r:W8.t;
+    var cond:bool;
+    _byte_p <- witness;
+    byte_p <- witness;
+    byte_p.[0] <- (W8.of_int 0);
+    _byte_p <- byte_p;
+    byte_p <@ SC.randombytes_1 (_byte_p);
+    r <- byte_p.[0];
+    r <- (r `&` (W8.of_int 1));
+    cond <- (r = (W8.of_int 0));
+    a <@ bn_cmov (cond, b, a);
+    return (a);
+  }
+  
   proc bn_set_p (p:W64.t Array32.t) : W64.t Array32.t = {
     
     var tmp:W64.t;
@@ -1525,27 +1551,17 @@ module M(SC:Syscall_t) = {
     return (response_0);
   }
   
-  proc challenge_indexed () : int * W64.t Array32.t = {
-    
-    var i:int;
-    var challenge_0:W64.t Array32.t;
-    var exp_order:W64.t Array32.t;
-    challenge_0 <- witness;
-    exp_order <- witness;
-    exp_order <@ bn_set_q (exp_order);
-    (i, challenge_0) <@ bn_rsample (exp_order);
-    return (i, challenge_0);
-  }
-  
   proc challenge () : W64.t Array32.t = {
     
     var challenge_0:W64.t Array32.t;
-    var exp_order:W64.t Array32.t;
-    var  _0:int;
+    var value_zero:W64.t Array32.t;
+    var value_one:W64.t Array32.t;
     challenge_0 <- witness;
-    exp_order <- witness;
-    exp_order <@ bn_set_q (exp_order);
-    ( _0, challenge_0) <@ bn_rsample (exp_order);
+    value_one <- witness;
+    value_zero <- witness;
+    value_zero <@ bn_set0 (value_zero);
+    value_one <@ bn_set1 (value_one);
+    challenge_0 <@ uniform_binary_choice (value_zero, value_one);
     return (challenge_0);
   }
   
