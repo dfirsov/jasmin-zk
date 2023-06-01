@@ -1071,3 +1071,79 @@ have : i0 = W64.zero.  smt(@W64).
 progress.
 rewrite /expm_t. auto.
 qed.
+
+
+
+
+(* bn_cmov LEAKAGES  *)
+op bn_cmov_prefix : leakages_t = LeakFor (0, 32) :: LeakAddr [] :: [].
+op bn_cmov_step (i : int) : leakages_t = LeakAddr [i] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [i] :: 
+LeakAddr [i] :: [].
+
+op bn_cmov_g (x : int) : leakages_t = iteri (x) (fun i r => bn_cmov_step (i) ++ r) [].
+lemma bn_cmov_g_comp_1 x : x = 0 => bn_cmov_g x = []. smt(@Int). qed.
+lemma bn_cmov_g_comp_2 x : 0 <  x => bn_cmov_g x = bn_cmov_step (x-1) ++ bn_cmov_g (x - 1). smt(@Int). qed.
+
+op bn_cmov_f (x : int) : leakages_t = bn_cmov_g x ++ bn_cmov_prefix.
+
+lemma bn_cmov_leakages start_l :
+   hoare [ M(Syscall).bn_cmov : M.leakages = start_l 
+     ==> M.leakages = bn_cmov_f 32 ++ start_l ].
+proof. 
+proc.
+sp.  elim*. progress.
+conseq (_: M.leakages = bn_cmov_prefix ++ start_l /\ i = 0  ==> _).
+progress.
+while (0 <= i /\ i <= 32 /\ M.leakages = bn_cmov_f i ++ start_l).
+wp.  skip.  progress. 
+smt(). smt(). 
+rewrite /bn_cmov_f. rewrite (bn_cmov_g_comp_2 (i{hr} +1)).  smt(). simplify. rewrite /bn_cmov_step.
+progress. skip. progress.  rewrite /bn_cmov_f. rewrite bn_cmov_g_comp_1. auto. auto. 
+smt().
+qed.
+
+
+op uniform_binary_choice_t : leakages_t = bn_cmov_f 32 ++
+LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: [].
+
+lemma uniform_binary_choice_leakages start_l : 
+  hoare [ M(Syscall).uniform_binary_choice : M.leakages = start_l ==> M.leakages = uniform_binary_choice_t ++ start_l].
+proc.
+pose suf1 :=  [LeakAddr [];LeakAddr [];LeakAddr [];LeakAddr [0];LeakAddr [];LeakAddr [];LeakAddr [0];LeakAddr []] ++ start_l.
+wp.  call (bn_cmov_leakages suf1).  inline*.  wp. rnd. wp. 
+skip. progress.
+pose suf2 :=  [LeakAddr []] ++ set0_f 32 ++ suf1.
+rewrite /suf1. simplify.
+rewrite /uniform_binary_choice_t. simplify. smt(@List).
+qed.
+
+    
+
+op challenge_t : leakages_t = bn_cmov_g 32 ++ bn_cmov_prefix ++
+LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: LeakAddr [] :: (set1_g 32 ++
+                                                              set1_prefix ++
+                                                              LeakAddr [] :: (
+                                                              set0_g 32 ++
+                                                              set0_prefix ++
+                                                              LeakAddr [] :: [])).
+
+lemma challenge_leakages start_l : 
+  hoare [ M(Syscall).challenge : M.leakages = start_l ==> M.leakages = challenge_t ++ start_l].
+proc.
+pose suf1 :=  [LeakAddr []] ++ start_l.
+seq 6 : (M.leakages = set0_f 32 ++ suf1 ).
+wp.  call (bn_set0_leakages suf1). simplify. wp. skip. progress. auto.
+pose suf2 :=  [LeakAddr []] ++ set0_f 32 ++ suf1.
+seq 3 : (M.leakages = set1_f 32 ++ suf2).
+wp.  call (bn_set1_leakages suf2). wp. skip. progress.
+pose suf3 :=  [LeakAddr []] ++ set1_f 32 ++ suf2.
+seq 3 : (M.leakages = uniform_binary_choice_t ++ suf3).
+call (uniform_binary_choice_leakages suf3). wp. skip. progress.
+skip. progress.
+rewrite /uniform_binary_choice_t. rewrite /suf3 /suf2 /suf1. simplify.
+do? rewrite - catA. simplify. 
+do? rewrite  catA.  auto.
+smt(@List).
+qed.
