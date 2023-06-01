@@ -94,7 +94,7 @@ clone  Zp_SchnorrProtocol as ZPSP with op g <= inzmod g_top,
                                              theory Zp <= ZpC
 proof*.
 realize LSP.challenge_set_size. smt(@EG.DZmodP q_less_p). qed.
-realize LSP.challenge_set_unique. admit. (* smt(@EG.DZmodP @List q_less_p). qed. *) qed.
+realize LSP.challenge_set_unique. smt. qed.
 realize g_q_assumption. rewrite - zp_eq.
 rewrite exps'. smt(q_less_p).
 have ->: (Sub.val (Zp.inzmod g_top)) = (asint (inzmod g_top)). auto.
@@ -107,8 +107,8 @@ realize q_prime. apply q_prime. qed.
 realize ZPS.ge2_p. smt(p_prime). qed.
 realize LSP.ips. apply pair_sibts_inj. qed.
 realize LSP.unpair_pair. apply unpair_pair. qed.
-realize list_elems. admit. qed.
-realize LSP.challenges_list_size. admit. qed.
+realize list_elems. smt. qed.
+realize LSP.challenges_list_size. smt(@List). qed.
 realize challenges_list_zp_uniq. auto. qed.
 realize challenges_list_zp_size. auto. qed.
 realize LSP.challenges_list_uniq. smt. qed.
@@ -205,6 +205,30 @@ qed.
 
 
 
+lemma challenge_same : 
+  equiv [ ZPSP.SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
+          : true  ==> ={res} ].
+proc. inline*. wp. rnd. wp. skip.
+progress. admit. admit.
+qed. 
+
+lemma challenge_eq : 
+  equiv [ ZPSP.SchnorrVerifier.challenge ~ JVerifier.challenge :
+  true ==> res{1} = (valR res{2}) ].
+transitivity ASpecFp_Schnorr.challenge
+  (true ==> ={res})
+  (true
+  ==> (res{1}) = (valR res{2})). auto. auto.
+apply challenge_same.
+proc. 
+symmetry. call rsample_aspec.
+call{1} bn_set_q_correct. wp. skip. progress.
+smt(q_less_p).
+qed.
+
+
+
+
 lemma response_eq : 
   equiv [ ZPSP.SchnorrProver.response ~ JProver.response :
         w{1}   %% q  = (valR (witness0{2}) )  %% q
@@ -253,6 +277,7 @@ rewrite - H.
 (* rewrite modzMml. *)
 rewrite modzMmr. 
 smt (modzDmr modzDml).
+smt(@IntDiv).
 smt(@IntDiv).
 qed.
 
@@ -427,27 +452,6 @@ qed.
 
 
 
-
-lemma challenge_same : 
-  equiv [ ZPSP.SchnorrVerifier.challenge ~ ASpecFp_Schnorr.challenge
-          : true  ==> ={res} ].
-proc. inline*. wp. rnd. wp. skip.
-progress. admit. admit.
-qed. 
-
-lemma challenge_eq : 
-  equiv [ ZPSP.SchnorrVerifier.challenge ~ JVerifier.challenge :
-  true ==> res{1} = (valR res{2}) ].
-transitivity ASpecFp_Schnorr.challenge
-  (true ==> ={res})
-  (true
-  ==> (res{1}) = (valR res{2})). auto. auto.
-apply challenge_same.
-proc. 
-symmetry. call rsample_aspec.
-call{1} bn_set_q_correct. wp. skip. progress.
-smt(q_less_p).
-qed.
 
 
 
