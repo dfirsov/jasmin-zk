@@ -76,20 +76,10 @@ declare module V <: RewMaliciousVerifierJ{-ZPSP.LSP.HP, -ZSZK.SZK.ZK.Hyb.Count, 
 declare module D <: ZKDistinguisherJ{-ZPSP.LSP.HP, -ZSZK.SZK.ZK.Hyb.Count, -ZSZK.SZK.ZK.Hyb.HybOrcl}.
 
 
-
-
-declare axiom Sim1_run_ll : forall (V0 <: RewMaliciousVerifierJ), 
- islossless V0.challenge 
-  => islossless V0.summitup => islossless Sim1J(V0).run.
 declare axiom V_summitup_ll : islossless V.summitup. 
 declare axiom V_challenge_ll : islossless V.challenge.
 declare axiom D_guess_ll : islossless D.guess.
-declare axiom P_response_ll : islossless JProver.response. (* TODO *)
-declare axiom P_commitment_ll : islossless JProver.commitment.
-declare axiom simn_simulate_ll : forall (V0 <: RewMaliciousVerifierJ), islossless V0.challenge
-  => islossless V0.summitup => islossless SimNJ(V0).simulate.
 declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg} ==> ={res} ].
-
 
 (* rewindability assumption *)
 declare axiom rewindable_V_plus :
@@ -188,7 +178,6 @@ lemma zero_knowledgeJ (stat : W64xN.R.t) (wit : W64xN.R.t) &m:
   zk_relationJ stat wit =>
   let ideal_prob = Pr[ZKIdealJ(SimNJ, V, D).run(stat, wit)@&m : res] in
   let real_prob = Pr[ZKRealJ(JProver, V, D).run(stat, wit)@&m : res] in
-
  `|ideal_prob - real_prob| <= 2%r * ((1%r - (1%r / (size [0; 1])%r)) ^ ZSZK.SZK.N).
 move => zk_rel_stat_wit.
 rewrite zk_real_same. auto.

@@ -10,8 +10,9 @@ import W64xN.
 require W64_Zp_SchnorrCorrespondance.
 clone import W64_Zp_SchnorrCorrespondance as Ind.
 
+
 require Zp_SchnorrCompleteness.
-clone Zp_SchnorrCompleteness as ZSC with 
+clone Zp_SchnorrCompleteness as ZSC with
    theory Zp_SchnorrCorrespondanceProofs.Zp_SchnorrInstance <- ZPSP
 proof*.
 
@@ -29,7 +30,7 @@ call response_eq.
 call challenge_eq.
 call commitment_eq.
 simplify. skip. progress.
-smt. smt. rewrite  H. 
+smt. smt. rewrite  H.
 have v : valR result_R.`1 < ZpC.p. rewrite - H. smt(@ZpC).
 have : valR result_R.`1 %% ZpC.p = valR result_R.`1. smt (@IntDiv @ZpC).
 smt().
@@ -39,7 +40,7 @@ smt.
 auto. auto.
 qed.
 
-import MLC. 
+import MLC.
 import ZpC.
 
 local lemma qqqq x : 0 <= x => (g ^ x %% ZpC.p) <> 0.
@@ -48,9 +49,9 @@ case ((g ^ x %% ZpC.p = 0)).
 move => q. simplify.
   have : unit (ZModpField.exp (inzmod g) x ).
   smt.
-rewrite /unit. elim. 
-move => y. 
-have  : Sub.val (y * (ZModpField.exp (inzmod g) x) )= ((Sub.val y) * (Sub.val (ZModpField.exp (inzmod g) x)) %% ZpC.p). 
+rewrite /unit. elim.
+move => y.
+have  : Sub.val (y * (ZModpField.exp (inzmod g) x) )= ((Sub.val y) * (Sub.val (ZModpField.exp (inzmod g) x)) %% ZpC.p).
 smt.
 have ->: (Sub.val ((ZModpField.exp (inzmod g) x))) = ((Sub.val (inzmod g)) ^ x) %% ZpC.p.
  have -> : (ZModpField.exp (inzmod g) x) = (inzmod g) ^^ x. auto.
@@ -60,7 +61,7 @@ move => eq1 eq2.
 have o1 : (Sub.val y) * ((Sub.val (inzmod g)) ^ x %% ZpC.p) %% ZpC.p = 0.
   have -> : (Sub.val (inzmod g)) = g. smt(@Sub g_less_p). rewrite q. simplify. auto.
 have o2 : (Sub.val y) * ((Sub.val (inzmod g)) ^ x %% ZpC.p) %% ZpC.p = 1.
- rewrite - eq1. rewrite eq2. rewrite  /ZpC.one. 
+ rewrite - eq1. rewrite eq2. rewrite  /ZpC.one.
 rewrite inzpKK. smt(@IntDiv p_less_modulusR).
 smt().
 auto.
@@ -72,7 +73,7 @@ lemma completenessJ ss ww &m: completeness_relationJ ss ww =>
 move => compl_rel.
 rewrite - completeness_same.
 apply  (ZSC.completenessG (ZpC.inzmod (W64xN.valR ss)) (W64xN.valR ww) &m).
-rewrite - (completness_compat ss ww). auto. 
+rewrite - (completness_compat ss ww). auto.
 qed.
 
 end section Completeness.

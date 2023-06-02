@@ -4,92 +4,83 @@ from Jasmin require import JModel JBigNum.
 require import BigNum_spec.
 import W64xN. 
 require import W64_SchnorrProtocol.
-require  W64_SchnorrPropreties.
+require  W64_Zp_SchnorrCorrespondance.
 require Constants.
 require import ConstantsValidation.
 
+(* the only undischarged assumptions *)
 axiom p_prime : prime Constants.p.
 axiom q_prime : prime Constants.q.
 
+(* parameter for rewindability framework  *)
 op pair_sbits : sbits * sbits -> sbits.
 op unpair : sbits -> sbits * sbits.
 axiom pair_sibts_inj : injective pair_sbits.
-axiom unpair_pair: forall (x : sbits * sbits),
-                             unpair (pair_sbits x) = x.
+axiom unpair_pair: forall (x : sbits * sbits), unpair (pair_sbits x) = x.
 
 
-require ZModP.
-clone import ZModP.ZModField as ZpC 
-  with op p <= Constants.p
+clone W64_Zp_SchnorrCorrespondance as W64_Zp_Corr with
+  op p <= Constants.p,
+  op q <= Constants.q,
+  op bp <= Constants.bp,
+  op bq <= Constants.bq,
+  op g <= Constants.g,
+  op pair_sbits <= pair_sbits,
+  op unpair  <= unpair,
+  op ZpC.p <= Constants.p
 proof*.
-realize prime_p. apply p_prime. qed.
-
-
-lemma zp_mul (z1 z2 : zmod) : Sub.val (z1 * z2) = (Sub.val z1 * Sub.val z2) %% p. 
-by smt(@ZpC). qed.
-
-
-lemma exps' (s : zmod) : forall n, 0 <= n => Sub.val (ZModpField.exp s n) = (Sub.val s ^ n) %% p.
-apply intind. progress. smt(@ZModpField @Sub).
-progress.
-rewrite exprSr. auto.
-rewrite ZModpField.exprSr. auto.
-rewrite zp_mul.
-rewrite H0.
-smt(@IntDiv). 
-qed.
-
-lemma zp_eq z1 z2 : (Sub.val z1 = Sub.val z2) = (z1 = z2). smt(@ZpC). qed.
-
-clone import W64_SchnorrPropreties as W64_Zp_Props with 
-  op Ind.p <- Constants.p,
-  op Ind.q <- Constants.q,
-  op Ind.bp <- Constants.bp,
-  op Ind.bq <- Constants.bq,
-  op Ind.g <- Constants.g,
-  op Ind.pair_sbits <- pair_sbits,
-  op Ind.unpair <- unpair,
-  theory Ind.ZpC <= ZpC
-proof*.
-realize Ind.bn_set_p_correct. apply Constants.bn_set_p_correct. qed.
-realize Ind.bn_set_q_correct. apply Constants.bn_set_q_correct. qed.
-realize Ind.bn_set_bp_correct. apply Constants.bn_set_bp_correct. qed.
-realize Ind.bn_set_bq_correct. apply Constants.bn_set_bq_correct. qed.
-realize Ind.bn_set_g_correct. apply Constants.bn_set_g_correct. qed.
-realize Ind.g_less_p. split. auto. auto. qed.
-realize Ind.p_less_modulusR. split. auto. auto. qed.
-realize Ind.q_val_prop1. move => x.
+realize bn_set_p_correct. apply Constants.bn_set_p_correct. qed.
+realize bn_set_q_correct. apply Constants.bn_set_q_correct. qed.
+realize bn_set_bp_correct. apply Constants.bn_set_bp_correct. qed.
+realize bn_set_bq_correct. apply Constants.bn_set_bq_correct. qed.
+realize bn_set_g_correct. apply Constants.bn_set_g_correct. qed.
+realize g_less_p. split. auto. auto. qed.
+realize p_less_modulusR. split. auto. auto. qed.
+realize q_val_prop1. move => x.
   have fact1 : valR x < modulusR. smt(@W64xN).
   have fact2 : modulusR < Constants.q * Constants.q. auto.
   smt(). qed.
-realize Ind.q_less_p. split. auto. auto. qed.
-realize Ind.q_prime. apply q_prime. qed.
-realize Ind.p_prime. apply p_prime. qed.
-realize Ind.bp_correct.
-
+realize q_less_p. split. auto. auto. qed.
+realize q_prime. apply q_prime. qed.
+realize p_prime. apply p_prime. qed.
+realize bp_correct.
  have ->: 4 ^ (dnlimbs * nlimbs) = Constants.barrett_numerator. simplify. auto.
  have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid).
   smt(@IntDiv). qed.
-realize Ind.bq_correct.
+realize bq_correct.
  have ->: 4 ^ (dnlimbs * nlimbs) = Constants.barrett_numerator. simplify. auto.
  have  -> : Constants.barrett_numerator = (Constants.p * Constants.barrett_numerator_div_p + Constants.barrett_numerator_mod_p). smt(pq_euclid).
   smt(@IntDiv). qed.
-realize Ind.pair_sibts_inj. apply pair_sibts_inj. qed.
-realize Ind.unpair_pair. apply unpair_pair. qed.
-realize Ind.g_correct. apply generator_is_valid. qed.
+realize pair_sibts_inj. apply pair_sibts_inj. qed.
+realize unpair_pair. apply unpair_pair. qed.
+realize g_correct. apply generator_is_valid. qed.
 
 
+(* COMPLETENESS PROPERTY  *)
+require W64_SchnorrCompleteness.
+clone W64_SchnorrCompleteness as CompletenessTheory with theory Ind <- W64_Zp_Corr.
+section Completeness.
 
-lemma completenessJ ss ww &m: W64_Zp_Props.Ind.completeness_relationJ ss ww =>
+lemma completeness_for_instance ss ww &m: W64_Zp_Corr.completeness_relationJ ss ww =>
  Pr[CompletenessJ(JProver,JVerifier).main(ss,ww)@&m : res] = 1%r.
-apply W64_Zp_Props.completenessJ. qed.
+apply CompletenessTheory.completenessJ. qed.
 
-section.
+end section Completeness.
+  
 
-declare module P <: ZKRewindableMaliciousProverJ{-Ind.ZPSP.LSP.HV}.
+(* PROOF-OF-KNOWLEDGE (aka Extractability) PROPERTY  *)
+require W64_SchnorrExtractability.
+clone W64_SchnorrExtractability as ExtractabilityTheory with theory Ind <- W64_Zp_Corr.
+
+section Extractability.
+
+declare module P <: ZKRewindableMaliciousProverJ{-W64_Zp_Corr.ZPSP.LSP.HV}.
 declare axiom P_response_ll : islossless P.response.
 declare axiom P_commitment_ll : islossless P.commitment.
 
+import ExtractabilityTheory.
+
+(* rewindability assumption  *)
 declare axiom P_rewindable : exists (f : (glob AWrapE(P)) -> sbits),
   injective f /\
   (forall &m0,
@@ -102,18 +93,53 @@ declare axiom P_rewindable : exists (f : (glob AWrapE(P)) -> sbits),
   islossless AWrapE(P).setState.
 
 
-lemma extractabilityJ &m s: 
-  Pr[ExtractorJ(P).extract(s)@&m: W64_Zp_Props.Ind.completeness_relationJ  s res ] >=
+lemma extractability_for_InstanceJ &m s: 
+  Pr[ExtractorJ(P).extract(s)@&m: W64_Zp_Corr.completeness_relationJ  s res ] >=
    (Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res] ^ 2
-       - 1%r / Constants.q%r
+       - 1%r / 2%r
            * Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res]).
-have : Pr[ExtractorJ(P).extract(s)@&m: W64_Zp_Props.Ind.completeness_relationJ  s res ] >=
-   (Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res] ^ 2
-       - 1%r / (size Ind.ZPSP.LSP.EG.DZmodP.Support.enum)%r
-           * Pr[SoundnessJ(P, JVerifier).main(s) @ &m : res]).
-apply (W64_Zp_Props.extractabilityJ P P_response_ll P_commitment_ll P_rewindable). 
-have ->: (size Ind.ZPSP.LSP.EG.DZmodP.Support.enum) = Constants.q.
-smt(@Ind.ZPSP.LSP.EG). auto.
+apply (extractabilityJ P P_response_ll P_commitment_ll P_rewindable). 
 qed.
 
-end section.
+end section Extractability.
+
+
+(* ZERO-KNOWLEDGE PROPERTY *)
+require W64_SchnorrZK.
+clone W64_SchnorrZK as ZKTheory with theory Ind <- W64_Zp_Corr.
+
+section ZeroKnowledge.
+
+
+declare module V <: RewMaliciousVerifierJ{-W64_Zp_Corr.ZPSP.LSP.HP, -ZKTheory.ZSZK.SZK.ZK.Hyb.Count, -ZKTheory.ZSZK.SZK.ZK.Hyb.HybOrcl}.
+declare module D <: ZKDistinguisherJ{-W64_Zp_Corr.ZPSP.LSP.HP, -ZKTheory.ZSZK.SZK.ZK.Hyb.Count, -ZKTheory.ZSZK.SZK.ZK.Hyb.HybOrcl}.
+
+declare axiom V_summitup_ll : islossless V.summitup. 
+declare axiom V_challenge_ll : islossless V.challenge.
+declare axiom D_guess_ll : islossless D.guess.
+declare axiom D_guess_prop : equiv[ D.guess ~ D.guess : ={glob V, arg} ==> ={res} ].
+
+(* rewindability assumption *)
+declare axiom rewindable_V_plus :
+        (exists (f : glob V -> sbits),
+         injective f /\
+         (forall &m, Pr[ V.getState() @ &m : (glob V) = ((glob V){m})
+                                          /\ res = f ((glob V){m} ) ] = 1%r) /\
+         (forall &m b (x: glob V), b = f x =>
+           Pr[V.setState(b) @ &m : glob V = x] = 1%r) /\
+         islossless V.setState).
+
+
+
+lemma zero_knowledge_for_instanceJ &m stat wit :
+  W64_Zp_Corr.zk_relationJ stat wit =>
+  let ideal_prob = Pr[ZKIdealJ(ZKTheory.SimNJ, V, D).run(stat, wit)@&m : res] in
+  let real_prob = Pr[ZKRealJ(JProver, V, D).run(stat, wit)@&m : res] in
+ `|ideal_prob - real_prob| <= 2%r * ((1%r/2%r) ^ ZKTheory.ZSZK.SZK.N).
+progress.
+have ->: inv 2%r = (1%r - 1%r / (size [0; 1])%r). smt(@Real).
+apply (ZKTheory.zero_knowledgeJ V D V_summitup_ll V_challenge_ll 
+   D_guess_ll D_guess_prop rewindable_V_plus stat wit &m H).
+qed.
+
+end section ZeroKnowledge.
