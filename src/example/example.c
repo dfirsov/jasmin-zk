@@ -32,7 +32,8 @@ int main(void)
   printf("\n*** Verifier challenges ***\n");
   __challenge(challenge_p);
   printf("\nCHALLENGE:\n");  
-  print(challenge_p);
+  printf("0x%01" PRIx64 "\n ", challenge_p[0]);
+  //print(challenge_p);
 
   printf("\n*** Prover responds ***\n");
   __response(random_power_p, challenge_p, response_p);
@@ -42,7 +43,7 @@ int main(void)
   printf("\n*** Verifier decides ***\n");
   __verify(commitment_p, challenge_p, response_p, result_p);
 
-  printf("0x%016" PRIx64 "\n\n", result_p[0]);
+  printf("0x%01" PRIx64 "\n\n", result_p[0]);
 
   return 0;
 }
