@@ -678,21 +678,21 @@ op VSHUFPS_256 (w1 : W256.t) (w2 : W256.t) (m : W8.t) : W256.t =
 
 (* ------------------------------------------------------------------- *)
 (*
-| VMOVSHDUP of velem & wsize (* Replicate 32-bit (“single”) high values *)
-| VMOVSLDUP of velem & wsize (* Replicate 32-bit (“single”) low values *)
+| VMOVSHDUP of wsize (* Replicate 32-bit (“single”) high values *)
+| VMOVSLDUP of wsize (* Replicate 32-bit (“single”) low values *)
 *)
 
-op VMOVSLDUP_4u32 (v: W128.t): W128.t =
+op VMOVSLDUP_128 (v: W128.t): W128.t =
   pack4 [v \bits32 0; v \bits32 0; v \bits32  2; v \bits32 2].
 
-op VMOVSLDUP_8u32 (v: W256.t): W256.t =
-  map VMOVSLDUP_4u32 v.
+op VMOVSLDUP_256 (v: W256.t): W256.t =
+  map VMOVSLDUP_128 v.
 
-op VMOVSHDUP_4u32 (v: W128.t): W128.t =
+op VMOVSHDUP_128 (v: W128.t): W128.t =
   pack4 [v \bits32 1; v \bits32 1; v \bits32  3; v \bits32 3].
 
-op VMOVSHDUP_8u32 (v: W256.t): W256.t =
-  map VMOVSHDUP_4u32 v.
+op VMOVSHDUP_256 (v: W256.t): W256.t =
+  map VMOVSHDUP_128 v.
 
 (* ------------------------------------------------------------------- *)
 (*
@@ -964,6 +964,28 @@ abbrev [-printing] VAESENCLAST      = AESENCLAST.
 abbrev [-printing] VAESIMC          = AESIMC.
 abbrev [-printing] VAESKEYGENASSIST = AESKEYGENASSIST.
 
+(* ------------------------------------------------------------------- *)
+(* PCLMULQDQ instructions *)
+(*
+| PCLMULQDQ
+| VPCLMULQDQ  of wsize
+*)
+op clmulq (x y: W64.t): W128.t =
+ let x128 =  W128.of_int (to_uint x) in
+ foldr (fun i r => (if y.[i] then x128 `<<<` i else W128.zero) `^` r)
+       W128.zero
+       (iota_ 0 64).
+
+op PCLMULQDQ (v1 v2: W128.t) (k: W8.t): W128.t =
+ let x0 = v1 \bits64 (b2i k.[0]) in
+ let x1 = v2 \bits64 (b2i k.[4]) in
+ clmulq x0 x1.
+
+abbrev [-printing] VPCLMULQDQ_128 = PCLMULQDQ.
+
+op VPCLMULQDQ_256 (v1 v2: W256.t) (k: W8.t): W256.t =
+ pack2 [ PCLMULQDQ (v1 \bits128 0) (v2 \bits128 0) k
+       ; PCLMULQDQ (v1 \bits128 1) (v2 \bits128 1) k ].
 
 (* -------------------------------------------------------------------- *)
 

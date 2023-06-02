@@ -1749,9 +1749,9 @@ theory W8.
     let i  = shift_mask i in
     let im = im i in
     let r  = fun j => if j = 0 then cf else v.[j-1] in
-    let r  = fun j => r ((j - i) %% im) in
+    let r  = fun j => r ((j - i) %% 9) in
     let CF = r 0 in 
-    let r  = init (fun j => r (j-1)) in
+    let r  = init (fun j => r (j+1)) in
     let OF = if i = 1 then (ALU.SF_of r <> CF) else undefined_flag in
     (OF, CF, r).
   
@@ -1759,10 +1759,10 @@ theory W8.
     let i  = shift_mask i in
     let im = im i in
     let r  = fun j => if j = 0 then cf else v.[j-1] in
-    let r  = fun j => r ((j + i) %% im) in
+    let r  = fun j => r ((j + i) %% 9) in
     let OF = if i = 1 then ALU.SF_of  v <> cf else undefined_flag in
     let CF = r 0 in 
-    let r  = init (fun j => r (j-1)) in
+    let r  = init (fun j => r (j+1)) in
     (OF, CF, r).
 
   op rflags_OF (i:int) (r:t) (rc OF:bool) =
@@ -2251,14 +2251,14 @@ abstract theory W_WS.
    op VPBROADCAST_'Ru'S (w : WS.t) =
      pack'R (map (fun i => w) (iota_ 0 r)).
 
-   op wucmp (cmp: int -> int -> bool) (x y: WS.t) : WS.t =
-     if cmp (to_uint x) (to_uint y) then (WS.of_int (-1)) else (WS.of_int 0).
+   op wcmp (cmp: int -> int -> bool) (x y: WS.t) : WS.t =
+     if cmp (to_sint x) (to_sint y) then (WS.of_int (-1)) else (WS.of_int 0).
 
    op VPCMPGT_'Ru'S (w1 : WB.t) (w2: WB.t) =
-     map2 (wucmp Int.(<=)) w2 w1.
+     map2 (wcmp Int.(<=)) w2 w1.
 
    op VPCMPEQ_'Ru'S (w1 : WB.t) (w2: WB.t) =
-     map2 (wucmp (=)) w1 w2.
+     map2 (wcmp (=)) w1 w2.
 
    op VPMAXU_'Ru'S (w1 : WB.t) (w2 : WB.t) = 
      map2 (fun x y => if WS.to_uint x < WS.to_uint y then y else x) w1 w2.
@@ -2394,22 +2394,22 @@ abstract theory BitWordSH.
 
   op RCL_XX (v: t) (i: W8.t) (cf:bool) =
     let i  = shift_mask i in
-    let im = im i in
+    let i = im i in
     let r  = fun j => if j = 0 then cf else v.[j-1] in
-    let r  = fun j => r ((j - i) %% im) in
+    let r  = fun j => r ((j - i) %% (size + 1)) in
     let CF = r 0 in 
-    let r  = init (fun j => r (j-1)) in
+    let r  = init (fun j => r (j+1)) in
     let OF = if i = 1 then (ALU.SF_of r <> CF) else undefined_flag in
     (OF, CF, r).
   
   op RCR_XX (v: t) (i: W8.t) (cf:bool) =
     let i  = shift_mask i in
-    let im = im i in
+    let i = im i in
     let r  = fun j => if j = 0 then cf else v.[j-1] in
-    let r  = fun j => r ((j + i) %% im) in
+    let r  = fun j => r ((j + i) %% (size + 1)) in
     let OF = if i = 1 then ALU.SF_of  v <> cf else undefined_flag in
     let CF = r 0 in 
-    let r  = init (fun j => r (j-1)) in
+    let r  = init (fun j => r (j+1)) in
     (OF, CF, r).
 
   op rflags_OF (i:int) (r:t) (rc OF:bool) =
