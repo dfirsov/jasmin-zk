@@ -12,7 +12,7 @@ require import ConstantsValidation.
 axiom p_prime : prime Constants.p.
 axiom q_prime : prime Constants.q.
 
-(* parameter for rewindability framework  *)
+(* parameters for rewindability framework  *)
 op pair_sbits : sbits * sbits -> sbits.
 op unpair : sbits -> sbits * sbits.
 axiom pair_sibts_inj : injective pair_sbits.

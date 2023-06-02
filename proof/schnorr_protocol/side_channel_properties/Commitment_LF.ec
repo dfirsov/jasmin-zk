@@ -246,7 +246,7 @@ qed.
 lemma M1_M2_mulm :
   equiv  [ M1.bn_mulm ~ M2.bn_mulm
     : ={arg} ==> ={res}  ].
-proc. sim.  
+proc.
 wp. call M1_M2_bn_breduce.
 wp. call M1_M2_bn_muln.
 wp. skip. progress.
@@ -290,10 +290,12 @@ wp. call M1_M2_bn_set1.
 wp. skip. progress.
 qed.
 
+
 lemma M1_M2_rsample :
   equiv  [ M1.bn_rsample ~ M2.bn_rsample
     : ={arg} ==> ={res}  ].
-proc. sim. call(_:true). wp. 
+proc. sim.
+call(_:true). wp. 
 while(={i,a}). wp. skip. auto. wp. skip. auto.
 wp. skip. auto. qed.
 
