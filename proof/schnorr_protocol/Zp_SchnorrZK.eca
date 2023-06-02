@@ -5,9 +5,9 @@ require Zp_Abstract_SchnorrCorrespondance.
 clone import Zp_Abstract_SchnorrCorrespondance as Zp_SchnorrCorrespondanceProofs.
 import Zp_SchnorrInstance Zp ZPS LSP Rew.
 
-section.
-
 clone import SchnorrZeroKnowledge as SZK.
+
+section.
 
 
 declare module V <: RewMaliciousVerifierG {-HP, -ZK.Hyb.Count, -ZK.Hyb.HybOrcl}.
@@ -28,7 +28,6 @@ declare axiom rewindable_V_plus :
          (forall &m b (x: glob V), b = f x =>
            Pr[V.setState(b) @ &m : glob V = x] = 1%r) /\
          islossless V.setState).
-
 
 
 

@@ -12,7 +12,13 @@ clone import W64_Zp_SchnorrCorrespondance as Ind.
 
 require Zp_SchnorrZK.
 clone Zp_SchnorrZK as ZSZK with 
-   theory Zp_SchnorrCorrespondanceProofs.Zp_SchnorrInstance <- ZPSP.
+   theory Zp_SchnorrCorrespondanceProofs.Zp_SchnorrInstance <- ZPSP,
+   op SZK.Rew.pair_sbits <- Ind.pair_sbits,
+   op SZK.Rew.unpair <- Ind.unpair
+proof SZK.Rew.ips, SZK.Rew.unpair_pair.
+realize SZK.Rew.ips. apply  Ind.pair_sibts_inj. qed.
+realize SZK.Rew.unpair_pair. apply unpair_pair. qed.
+
 
 module VWrap(A:RewMaliciousVerifierJ) : ZPSP.RewMaliciousVerifierG = {
   proc challenge(s : ZPSP.statement, z : ZPSP.commitment) : ZPSP.challenge  = {
@@ -170,8 +176,6 @@ rewrite H5. auto.
 auto.
 auto.
 qed.
-
-
 
 
 lemma zero_knowledgeJ (stat : W64xN.R.t) (wit : W64xN.R.t) &m:

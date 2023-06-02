@@ -58,7 +58,9 @@ realize g_correct. apply generator_is_valid. qed.
 
 (* COMPLETENESS PROPERTY  *)
 require W64_SchnorrCompleteness.
-clone W64_SchnorrCompleteness as CompletenessTheory with theory Ind <- W64_Zp_Corr.
+clone W64_SchnorrCompleteness as CompletenessTheory with theory Ind <- W64_Zp_Corr
+proof*.
+
 section Completeness.
 
 lemma completeness_for_instance ss ww &m: W64_Zp_Corr.completeness_relationJ ss ww =>
@@ -70,7 +72,8 @@ end section Completeness.
 
 (* PROOF-OF-KNOWLEDGE (aka Extractability) PROPERTY  *)
 require W64_SchnorrExtractability.
-clone W64_SchnorrExtractability as ExtractabilityTheory with theory Ind <- W64_Zp_Corr.
+clone W64_SchnorrExtractability as ExtractabilityTheory with theory Ind <- W64_Zp_Corr
+proof*.
 
 section Extractability.
 
@@ -105,11 +108,25 @@ end section Extractability.
 
 
 (* ZERO-KNOWLEDGE PROPERTY *)
+abstract theory ZeroKnowledge_for_Instance.
+
+op N : int.                     (* number of tries for SimNJ *)
+op n : int.                     (* number of rounds for iterated ZK *)
+
+axiom n_pos : 1 <= n.
+axiom N_pos : 0 <= N.
+
 require W64_SchnorrZK.
-clone W64_SchnorrZK as ZKTheory with theory Ind <- W64_Zp_Corr.
+clone W64_SchnorrZK as ZKTheory 
+ with theory Ind <- W64_Zp_Corr,
+      op  ZSZK.SZK.n <- n,
+      op ZSZK.SZK.N <- N
+proof*.
+realize ZSZK.SZK.n_pos. apply n_pos. qed.
+realize ZSZK.SZK.N_pos. apply N_pos. qed.
+
 
 section ZeroKnowledge.
-
 
 declare module V <: RewMaliciousVerifierJ{-W64_Zp_Corr.ZPSP.LSP.HP, -ZKTheory.ZSZK.SZK.ZK.Hyb.Count, -ZKTheory.ZSZK.SZK.ZK.Hyb.HybOrcl}.
 declare module D <: ZKDistinguisherJ{-W64_Zp_Corr.ZPSP.LSP.HP, -ZKTheory.ZSZK.SZK.ZK.Hyb.Count, -ZKTheory.ZSZK.SZK.ZK.Hyb.HybOrcl}.
@@ -135,7 +152,7 @@ lemma zero_knowledge_for_instanceJ &m stat wit :
   W64_Zp_Corr.zk_relationJ stat wit =>
   let ideal_prob = Pr[ZKIdealJ(ZKTheory.SimNJ, V, D).run(stat, wit)@&m : res] in
   let real_prob = Pr[ZKRealJ(JProver, V, D).run(stat, wit)@&m : res] in
- `|ideal_prob - real_prob| <= 2%r * ((1%r/2%r) ^ ZKTheory.ZSZK.SZK.N).
+ `|ideal_prob - real_prob| <= 2%r * ((1%r/2%r) ^ N).
 progress.
 have ->: inv 2%r = (1%r - 1%r / (size [0; 1])%r). smt(@Real).
 apply (ZKTheory.zero_knowledgeJ V D V_summitup_ll V_challenge_ll 
@@ -143,3 +160,5 @@ apply (ZKTheory.zero_knowledgeJ V D V_summitup_ll V_challenge_ll
 qed.
 
 end section ZeroKnowledge.
+
+end ZeroKnowledge_for_Instance.
