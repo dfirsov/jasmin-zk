@@ -1,14 +1,19 @@
 require import AllCore Distr Finite List.
 
 
-
-
-
-
 require import BitEncoding.
 import BS2Int.
 
 from Jasmin require import JWord.
+
+
+
+module Skip = {
+  proc run() = {}
+}.
+
+lemma skip_run &m : Pr[Skip.run()@&m : true] = 1%r.
+byphoare. proc. auto. auto. auto. qed.
 
 
 

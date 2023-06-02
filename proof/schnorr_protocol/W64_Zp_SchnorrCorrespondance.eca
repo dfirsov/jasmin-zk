@@ -11,35 +11,6 @@ require import BarrettReduction_Concrete.
 require import BigNum_spec BigNum_proofs.
 import W64xN R.                 
 
-module Skip = {
-  proc run() = {}
-}.
-
-lemma skip_run &m : Pr[Skip.run()@&m : true] = 1%r.
-byphoare. proc. auto. auto. auto. qed.
-
-lemma check_challenge_eq c : equiv [ M.check_challenge ~ Skip.run : arg{1} = c 
-  ==> W64xN.valR res{1} = if W64xN.valR c \in [0;1] then W64xN.valR c else 0  ].
-proc.  sp.
-ecall {1} (bn_cmov_correct cond{1} challenge_0{1} value_zero{1}).
-wp.
-ecall {1} (bn_eq_correct challenge_0{1} value_one{1}). 
-ecall {1} (bn_eq_correct challenge_0{1} value_zero{1}). 
-call {1} bn_set1_correct.  
-call {1} bn_set0_correct.  
-skip. progress.
-smt(@W64 @W64xN).
-qed.
-
-lemma check_challenge_ph c : phoare [ M.check_challenge : arg = c 
-  ==> W64xN.valR res = if W64xN.valR c \in [0;1] then W64xN.valR c else 0  ] = 1%r.
-bypr. progress.
-rewrite - (skip_run &m). 
-byequiv. 
-conseq (check_challenge_eq arg{m}). auto.
-auto.
-qed.
-
 
 op p, q, bp, bq, g : int.
 
@@ -204,6 +175,30 @@ qed.
 
 
 require import BinUniSample_proof.
+
+
+lemma check_challenge_eq c : equiv [ M.check_challenge ~ Skip.run : arg{1} = c 
+  ==> W64xN.valR res{1} = if W64xN.valR c \in [0;1] then W64xN.valR c else 0  ].
+proc.  sp.
+ecall {1} (bn_cmov_correct cond{1} challenge_0{1} value_zero{1}).
+wp.
+ecall {1} (bn_eq_correct challenge_0{1} value_one{1}). 
+ecall {1} (bn_eq_correct challenge_0{1} value_zero{1}). 
+call {1} bn_set1_correct.  
+call {1} bn_set0_correct.  
+skip. progress.
+smt(@W64 @W64xN).
+qed.
+
+lemma check_challenge_ph c : phoare [ M.check_challenge : arg = c 
+  ==> W64xN.valR res = if W64xN.valR c \in [0;1] then W64xN.valR c else 0  ] = 1%r.
+bypr. progress.
+rewrite - (skip_run &m). 
+byequiv. 
+conseq (check_challenge_eq arg{m}). auto.
+auto.
+qed.
+
 
 lemma challenge_eq : 
   equiv [ ZPSP.SchnorrVerifier.challenge ~ JVerifier.challenge :
@@ -471,10 +466,3 @@ byequiv. bypr (res{1}) (inzmod (W64xN.valR res{2}.`1), (W64xN.valR res{2}.`2)).
 auto. progress. byequiv.
 conseq commitment_eq. progress. smt. smt. auto. auto. auto. auto.
 qed.
-
-
-
-
-
-
-
