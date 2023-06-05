@@ -816,13 +816,11 @@ module M(SC:Syscall_t) = {
     return (i, byte_p);
   }
   
-  proc uniform_binary_choice (a:W64.t Array32.t, b:W64.t Array32.t) : 
-  W64.t Array32.t = {
+  proc random_bit () : W8.t = {
     
+    var r:W8.t;
     var byte_p:W8.t Array1.t;
     var _byte_p:W8.t Array1.t;
-    var r:W8.t;
-    var cond:bool;
     _byte_p <- witness;
     byte_p <- witness;
     byte_p.[0] <- (W8.of_int 0);
@@ -830,6 +828,16 @@ module M(SC:Syscall_t) = {
     byte_p <@ SC.randombytes_1 (_byte_p);
     r <- byte_p.[0];
     r <- (r `&` (W8.of_int 1));
+    return (r);
+  }
+  
+  proc uniform_binary_choice (a:W64.t Array32.t, b:W64.t Array32.t) : 
+  W64.t Array32.t = {
+    
+    var r:W8.t;
+    var cond:bool;
+    
+    r <@ random_bit ();
     cond <- (r = (W8.of_int 0));
     a <@ bn_cmov (cond, b, a);
     return (a);

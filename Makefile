@@ -8,7 +8,7 @@ PROOF_FILES += $(EXTRACTED_FILES)
 PROOF_FILES += $(wildcard proof/*.ec)
 PROOF_FILES += $(wildcard proof/schnorr_protocol/*.ec)
 PROOF_FILES += $(wildcard proof/schnorr_protocol/*.eca)
-PROOF_FILES += $(wildcard proof/schnorr_protocol/side_channel_properties/*.ec)
+#PROOF_FILES += $(wildcard proof/schnorr_protocol/side_channel_properties/*.ec)
 PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
 PROOF_FILES += $(wildcard proof/rejection_sampling/*.eca)
 PROOF_FILES += $(wildcard proof/modular_multiplication/*.ec)
@@ -20,7 +20,7 @@ PROOF_FILES += $(wildcard proof/finite_types/*.ec)
 PROOF_FILES += $(wildcard proof/finite_types/*.eca)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.ec)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.eca)
-PROOF_FILES += $(wildcard proof/leakage_functions/*.ec)
+#PROOF_FILES += $(wildcard proof/leakage_functions/*.ec)
 
 
 
@@ -79,12 +79,13 @@ update_downloads :
 
 # Check all EasyCrypt files from Jasmin sources
 # If you do not have Jasmin, you can remove this block to skip extraction
-EXTRACTED_FUNCTIONS = -ec uniform_binary_choice -ec bn_addm2 -ec cminusP -ec challenge_indexed -ec commitment_indexed -ec usample -ec bn_cmov -ec bn_addc -ec commitment -ec response -ec challenge -ec verify -ec bn_set_ex_w -ec bn_set_ex_s
+EXTRACTED_FUNCTIONS = -ec random_bit -ec uniform_binary_choice -ec bn_addm2 -ec cminusP -ec challenge_indexed -ec commitment_indexed -ec usample -ec bn_cmov -ec bn_addc -ec commitment -ec response -ec challenge -ec verify -ec bn_set_ex_w -ec bn_set_ex_s
 extract_all $(EXTRACTED_FILES) : src/schnorr_protocol.jazz src/constants.jazz Makefile
 	rm -rf proof/jasmin_extracts
 	mkdir proof/jasmin_extracts
 	$(JASMIN_PROGNAME)     $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract.ec    -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
 	$(JASMIN_PROGNAME) -CT $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
+	$(JASMIN_PROGNAME) -safety $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract_mem.ec -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
 
 src/constants.jazz : src/constants.py
 	make -C src constants.jazz

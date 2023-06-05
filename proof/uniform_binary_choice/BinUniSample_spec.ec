@@ -1,9 +1,6 @@
 require import AllCore Distr DInterval List IntDiv.
 
-type t.
-
-module BinSampleSpec = {
-
+module SampleByte = {
   proc sampleInt() = {
     var x;
     x <$ [0..255];
@@ -16,25 +13,10 @@ module BinSampleSpec = {
     x <- x %% 2;
     return x;
   }
-
-  proc main(a b : t) = {
-    var s : int;
-    var r : t;
-    s <@ run();
-    r <- if (s = 0) then a else b;
-    return r;
-  }
-
-  proc spec(a b : t) = {
-    var r : t;
-    r <$ duniform [a; b];
-    return r;
-  }
 }.
 
-section.
 
-local lemma sample_prob0 : phoare[BinSampleSpec.run : true ==> res = 0 ] = (inv 2%r).
+lemma sample_prob0 : phoare[SampleByte.run : true ==> res = 0 ] = (inv 2%r).
 proc. inline*.
 wp. rnd. skip. progress.
 rewrite duniformE.
@@ -47,7 +29,7 @@ by rewrite /b2i;rewrite range_geq;simplify;done.
 auto.
 qed.
 
-local lemma sample_prob1 : phoare[BinSampleSpec.run : true ==> res <> 0  ] = (inv 2%r).
+lemma sample_prob1 : phoare[SampleByte.run : true ==> res <> 0  ] = (inv 2%r).
 proc. inline*.
 wp. rnd. skip. progress.
 rewrite duniformE.
@@ -62,6 +44,29 @@ qed.
 
 
 
+theory RandomChoice.
+
+type t.
+
+module BinSampleSpec = {
+
+  proc main(a b : t) = {
+    var s : int;
+    var r : t;
+    s <@ SampleByte.run();
+    r <- if (s = 0) then a else b;
+    return r;
+  }
+
+  proc spec(a b : t) = {
+    var r : t;
+    r <$ duniform [a; b];
+    return r;
+  }
+}.
+
+section.
+
 local lemma fst_choice_pr a b : a <> b => phoare[BinSampleSpec.main : arg = (a,b) ==> res = a ] = (inv 2%r).
 proof. progress.
 proc. wp.
@@ -69,7 +74,6 @@ call sample_prob0.
 skip. progress.
 smt().
 qed.
-
 
 local lemma snd_choice_pr a b : a <> b => phoare[BinSampleSpec.main : arg = (a,b) ==> res = b ] = (inv 2%r).
 proof. progress.
@@ -140,3 +144,5 @@ progress. apply sat_spec_not_eq. auto.
 qed.
 
 end section.
+
+end RandomChoice.

@@ -300,23 +300,28 @@ inline fn bn_rsample(stack u64[nlimbs] byte_z) -> (inline int, stack u64[nlimbs]
 }
 
 
-inline fn uniform_binary_choice(stack u64[nlimbs] a b) -> (stack u64[nlimbs])
+inline fn random_bit() -> (reg u8)
 {
    stack u8[1] byte_p;
    reg ptr u8[1] _byte_p;
    reg u8 r;
-   reg bool cond;
 
    byte_p[0] = 0;
    _byte_p = byte_p;
    byte_p = #randombytes(_byte_p);   
    r = byte_p[0];
    r &= 1;
+   return r;
+}
 
-   cond = r == 0;
+inline fn uniform_binary_choice(stack u64[nlimbs] a b) -> (stack u64[nlimbs])
+{
+   reg u8 r;
+   reg bool cond;
 
+   r = random_bit();
+   cond = (r == 0);
    a = bn_cmov(cond,b,a);
-
    return a;
 
 }

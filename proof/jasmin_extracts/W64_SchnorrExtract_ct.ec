@@ -1540,17 +1540,13 @@ module M(SC:Syscall_t) = {
     return (i, byte_p);
   }
   
-  proc uniform_binary_choice (a:W64.t Array32.t, b:W64.t Array32.t) : 
-  W64.t Array32.t = {
-    var aux_1: bool;
+  proc random_bit () : W8.t = {
     var aux: W8.t;
     var aux_0: W8.t Array1.t;
-    var aux_2: W64.t Array32.t;
     
+    var r:W8.t;
     var byte_p:W8.t Array1.t;
     var _byte_p:W8.t Array1.t;
-    var r:W8.t;
-    var cond:bool;
     _byte_p <- witness;
     byte_p <- witness;
     leakages <- LeakAddr([]) :: leakages;
@@ -1569,12 +1565,27 @@ module M(SC:Syscall_t) = {
     leakages <- LeakAddr([]) :: leakages;
     aux <- (r `&` (W8.of_int 1));
     r <- aux;
+    return (r);
+  }
+  
+  proc uniform_binary_choice (a:W64.t Array32.t, b:W64.t Array32.t) : 
+  W64.t Array32.t = {
+    var aux_0: bool;
+    var aux: W8.t;
+    var aux_1: W64.t Array32.t;
+    
+    var r:W8.t;
+    var cond:bool;
+    
     leakages <- LeakAddr([]) :: leakages;
-    aux_1 <- (r = (W8.of_int 0));
-    cond <- aux_1;
+    aux <@ random_bit ();
+    r <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux_2 <@ bn_cmov (cond, b, a);
-    a <- aux_2;
+    aux_0 <- (r = (W8.of_int 0));
+    cond <- aux_0;
+    leakages <- LeakAddr([]) :: leakages;
+    aux_1 <@ bn_cmov (cond, b, a);
+    a <- aux_1;
     return (a);
   }
   
