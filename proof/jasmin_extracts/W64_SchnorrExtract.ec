@@ -823,11 +823,27 @@ module M(SC:Syscall_t) = {
     var _byte_p:W8.t Array1.t;
     _byte_p <- witness;
     byte_p <- witness;
-    byte_p.[0] <- (W8.of_int 0);
     _byte_p <- byte_p;
     byte_p <@ SC.randombytes_1 (_byte_p);
     r <- byte_p.[0];
     r <- (r `&` (W8.of_int 1));
+    return (r);
+  }
+  
+  proc random_bit_naive () : W8.t = {
+    
+    var r:W8.t;
+    var byte_p:W8.t Array1.t;
+    var _byte_p:W8.t Array1.t;
+    _byte_p <- witness;
+    byte_p <- witness;
+    _byte_p <- byte_p;
+    byte_p <@ SC.randombytes_1 (_byte_p);
+    if ((byte_p.[0] \ult (W8.of_int 128))) {
+      r <- (W8.of_int 0);
+    } else {
+      r <- (W8.of_int 1);
+    }
     return (r);
   }
   

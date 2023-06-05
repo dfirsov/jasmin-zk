@@ -1541,8 +1541,8 @@ module M(SC:Syscall_t) = {
   }
   
   proc random_bit () : W8.t = {
-    var aux: W8.t;
-    var aux_0: W8.t Array1.t;
+    var aux_0: W8.t;
+    var aux: W8.t Array1.t;
     
     var r:W8.t;
     var byte_p:W8.t Array1.t;
@@ -1550,21 +1550,46 @@ module M(SC:Syscall_t) = {
     _byte_p <- witness;
     byte_p <- witness;
     leakages <- LeakAddr([]) :: leakages;
-    aux <- (W8.of_int 0);
+    aux <- byte_p;
+    _byte_p <- aux;
+    leakages <- LeakAddr([]) :: leakages;
+    aux <@ SC.randombytes_1 (_byte_p);
+    byte_p <- aux;
     leakages <- LeakAddr([0]) :: leakages;
-    byte_p.[0] <- aux;
+    aux_0 <- byte_p.[0];
+    r <- aux_0;
     leakages <- LeakAddr([]) :: leakages;
-    aux_0 <- byte_p;
-    _byte_p <- aux_0;
+    aux_0 <- (r `&` (W8.of_int 1));
+    r <- aux_0;
+    return (r);
+  }
+  
+  proc random_bit_naive () : W8.t = {
+    var aux_0: W8.t;
+    var aux: W8.t Array1.t;
+    
+    var r:W8.t;
+    var byte_p:W8.t Array1.t;
+    var _byte_p:W8.t Array1.t;
+    _byte_p <- witness;
+    byte_p <- witness;
     leakages <- LeakAddr([]) :: leakages;
-    aux_0 <@ SC.randombytes_1 (_byte_p);
-    byte_p <- aux_0;
-    leakages <- LeakAddr([0]) :: leakages;
-    aux <- byte_p.[0];
-    r <- aux;
+    aux <- byte_p;
+    _byte_p <- aux;
     leakages <- LeakAddr([]) :: leakages;
-    aux <- (r `&` (W8.of_int 1));
-    r <- aux;
+    aux <@ SC.randombytes_1 (_byte_p);
+    byte_p <- aux;
+    leakages <- LeakCond((byte_p.[0] \ult (W8.of_int 128))) :: LeakAddr(
+    [0]) :: leakages;
+    if ((byte_p.[0] \ult (W8.of_int 128))) {
+      leakages <- LeakAddr([]) :: leakages;
+      aux_0 <- (W8.of_int 0);
+      r <- aux_0;
+    } else {
+      leakages <- LeakAddr([]) :: leakages;
+      aux_0 <- (W8.of_int 1);
+      r <- aux_0;
+    }
     return (r);
   }
   

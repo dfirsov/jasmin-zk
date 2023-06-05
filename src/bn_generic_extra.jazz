@@ -306,11 +306,26 @@ inline fn random_bit() -> (reg u8)
    reg ptr u8[1] _byte_p;
    reg u8 r;
 
-   byte_p[0] = 0;
    _byte_p = byte_p;
    byte_p = #randombytes(_byte_p);   
    r = byte_p[0];
    r &= 1;
+   return r;
+}
+
+inline fn random_bit_naive() -> reg u8
+{
+   stack u8[1] byte_p;
+   reg ptr u8[1] _byte_p;
+   reg u8 r;
+
+   _byte_p = byte_p;
+   byte_p = #randombytes(_byte_p);   
+   if (byte_p[0] < 128){
+     r = 0;
+   }else{
+     r = 1;
+   }
    return r;
 }
 
