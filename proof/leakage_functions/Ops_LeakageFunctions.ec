@@ -39,6 +39,19 @@ skip. progress. rewrite /sub_f.  rewrite sub_g_comp_1. auto. auto.
 smt().
 qed.
 
+lemma bn_subc_ll : islossless M(Syscall).bn_subc.
+proc. wp. while(0 < i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma bn_subc_leakages_ph start_l :
+  phoare [ M(Syscall).bn_subc : M.leakages = start_l 
+            ==> M.leakages = sub_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_subc_ll. hoare. conseq (bn_subc_leakages start_l).
+qed.
+
+
 
 (* COPY LEAKAGES  *)
 op copy_prefix : leakages_t = LeakFor (0, 32) :: LeakAddr [] ::[].
@@ -69,6 +82,20 @@ skip. progress. rewrite /copy_f.  rewrite copy_g_comp_1. auto. auto.
 smt().
 qed.
 
+
+lemma bn_copy_ll : islossless M(Syscall).bn_copy.
+proc. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma bn_copy_leakages_ph start_l :
+   phoare [ M(Syscall).bn_copy : M.leakages = start_l 
+     ==> M.leakages = copy_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_copy_ll. hoare. conseq (bn_copy_leakages start_l).
+qed.
+
+
 (* DCOPY LEAKAGES  *)
 op dcopy_prefix : leakages_t = LeakFor (0, 64) :: LeakAddr [] ::[].
 op dcopy_step (i : int) : leakages_t = LeakAddr [i] :: LeakAddr [] :: LeakAddr [i] :: [].
@@ -95,6 +122,17 @@ skip. progress. rewrite /dcopy_f.  rewrite dcopy_g_comp_1. auto. auto.
 smt().
 qed.
 
+lemma dbn_copy_ll : islossless M(Syscall).dbn_copy.
+proc. wp. while(aux = 64 /\ 0 <= i /\ i <= 64) (64 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma dbn_copy_leakages_ph start_l :
+   phoare [ M(Syscall).dbn_copy : M.leakages = start_l 
+     ==> M.leakages = dcopy_f 64 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq dbn_copy_ll. hoare. conseq (dbn_copy_leakages start_l).
+qed.
 
 
 (* set0 LEAKAGES  *)
@@ -120,6 +158,18 @@ wp.  skip.  progress.
 simplify. smt(). smt(). rewrite /set0_f. rewrite (set0_g_comp_2 (i{hr} +1)).  smt(). simplify. rewrite /set0_step. simplify. auto.
 skip. progress. rewrite /set0_f.  rewrite set0_g_comp_1. auto. auto. 
 smt().
+qed.
+
+lemma bn_set0_ll : islossless M(Syscall).bn_set0.
+proc. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma bn_set0_leakages_ph start_l :
+   phoare [ M(Syscall).bn_set0 : M.leakages = start_l 
+                ==> M.leakages = set0_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_set0_ll. hoare. conseq (bn_set0_leakages start_l).
 qed.
 
 
@@ -149,6 +199,20 @@ progress.  rewrite /set1_f.  rewrite set1_g_comp_1. auto. auto.
 smt().
 qed.
 
+
+lemma bn_set1_ll : islossless M(Syscall).bn_set1.
+proc. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma bn_set1_leakages_ph start_l :
+   phoare [ M(Syscall).bn_set1 : M.leakages = start_l 
+                ==> M.leakages = set1_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_set1_ll. hoare. conseq (bn_set1_leakages start_l).
+qed.
+
+
 (* ith_bit64 leakages  *)
 op ith_bit64_t : leakages_t = LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: [].
 
@@ -156,6 +220,14 @@ lemma ith_bit64_leakages start_l :
    hoare [ M(Syscall).ith_bit64 : M.leakages = start_l 
                 ==> M.leakages = ith_bit64_t ++ start_l ].
 proc. wp. skip. progress. qed.
+
+
+lemma ith_bit64_leakages_ph start_l :
+   phoare [ M(Syscall).ith_bit64 : M.leakages = start_l 
+                ==> M.leakages = ith_bit64_t ++ start_l ] = 1%r.
+proc. wp. skip. progress. qed.
+
+
 
 (* ith_bit LEAKAGES  *)
 op [opaque] ith_bit_t (x : W64.t) :  leakages_t = 
@@ -172,6 +244,18 @@ exists* c1. elim*. move => c1_var.
 call (ith_bit64_leakages (LeakAddr [] :: LeakAddr [to_uint  c1_var   ] :: LeakAddr [] :: LeakAddr [] :: 
   LeakAddr [] :: LeakAddr [] :: start_l)).
 skip. rewrite /ith_bit_t. progress.  
+qed.
+
+
+lemma ith_bit_ll : islossless M(Syscall).ith_bit.
+proc. inline*. wp. skip. auto.
+qed.
+
+lemma ith_bit_leakages_ph start_l c :
+   phoare [ M(Syscall).ith_bit : M.leakages = start_l /\ c = ctr 
+                ==> M.leakages = ith_bit_t c ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq ith_bit_ll. hoare. conseq (ith_bit_leakages start_l c).
 qed.
 
 
@@ -203,6 +287,18 @@ skip. progress. rewrite /swapr_f.  rewrite swapr_g_comp_1. auto. auto.
 smt().
 qed.
 
+
+lemma swapr_ll : islossless M(Syscall).swapr.
+proc. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma swapr_leakages_ph start_l :
+   phoare [ M(Syscall).swapr : M.leakages = start_l 
+     ==> M.leakages = swapr_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq swapr_ll. hoare. conseq (swapr_leakages start_l).
+qed.
 
 
 (* mul1 LEAKAGES  *)
@@ -236,6 +332,21 @@ rewrite /mul1_f. rewrite (mul1_g_comp_2 (i{hr} +1)).  smt(). simplify. rewrite /
 skip. progress. rewrite /mul1_f.  rewrite mul1_g_comp_1. auto. auto. 
 smt().
 qed.
+
+
+lemma mul1_ll : islossless M(Syscall).mul1.
+proc. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma mul1_leakages_ph start_l :
+   phoare [ M(Syscall).mul1 : M.leakages = start_l 
+     ==> M.leakages = mul1_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq mul1_ll. hoare. conseq (mul1_leakages start_l).
+qed.
+
+
 
 (* dmul1 LEAKAGES  *)
 op dmul1_prefix : leakages_t = LeakFor (1, 64) :: LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: LeakAddr [1] :: 
@@ -271,6 +382,18 @@ have ->: i0 = 64. smt().
 smt().
 qed.
 
+
+lemma dmul1_ll : islossless M(Syscall).dmul1.
+proc. wp. while(aux_6 = 64 /\ 0 <= i /\ i <= 64) (64 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma dmul1_leakages_ph start_l :
+   phoare [ M(Syscall).dmul1 : M.leakages = start_l 
+     ==> M.leakages = dmul1_f 64 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq dmul1_ll. hoare. conseq (dmul1_leakages start_l).
+qed.
 
 
 
@@ -324,6 +447,19 @@ qed.
 
 
 
+lemma mul1acc_ll : islossless M(Syscall).mul1acc.
+proc. wp. while(aux = 31 /\ 0 <= i /\ i <= 31) (31 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma mul1acc_leakages_ph start_l kkk:
+   phoare [ M(Syscall).mul1acc : M.leakages = start_l /\ k = kkk
+     ==> M.leakages = mul1acc_f (to_uint kkk) 31 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq mul1acc_ll. hoare. conseq (mul1acc_leakages start_l kkk).
+qed.
+
+
 (* dmul1acc LEAKAGES  *)
 op dmul1acc_prefix  : leakages_t = LeakFor (0, 63) :: LeakAddr [] :: LeakAddr [] :: [].
 
@@ -374,6 +510,19 @@ qed.
 
 
 
+lemma dmul1acc_ll : islossless M(Syscall).dmul1acc.
+proc. wp. while(aux = 63 /\ 0 <= i /\ i <= 63) (63 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma dmul1acc_leakages_ph start_l kkk:
+   phoare [ M(Syscall).dmul1acc : M.leakages = start_l /\ k = kkk
+     ==> M.leakages = dmul1acc_f (to_uint kkk) 63 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq dmul1acc_ll. hoare. conseq (dmul1acc_leakages start_l kkk).
+qed.
+
+
 
 (* bn_muln LEAKAGES  *)
 op bn_muln_prefix : leakages_t =  LeakFor (1, 32) :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] ::  (mul1_f 32 ++ [LeakAddr []; LeakAddr [0]]).
@@ -415,6 +564,21 @@ rewrite bn_muln_g_comp_1. auto. simplify.
 rewrite /bn_muln_prefix. auto.
 smt().
 qed.
+
+
+lemma bn_muln_ll : islossless M(Syscall).bn_muln.
+proc. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. call mul1acc_ll. wp. skip. smt(). wp. call mul1_ll. wp. skip. smt().
+qed.
+
+lemma bn_muln_leakages_ph start_l:
+   phoare [ M(Syscall).bn_muln : M.leakages = start_l 
+     ==> M.leakages = bn_muln_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_muln_ll. hoare. conseq (bn_muln_leakages start_l).
+qed.
+
+
 
 (* bn_muln LEAKAGES  *)
 op dbn_muln_prefix : leakages_t =  LeakFor (1, 64) :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] ::  (dmul1_f 64 ++ [LeakAddr []; LeakAddr [0]]).
@@ -458,6 +622,20 @@ smt().
 qed.
 
 
+lemma dbn_muln_ll : islossless M(Syscall).dbn_muln.
+proc. wp. while(aux_4 = 64 /\ 0 <= i /\ i <= 64) (64 - i + 1). progress.
+wp. call dmul1acc_ll. wp. skip. smt(). wp. call dmul1_ll. wp. skip. smt().
+qed.
+
+lemma dbn_muln_leakages_ph start_l:
+   phoare [ M(Syscall).dbn_muln : M.leakages = start_l 
+     ==> M.leakages = dbn_muln_f 64 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq dbn_muln_ll. hoare. conseq (dbn_muln_leakages start_l).
+qed.
+
+
+
 (* div2 LEAKAGES  *)
 op div2_prefix (k : int) : leakages_t = LeakFor (0, k) :: LeakAddr [] :: [].
 op div2_step (i : int) : leakages_t = LeakAddr [i] :: LeakAddr [64 + i] :: [].
@@ -485,6 +663,19 @@ have -> : i0 = k{hr}. smt(). auto.
 qed.
 
 
+lemma div2_ll : phoare [ M(Syscall).div2 : 0 <= k ==> true ] = 1%r.
+proc. wp. while(0 <= i /\ i <= aux) (aux - i + 1). progress.
+wp. skip. smt(). wp. skip. progress. smt().
+qed.
+
+lemma div2_muln_leakages_ph start_l kk:
+   phoare [ M(Syscall).div2 : M.leakages = start_l  /\ 0 <= k /\ k = kk
+     ==> M.leakages = div2_f kk kk ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq div2_ll. smt(). hoare. 
+conseq (div2_leakages start_l kk). smt().
+qed.
+
 
 (* bn_shrink LEAKAGES  *)
 op bn_shrink_prefix : leakages_t = LeakFor (0, 32) :: LeakAddr [] :: [].
@@ -510,6 +701,19 @@ smt(). smt().
 rewrite /bn_shrink_f. rewrite (bn_shrink_g_comp_2 (i{hr} +1)).  smt(). simplify. rewrite /bn_shrink_step. simplify. auto.
 skip. progress. rewrite /bn_shrink_f.  rewrite bn_shrink_g_comp_1. auto. auto. 
 smt().
+qed.
+
+
+lemma bn_shrink_ll : islossless M(Syscall).bn_shrink.
+proc. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma bn_shrink_leakages_ph start_l:
+   phoare [ M(Syscall).bn_shrink : M.leakages = start_l 
+     ==> M.leakages = bn_shrink_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_shrink_ll. hoare. conseq (bn_shrink_leakages start_l).
 qed.
 
 
@@ -546,6 +750,17 @@ skip. progress. rewrite /dsub_f.  rewrite dsub_g_comp_1. auto. auto.
 smt().
 qed.
 
+lemma dbn_subc_ll : islossless M(Syscall).dbn_subc.
+proc. wp. while(aux_1 = 64 /\ 0 < i /\ i <= 64) (64 - i + 1). progress.
+wp. skip. smt(). wp. skip. smt().
+qed.
+
+lemma dbn_subc_leakages_ph start_l :
+  phoare [ M(Syscall).dbn_subc : M.leakages = start_l 
+            ==> M.leakages = dsub_f 64 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq dbn_subc_ll. hoare. conseq (dbn_subc_leakages start_l).
+qed.
 
 
 (* bn_expand LEAKAGES  *)
@@ -596,6 +811,23 @@ simplify. auto. smt(@List).
 qed.
 
 
+
+lemma bn_expand_ll : islossless M(Syscall).bn_expand.
+proc. wp. while(aux = 64 /\ 0 < i /\ i <= 64) (64 - i + 1). progress.
+wp. skip. smt(). wp. 
+while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. 
+skip. progress. smt(). smt().
+qed.
+
+lemma bn_expand_leakages_ph start_l :
+  phoare [ M(Syscall).bn_expand : M.leakages = start_l 
+            ==> M.leakages = bn_expand_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_expand_ll. hoare. conseq (bn_expand_leakages start_l).
+qed.
+
+
 (* dbn_cmov LEAKAGES  *)
 op dbn_cmov_prefix : leakages_t = LeakFor (0, 64) :: LeakAddr [] :: [].
 op dbn_cmov_step (i : int) : leakages_t = LeakAddr [i] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [i] :: 
@@ -623,6 +855,22 @@ progress. skip. progress.  rewrite /dbn_cmov_f. rewrite dbn_cmov_g_comp_1. auto.
 smt().
 qed.
 
+
+lemma dbn_cmov_ll : islossless M(Syscall).dbn_cmov.
+proc. wp. while(aux = 64 /\ 0 <= i /\ i <= 64) (64 - i + 1). progress.
+wp. skip. smt(). wp. 
+skip. smt(). 
+qed.
+
+
+lemma dbn_cmov_leakages_ph start_l :
+  phoare [ M(Syscall).dbn_cmov : M.leakages = start_l 
+            ==> M.leakages = dbn_cmov_f 64 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq dbn_cmov_ll. hoare. conseq (dbn_cmov_leakages start_l).
+qed.
+
+
 (* dcminusP LEAKAGES  *)
 op dcminusP_f  : leakages_t =  
  dbn_cmov_f 64 ++ [LeakAddr []] ++ dsub_g 64 ++ dsub_prefix ++ [LeakAddr []; LeakAddr []; LeakAddr []] ++
@@ -636,11 +884,9 @@ proc.
 pose suf1 :=  [LeakAddr []] ++ start_l.
 seq 6 : (M.leakages = dcopy_f 64 ++ suf1 ).
 wp.  call (dbn_copy_leakages suf1). simplify. wp. skip. progress. auto.
-
 pose suf2 :=  [LeakAddr [];LeakAddr [];LeakAddr []] ++ dcopy_f 64 ++ suf1.
 seq 8 : (M.leakages = dsub_f 64 ++ suf2).
 wp.  call (dbn_subc_leakages suf2). wp. skip. progress.
-
 pose suf3 :=  [LeakAddr []] ++ dsub_f 64 ++ suf2.
 seq 5 : (M.leakages = dbn_cmov_f 64 ++ suf3).
 wp.  call (dbn_cmov_leakages suf3). wp. skip. progress.
@@ -649,6 +895,19 @@ progress. rewrite /suf3 /suf2 /suf1.
 do ? rewrite catA. rewrite /dcminusP_f.
 auto.
 qed.
+
+lemma dcminusP_ll : islossless M(Syscall).dcminusP.
+proc. wp. call dbn_cmov_ll. wp. call dbn_subc_ll. wp.
+call dbn_copy_ll. wp.  skip. auto. qed.
+
+
+lemma dcminusP_leakages_ph start_l :
+   phoare [ M(Syscall).dcminusP : M.leakages = start_l 
+     ==> M.leakages = dcminusP_f  ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq dcminusP_ll. hoare. conseq (dcminusP_leakages start_l).
+qed.
+
 
 (* bn_breduce LEAKAGES  *)
 op bn_breduce_f : leakages_t = bn_shrink_f 32 ++
@@ -703,6 +962,30 @@ rewrite /bn_breduce_f.
 do ? rewrite catA. auto.
 qed.
 
+
+lemma bn_breduce_ll : islossless M(Syscall).bn_breduce.
+proc.
+wp. call bn_shrink_ll.
+wp. call dcminusP_ll. 
+wp. call bn_expand_ll.
+wp. call dbn_subc_ll.
+wp. call bn_muln_ll.
+wp. call bn_shrink_ll.
+wp. call div2_ll. simplify.
+wp. call dbn_muln_ll.
+wp. auto.
+qed.
+
+
+lemma bn_breduce_leakages_ph start_l :
+   phoare [ M(Syscall).bn_breduce : M.leakages = start_l 
+     ==> M.leakages = bn_breduce_f ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_breduce_ll. hoare. conseq (bn_breduce_leakages start_l).
+qed.
+
+
+
 (* mulm LEAKAGES  *)
 op [opaque] mulm_t : leakages_t = bn_breduce_f ++ [LeakAddr []] ++ bn_muln_f 32  ++
 [LeakAddr []; LeakAddr [] ; LeakAddr []] .
@@ -722,6 +1005,21 @@ progress.
 rewrite /suf2 /suf1.
 rewrite /mulm_t /bn_muln_f.
 do? rewrite catA. auto.
+qed.
+
+lemma bn_mulm_ll : islossless M(Syscall).bn_mulm.
+proc.
+wp. call bn_breduce_ll.
+wp. call bn_muln_ll. 
+wp. auto.
+qed.
+
+
+lemma bn_mulm_leakages_ph start_l :
+   phoare [ M(Syscall).bn_mulm : M.leakages = start_l 
+     ==> M.leakages = mulm_t ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_mulm_ll. hoare. conseq (mulm_leakages start_l).
 qed.
 
 
@@ -903,7 +1201,7 @@ lemma samp_t_inj : injective samp_t.
   smt().
 smt().
 qed.
- 
+
 
 
 
@@ -929,8 +1227,6 @@ have ->: (copy_f 32 ++
  = (copy_f 32 ++ [LeakAddr [] ; LeakAddr []; LeakAddr []]) ++
 samp_g i{hr} ++ samp_prefix ++ l.
 do ? rewrite - catA. simplify. auto. 
-
-
 smt(@List).
 rewrite /samp_t. simplify.
 rewrite /samp_suffix.  simplify.  split. rewrite H4. auto.
@@ -943,7 +1239,6 @@ auto. rewrite /samp_prefix. auto.
 rewrite H2. rewrite H. auto.
 auto.
 qed.
-
 
 
 op expm_t_prefix : leakages_t = LeakCond true :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: (copy_f 32 ++
@@ -1072,7 +1367,25 @@ progress.
 rewrite /expm_t. auto.
 qed.
 
-
+lemma bn_expm_ll : islossless M(Syscall).bn_expm.
+proc.
+while (0 <= to_uint i) (to_uint i).
+progress.
+wp. call swapr_ll.
+wp. call bn_mulm_ll.
+wp. call bn_mulm_ll.
+wp. call bn_copy_ll.
+wp. call swapr_ll.
+wp. call ith_bit_ll.
+wp. skip. progress.
+smt(@W64).
+smt(@W64).
+wp. call bn_copy_ll.
+wp. call bn_copy_ll.
+wp. call bn_set1_ll.
+wp. skip. progress.
+smt(@W64).
+qed.
 
 
 (* bn_cmov LEAKAGES  *)
@@ -1103,7 +1416,22 @@ smt().
 qed.
 
 
+lemma bn_cmov_ll : islossless M(Syscall).bn_cmov.
+proc. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp. 
+skip. smt(). 
+qed.
 
+
+lemma bn_cmov_leakages_ph start_l :
+  phoare [ M(Syscall).bn_cmov : M.leakages = start_l 
+            ==> M.leakages = bn_cmov_f 32 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_cmov_ll. hoare. conseq (bn_cmov_leakages start_l).
+qed.
+
+
+(* random_bit LEAKAGES  *)
 op random_bit_t : leakages_t =  LeakAddr [] ::  LeakAddr [0] ::    LeakAddr [] :: LeakAddr [] :: [].
 
 lemma random_bit_leakages start_l : 
@@ -1112,16 +1440,34 @@ proc. wp. call (_:true). rnd. skip. progress.
 wp. skip. progress. 
 qed.
 
+lemma random_bit_ll : islossless M(Syscall).random_bit.
+proc. inline*. wp. rnd. wp. skip.
+progress. 
+apply dmap_ll.
+apply dmap_ll.
+apply  DList.dlist_ll. smt(@W8).
+qed.
+
+
+lemma random_bit_leakages_ph start_l :
+  phoare [ M(Syscall).random_bit : M.leakages = start_l 
+            ==> M.leakages = random_bit_t ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq random_bit_ll. hoare. conseq (random_bit_leakages start_l).
+qed.
+
+(* uniform_binary_choice LEAKAGES  *)
+
 op uniform_binary_choice_t : leakages_t = bn_cmov_f 32 ++
 [LeakAddr []; LeakAddr []] ++ random_bit_t ++ LeakAddr [] :: [].
 
 lemma uniform_binary_choice_leakages start_l : 
-  hoare [ M(Syscall).uniform_binary_choice : M.leakages = start_l ==> M.leakages = uniform_binary_choice_t ++ start_l].
+  hoare [ M(Syscall).uniform_binary_choice : M.leakages = start_l 
+    ==> M.leakages = uniform_binary_choice_t ++ start_l].
 proc.
 pose suf1 :=  [LeakAddr []] ++ start_l.
 seq 3 : (M.leakages = random_bit_t ++ suf1 ).
 wp.  call (random_bit_leakages suf1).  wp.  skip. progress. 
-
 pose suf2 :=  [LeakAddr []; LeakAddr []] ++ random_bit_t ++ suf1.
 seq 6 : (M.leakages = bn_cmov_f 32 ++ suf2 ).
 wp.  call (bn_cmov_leakages suf2).  wp.  skip. progress.  
@@ -1132,7 +1478,23 @@ do? rewrite - catA. simplify.
 do? rewrite  catA.  auto.
 qed.
 
-    
+lemma uniform_binary_choice_ll : 
+  islossless M(Syscall).uniform_binary_choice.
+proc. 
+wp. call bn_cmov_ll. 
+wp. call random_bit_ll.
+auto.
+qed.
+
+lemma uniform_binary_choice_leakages_ph start_l : 
+  phoare [ M(Syscall).uniform_binary_choice : M.leakages = start_l 
+    ==> M.leakages = uniform_binary_choice_t ++ start_l] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq uniform_binary_choice_ll. hoare. conseq (uniform_binary_choice_leakages start_l).
+qed.
+
+
+(* challenge LEAKAGES  *)
 
 op challenge_t : leakages_t = uniform_binary_choice_t ++
  [LeakAddr []] ++ set1_f 32 ++ [LeakAddr []] ++ set0_f 32 ++ [LeakAddr []].
@@ -1153,4 +1515,20 @@ skip. progress.
 rewrite /suf3 /suf2 /suf1. 
 do? rewrite - catA. 
 do? rewrite  catA.  auto.
+qed.
+
+
+lemma challenge_ll : 
+  islossless M(Syscall).challenge.
+proc. 
+wp. call uniform_binary_choice_ll. 
+wp. call bn_set1_ll.
+wp. call bn_set0_ll.
+auto.
+qed.
+
+lemma challenge_leakages_ph start_l : 
+  phoare [ M(Syscall).challenge : M.leakages = start_l ==> M.leakages = challenge_t ++ start_l] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq challenge_ll. hoare. conseq (challenge_leakages start_l).
 qed.
