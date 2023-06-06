@@ -1,0 +1,75 @@
+require import AllCore Distr List.
+
+type pin_t, sin_t, out_t, leak_t.
+
+module type JasminModuleWrapper = {
+ proc main(x : pin_t, y : sin_t) : out_t
+}.
+
+section.                        
+
+declare module P <: JasminModuleWrapper.
+
+op prj_leak : glob P -> leak_t list.
+op pin_to_leak : pin_t -> leak_t list.
+
+
+declare axiom p_lossless : forall &m x, Pr[P.main(x) @ &m : true] = 1%r.
+
+declare axiom leaks_deterministic x y (l : leak_t list) : 
+  phoare[ P.main : arg = (x,y) /\ prj_leak (glob P) = l 
+   ==> prj_leak (glob P) = pin_to_leak x ++ l ] = 1%r.
+
+op f (x : pin_t) (l : leak_t list) =  if pin_to_leak x = l then 1%r else 0%r.
+
+
+local lemma fact1 x y (l : leak_t list) : 
+  phoare[ P.main : arg = (x,y) /\ prj_leak (glob P) = []
+   ==> prj_leak (glob P) <> pin_to_leak x ] = 0%r.
+bypr. progress.
+ have : Pr[P.main(x{m}, y{m}) @ &m : true] = 1%r.
+ apply p_lossless.
+ have ->: Pr[P.main(x{m}, y{m}) @ &m : true] = 
+ Pr[P.main(x{m}, y{m}) @ &m : prj_leak (glob P) <> pin_to_leak x] 
+  +  Pr[P.main(x{m}, y{m}) @ &m : prj_leak (glob P) = pin_to_leak x].
+  rewrite Pr[mu_split (prj_leak (glob P) = pin_to_leak x)]. simplify. smt().
+  have ->: Pr[P.main(x, y) @ &m : prj_leak (glob P) = pin_to_leak x] = 1%r. 
+  byphoare(_: arg = (x,y) /\ (glob P) = (glob P){m} ==> _).  conseq (leaks_deterministic x y []). smt(). progress.
+  rewrite H1. smt(@List). rewrite H1. smt(@List). auto. auto.
+ smt().
+qed.
+
+lemma ctp_implies_lf &m x y r l: prj_leak (glob P){m} = [] =>
+  Pr[ P.main(x,y)@&m : res = r ] > 0%r =>
+  Pr[ P.main(x,y)@&m : res = r /\ prj_leak (glob P) = l ]
+   / Pr[ P.main(x,y)@&m : res = r ]
+   = f x l.
+case (l = pin_to_leak x).
+progress.
+have ->: Pr[P.main(x, y) @ &m : res = r]
+   = Pr[P.main(x, y) @ &m : res = r /\ prj_leak (glob P) = pin_to_leak x]
+   + Pr[P.main(x, y) @ &m : res = r /\ prj_leak (glob P) <> pin_to_leak x].
+  rewrite Pr[mu_split (prj_leak (glob P) = pin_to_leak x)].
+  auto.
+  have ->: Pr[P.main(x, y) @ &m : res = r /\ prj_leak (glob P) <> pin_to_leak x] = 0%r.
+   have : Pr[P.main(x, y) @ &m : res = r /\ prj_leak (glob P) <> pin_to_leak x] <= Pr[P.main(x, y) @ &m : prj_leak (glob P) <> pin_to_leak x].
+  rewrite Pr[mu_sub]. smt(). auto.
+  have ->: Pr[P.main(x, y) @ &m : prj_leak (glob P) <> pin_to_leak x] = 0%r.
+   byphoare (_: arg = (x,y) /\ glob P = (glob P){m} ==> _). conseq (fact1 x y []). smt(). auto. auto.
+  smt(@Distr). simplify.
+  rewrite /f. simplify.
+  have q : Pr[P.main(x, y) @ &m : res = r] 
+   = Pr[P.main(x, y) @ &m : res = r /\ prj_leak (glob P) = pin_to_leak x].
+   rewrite Pr[mu_split (prj_leak (glob P) = pin_to_leak x) ].  
+   have ->: Pr[P.main(x, y) @ &m : res = r /\ prj_leak (glob P) <> pin_to_leak x] = 0%r.
+     have : Pr[P.main(x, y) @ &m : prj_leak (glob P) <> pin_to_leak x] = 0%r.
+       byphoare (_: arg = (x,y) /\ glob P = (glob P){m} ==> _). conseq (fact1 x y []). smt(). progress. auto. 
+      smt(@Distr). simplify. auto.
+  smt(@Real).
+progress.
+  have ->: Pr[P.main(x, y) @ &m : res = r /\ prj_leak (glob P) = l] = 0%r. 
+   have : Pr[P.main(x, y) @ &m : res = r /\ prj_leak (glob P) = l] <= Pr[P.main(x, y) @ &m : prj_leak (glob P) <> pin_to_leak x] .
+    rewrite Pr[mu_sub]. smt(). auto.
+   have ->: Pr[P.main(x, y) @ &m : prj_leak (glob P) <> pin_to_leak x] = 0%r.          byphoare (_: arg = (x,y) /\ glob P = (glob P){m} ==> _). conseq (fact1 x y []). smt(). progress. auto.  smt(@Distr).
+smt(@Real).
+qed.
