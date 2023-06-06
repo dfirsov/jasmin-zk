@@ -73,3 +73,5 @@ progress.
    have ->: Pr[P.main(x, y) @ &m : prj_leak (glob P) <> pin_to_leak x] = 0%r.          byphoare (_: arg = (x,y) /\ glob P = (glob P){m} ==> _). conseq (fact1 x y []). smt(). progress. auto.  smt(@Distr).
 smt(@Real).
 qed.
+
+end section.

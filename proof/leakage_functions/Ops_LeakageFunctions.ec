@@ -1103,31 +1103,39 @@ smt().
 qed.
 
 
+
+op random_bit_t : leakages_t =  LeakAddr [] ::  LeakAddr [0] ::    LeakAddr [] :: LeakAddr [] :: [].
+
+lemma random_bit_leakages start_l : 
+  hoare [ M(Syscall).random_bit : M.leakages = start_l ==> M.leakages = random_bit_t ++ start_l].
+proc. wp. call (_:true). rnd. skip. progress.
+wp. skip. progress. 
+qed.
+
 op uniform_binary_choice_t : leakages_t = bn_cmov_f 32 ++
-LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: 
-LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: [].
+[LeakAddr []; LeakAddr []] ++ random_bit_t ++ LeakAddr [] :: [].
 
 lemma uniform_binary_choice_leakages start_l : 
   hoare [ M(Syscall).uniform_binary_choice : M.leakages = start_l ==> M.leakages = uniform_binary_choice_t ++ start_l].
 proc.
-pose suf1 :=  [LeakAddr [];LeakAddr [];LeakAddr [];LeakAddr [0];LeakAddr [];LeakAddr [];LeakAddr [0];LeakAddr []] ++ start_l.
-wp.  call (bn_cmov_leakages suf1).  inline*.  wp. rnd. wp. 
+pose suf1 :=  [LeakAddr []] ++ start_l.
+seq 3 : (M.leakages = random_bit_t ++ suf1 ).
+wp.  call (random_bit_leakages suf1).  wp.  skip. progress. 
+
+pose suf2 :=  [LeakAddr []; LeakAddr []] ++ random_bit_t ++ suf1.
+seq 6 : (M.leakages = bn_cmov_f 32 ++ suf2 ).
+wp.  call (bn_cmov_leakages suf2).  wp.  skip. progress.  
+rewrite /suf2 /suf1. 
 skip. progress.
-pose suf2 :=  [LeakAddr []] ++ set0_f 32 ++ suf1.
-rewrite /suf1. simplify.
-rewrite /uniform_binary_choice_t. simplify. smt(@List).
+rewrite /uniform_binary_choice_t. 
+do? rewrite - catA. simplify. 
+do? rewrite  catA.  auto.
 qed.
 
     
 
-op challenge_t : leakages_t = bn_cmov_g 32 ++ bn_cmov_prefix ++
-LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: 
-LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: LeakAddr [] :: (set1_g 32 ++
-                                                              set1_prefix ++
-                                                              LeakAddr [] :: (
-                                                              set0_g 32 ++
-                                                              set0_prefix ++
-                                                              LeakAddr [] :: [])).
+op challenge_t : leakages_t = uniform_binary_choice_t ++
+ [LeakAddr []] ++ set1_f 32 ++ [LeakAddr []] ++ set0_f 32 ++ [LeakAddr []].
 
 lemma challenge_leakages start_l : 
   hoare [ M(Syscall).challenge : M.leakages = start_l ==> M.leakages = challenge_t ++ start_l].
@@ -1142,8 +1150,7 @@ pose suf3 :=  [LeakAddr []] ++ set1_f 32 ++ suf2.
 seq 3 : (M.leakages = uniform_binary_choice_t ++ suf3).
 call (uniform_binary_choice_leakages suf3). wp. skip. progress.
 skip. progress.
-rewrite /uniform_binary_choice_t. rewrite /suf3 /suf2 /suf1. simplify.
-do? rewrite - catA. simplify. 
+rewrite /suf3 /suf2 /suf1. 
+do? rewrite - catA. 
 do? rewrite  catA.  auto.
-smt(@List).
 qed.

@@ -5,23 +5,26 @@ EXTRACTED_FILES = \
     proof/jasmin_extracts/W64_SchnorrExtract_ct.ec
 
 PROOF_FILES += $(EXTRACTED_FILES)
+PROOF_FILES += $(wildcard proof/*.eca)
 PROOF_FILES += $(wildcard proof/*.ec)
 PROOF_FILES += $(wildcard proof/schnorr_protocol/*.ec)
 PROOF_FILES += $(wildcard proof/schnorr_protocol/*.eca)
-#PROOF_FILES += $(wildcard proof/schnorr_protocol/side_channel_properties/*.ec)
+PROOF_FILES += $(wildcard proof/schnorr_protocol/side_channel_properties/*.ec)
+PROOF_FILES += $(wildcard proof/schnorr_protocol/side_channel_properties/*.eca)
 PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
 PROOF_FILES += $(wildcard proof/rejection_sampling/*.eca)
 PROOF_FILES += $(wildcard proof/modular_multiplication/*.ec)
-PROOF_FILES += $(wildcard proof/uniform_binary_choice/*.ec)
 PROOF_FILES += $(wildcard proof/modular_multiplication/*.eca)
+PROOF_FILES += $(wildcard proof/uniform_binary_choice/*.ec)
+PROOF_FILES += $(wildcard proof/uniform_binary_choice/*.eca)
 PROOF_FILES += $(wildcard proof/montgomery_ladder/*.ec)
 PROOF_FILES += $(wildcard proof/montgomery_ladder/*.eca)
 PROOF_FILES += $(wildcard proof/finite_types/*.ec)
 PROOF_FILES += $(wildcard proof/finite_types/*.eca)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.ec)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.eca)
-#PROOF_FILES += $(wildcard proof/leakage_functions/*.ec)
-
+PROOF_FILES += $(wildcard proof/leakage_functions/*.ec)
+PROOF_FILES += $(wildcard proof/leakage_functions/*.eca)
 
 
 JASMIN_PROGNAME = jasminc
