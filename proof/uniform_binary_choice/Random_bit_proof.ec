@@ -183,8 +183,6 @@ smt(@W8).
 qed.
 
 
-
-
 lemma random_bit_lemma4 : 
   equiv [M(Syscall).random_bit ~ SampleByte.run : true ==>  (W8.to_uint res{1} = res{2}) /\ (res{1} = W8.zero \/ res{1} = W8.one) ].
 transitivity SampleModule.bit_distr
@@ -199,8 +197,6 @@ conseq lemma3.
 qed.
 
 
-
-
 local lemma lemma5 : 
   equiv [M(Syscall).random_bit ~ BinSampleSpec.main : arg{2} = (W8.zero, W8.one) ==> res{1} = res{2} ].
 proof.
@@ -209,6 +205,8 @@ call random_bit_lemma4. wp. skip. progress.
 elim H. progress. progress.
 qed.
 
+
+(* this lemma establishes that random_bit is equivalent to the distribution "duniform [W8.zero; W8.one]"  *)
 lemma random_bit_eq :
   equiv [M(Syscall).random_bit ~ BinSampleSpec.spec : arg{2} = (W8.zero, W8.one) ==> res{1} = res{2} ].
 symmetry.
@@ -222,5 +220,7 @@ symmetry.
 conseq lemma5.
 auto. 
 qed.
+
+
 
 end section.
