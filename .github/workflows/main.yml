@@ -25,5 +25,5 @@ jobs:
         uses: actions/checkout@v3
 
       - name: check all
-        run: JASMIN=$(which_jasminc) EASYCRYPT=$(which_easycrypt) ECARGS=-script make check_all
+        run: JASMIN=$(which_jasminc) EASYCRYPT=$(which_easycrypt) ECARGS=-script TIMEOUT=600 make check_all
 

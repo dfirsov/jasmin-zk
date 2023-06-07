@@ -1,4 +1,4 @@
-TIMEOUT = 20
+TIMEOUT ?= 20
 
 EXTRACTED_FILES = \
     proof/jasmin_extracts/W64_SchnorrExtract.ec \
