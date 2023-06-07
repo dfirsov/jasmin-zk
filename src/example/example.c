@@ -44,6 +44,7 @@ int main(void)
   __verify(commitment_p, challenge_p, response_p, result_p);
 
   printf("0x%01" PRIx64 "\n\n", result_p[0]);
+  assert(result_p[0] == 1);
 
   return 0;
 }
