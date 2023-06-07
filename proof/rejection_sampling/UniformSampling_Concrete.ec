@@ -154,7 +154,7 @@ qed.
 
 (* types are finite and of the same cardinality *)
 require import SurjFromInj.
-require import FinLists.
+require import ArrayFiniteness.
 clone import SurjFromInj as GetSurj with type a <- t,
                                          type b <- W64.t Array32.t,
                                          op f <- h,

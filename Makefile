@@ -7,35 +7,36 @@ EXTRACTED_FILES = \
 PROOF_FILES += $(EXTRACTED_FILES)
 PROOF_FILES += $(wildcard proof/*.eca)
 PROOF_FILES += $(wildcard proof/*.ec)
-PROOF_FILES += $(wildcard proof/schnorr_protocol/*.ec)
-PROOF_FILES += $(wildcard proof/schnorr_protocol/*.eca)
-PROOF_FILES += $(wildcard proof/schnorr_protocol/side_channel_properties/*.ec)
-PROOF_FILES += $(wildcard proof/schnorr_protocol/side_channel_properties/*.eca)
-PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
-PROOF_FILES += $(wildcard proof/rejection_sampling/*.eca)
-PROOF_FILES += $(wildcard proof/modular_multiplication/*.ec)
-PROOF_FILES += $(wildcard proof/modular_multiplication/*.eca)
-PROOF_FILES += $(wildcard proof/uniform_binary_choice/*.ec)
-PROOF_FILES += $(wildcard proof/uniform_binary_choice/*.eca)
-PROOF_FILES += $(wildcard proof/montgomery_ladder/*.ec)
-PROOF_FILES += $(wildcard proof/montgomery_ladder/*.eca)
-PROOF_FILES += $(wildcard proof/finite_types/*.ec)
-PROOF_FILES += $(wildcard proof/finite_types/*.eca)
+PROOF_FILES += $(wildcard proof/big_num_ops/*.ec)
+PROOF_FILES += $(wildcard proof/big_num_ops/*.eca)
+PROOF_FILES += $(wildcard proof/big_num_ops/leakage_freeness/*.ec)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.ec)
 PROOF_FILES += $(wildcard proof/definition_analysis/*.eca)
-PROOF_FILES += $(wildcard proof/leakage_functions/*.ec)
-PROOF_FILES += $(wildcard proof/leakage_functions/*.eca)
+PROOF_FILES += $(wildcard proof/modular_multiplication/*.ec)
+PROOF_FILES += $(wildcard proof/modular_multiplication/*.eca)
+PROOF_FILES += $(wildcard proof/modular_multiplication/leakage_freeness/*.ec)
+PROOF_FILES += $(wildcard proof/montgomery_ladder/*.ec)
+PROOF_FILES += $(wildcard proof/montgomery_ladder/*.eca)
+PROOF_FILES += $(wildcard proof/montgomery_ladder/leakage_freeness/*.ec)
+PROOF_FILES += $(wildcard proof/random_bit/*.ec)
+PROOF_FILES += $(wildcard proof/random_bit/*.eca)
+PROOF_FILES += $(wildcard proof/random_bit/leakage_freeness/*.ec)
+PROOF_FILES += $(wildcard proof/rejection_sampling/*.ec)
+PROOF_FILES += $(wildcard proof/rejection_sampling/*.eca)
+PROOF_FILES += $(wildcard proof/rejection_sampling/leakage_freeness/*.ec)
+PROOF_FILES += $(wildcard proof/schnorr_protocol/*.ec)
+PROOF_FILES += $(wildcard proof/schnorr_protocol/*.eca)
+PROOF_FILES += $(wildcard proof/schnorr_protocol/leakage_freeness/*.ec)
+PROOF_FILES += $(wildcard proof/auxiliary_lemmas/*.ec)
+PROOF_FILES += $(wildcard proof/auxiliary_lemmas/*.eca)
 
 
 JASMIN_PROGNAME = jasminc
 EASYCRYPT_PROGNAME = easycrypt
 
-#94538c5
 EASYCRYPT_REVISION = 860dc3f
-#2022.09.2
 JASMIN_VERSION = 2022.09.3
 BIGNUM_REVISION = e5c3a1e
-# 4a99a0f
 EASYCRYPT_ZK_REVISION = 6d35e43
 
 .DELETE_ON_ERROR :
@@ -78,7 +79,7 @@ update_downloads :
 
 %.eco : %.ec $(PROOF_FILES)
 	echo Checking "$<"
-	easycrypt -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof/uniform_binary_choice -I ./proof -I Jasmin:./proof/eclib  -I ./proof/leakage_functions -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/finite_types -I ./proof/montgomery_ladder -I ./proof/rejection_sampling -I ./proof/schnorr_protocol -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<" 
+	easycrypt -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof/auxiliary_lemmas -I ./proof/big_num_ops -I ./proof/big_num_ops/leakage_freeness  -I ./proof/random_bit -I ./proof/random_bit/leakage_freeness -I ./proof -I Jasmin:./proof/eclib  -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/modular_multiplication/leakage_freeness  -I ./proof/montgomery_ladder -I ./proof/montgomery_ladder/leakage_freeness -I ./proof/rejection_sampling -I ./proof/rejection_sampling/leakage_freeness -I ./proof/schnorr_protocol -I ./proof/schnorr_protocol/leakage_freeness -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<" 
 
 # Check all EasyCrypt files from Jasmin sources
 # If you do not have Jasmin, you can remove this block to skip extraction
@@ -92,8 +93,6 @@ extract_all $(EXTRACTED_FILES) : src/schnorr_protocol.jazz src/constants.jazz Ma
 
 src/constants.jazz : src/constants.py
 	make -C src constants.jazz
-
-
 
 
 compile_and_run :

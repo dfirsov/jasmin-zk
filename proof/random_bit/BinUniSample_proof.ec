@@ -4,7 +4,7 @@ from Jasmin require import JModel.
 require import Array32.
 require BinUniSample_spec.
 require import Array1 WArray1.
-require import Finite FinLists.
+require import Finite ArrayFiniteness.
 
 require import BigNum_proofs.
 require import Random_bit_proof.

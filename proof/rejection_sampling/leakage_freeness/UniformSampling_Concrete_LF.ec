@@ -3,7 +3,7 @@ require import List Int AllCore Distr.
 from Jasmin require import JModel.
 
 require import AuxLemmas.
-require import Ops_LeakageFunctions.
+require import UniformSampling_Concrete_LeakagesFun.
 
 (* SAMPLING LEAKAGES  *)
 require import W64_SchnorrExtract_ct.

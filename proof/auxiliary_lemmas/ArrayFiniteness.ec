@@ -46,7 +46,6 @@ rewrite /all_8words. rewrite - all_8lists_size.
 smt(@List).
 qed.
   
-timeout 4.
 
 lemma all_8words_uniq : uniq all_8words.
 rewrite /all_8words.

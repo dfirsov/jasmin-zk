@@ -3,14 +3,16 @@ require import List Int AllCore Distr.
 from Jasmin require import JModel.
 
 require import AuxLemmas.
-(* require import Ops_LeakageAnalysis. *)
 
 
 (* SAMPLING LEAKAGES  *)
 require import W64_SchnorrExtract_ct.
 module M1 = W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).
 
-require import Ops_LeakageFunctions.
+require import BigNum_LF.
+require import MontomeryLadder_Concrete_CT.
+require import UniformSampling_Concrete_LeakagesFun.
+require import Constants_CT.
 
 op commitment_t (i_var : int) : leakages_t = 
  expm_t ++
@@ -665,3 +667,4 @@ wp. skip. progress. auto. auto.
 progress. apply (commitment_indexed_leakfree l a &m).
 auto. auto.
 qed.
+
