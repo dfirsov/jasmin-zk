@@ -11,7 +11,7 @@ op t (x n k : real)  : real = x - (t' x n k) * n.
 
 lemma r_pos n (k : real): 
    0%r <= n < 2%r^k =>
-  r n k >= 0%r. rewrite /r. move => Q. smt.  qed.
+  r n k >= 0%r. rewrite /r. move => Q. smt(@Real @RealExp).  qed.
 
   
 lemma nn_bound n (k : real) : 

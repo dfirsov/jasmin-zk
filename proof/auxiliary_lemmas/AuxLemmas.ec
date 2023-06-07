@@ -29,7 +29,8 @@ rewrite /W64.one.
 rewrite - of_intE.
 rewrite of_intwE.
 have -> : (0 <= x && x < 64) = true. smt(). simplify.
-timeout 10. smt.
+rewrite /int_bit.
+smt(@IntDiv @W64).
 qed.
 
 op nasty_id ['a] = choiceb (fun (x:'a->'a) => x = (fun x => x)) witness.
@@ -68,14 +69,14 @@ have -> :
  (i + 1)%r / (size (to_seq (support d)))%r
  = (i )%r / (size (to_seq (support d)))%r
    + 1%r / (size (to_seq (support d)))%r.
-smt. 
+smt(). 
 have ->: LessThan (i + 1) = (fun x => LessThan i x \/ x = i).
-apply fun_ext. move => x. simplify. rewrite /P. smt. 
+apply fun_ext. move => x. simplify. rewrite /P. smt(). 
 rewrite mu_or. simplify.
 rewrite H0. clear H0. smt(). 
 rewrite /predI. rewrite /LessThan.
 have -> : (fun (x : int) => (0 <= x && x < i) /\ x = i)
- = (fun (x : int) => false). smt.
+ = (fun (x : int) => false). smt().
 have ->: mu d (fun (_ : int) => false) = 0%r. smt(@Distr). simplify.
 congr. 
 rewrite mu1_uni_ll. smt(). 

@@ -12,15 +12,15 @@ apply map_inj_in_uniq. move => x y.
 move => xi yi.
 have f0 : 0 < modulusR. auto.
 have f1 : 0 <= x < modulusR. split. smt(@List). move => _.
-smt.
+smt(@List).
 have f2 : 0 <= y < modulusR. split. smt(@List). move => _.
-smt.
+smt(@List).
 clear xi yi.
 move => ass.
 have : valR (R.bn_ofint x) = valR (R.bn_ofint y).
 smt().
 rewrite R.bn_ofintK.
-rewrite R.bn_ofintK. smt.
+rewrite R.bn_ofintK. smt(@IntDiv).
 smt(@List).
 qed.
 
