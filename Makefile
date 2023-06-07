@@ -33,6 +33,7 @@ PROOF_FILES += $(wildcard proof/auxiliary_lemmas/*.eca)
 
 JASMIN ?= jasminc
 EASYCRYPT ?= easycrypt
+ECARGS ?=
 
 EASYCRYPT_REVISION = 860dc3f
 JASMIN_VERSION = 2022.09.3
@@ -79,7 +80,7 @@ update_downloads :
 
 %.eco : %.ec $(PROOF_FILES)
 	echo Checking "$<"
-	$(EASYCRYPT) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof/auxiliary_lemmas -I ./proof/big_num_ops -I ./proof/big_num_ops/leakage_freeness  -I ./proof/random_bit -I ./proof/random_bit/leakage_freeness -I ./proof -I Jasmin:./proof/eclib  -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/modular_multiplication/leakage_freeness  -I ./proof/montgomery_ladder -I ./proof/montgomery_ladder/leakage_freeness -I ./proof/rejection_sampling -I ./proof/rejection_sampling/leakage_freeness -I ./proof/schnorr_protocol -I ./proof/schnorr_protocol/leakage_freeness -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<"
+	$(EASYCRYPT) $(ECARGS) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof/auxiliary_lemmas -I ./proof/big_num_ops -I ./proof/big_num_ops/leakage_freeness  -I ./proof/random_bit -I ./proof/random_bit/leakage_freeness -I ./proof -I Jasmin:./proof/eclib  -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/modular_multiplication/leakage_freeness  -I ./proof/montgomery_ladder -I ./proof/montgomery_ladder/leakage_freeness -I ./proof/rejection_sampling -I ./proof/rejection_sampling/leakage_freeness -I ./proof/schnorr_protocol -I ./proof/schnorr_protocol/leakage_freeness -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<"
 
 # Check all EasyCrypt files from Jasmin sources
 # If you do not have Jasmin, you can remove this block to skip extraction
