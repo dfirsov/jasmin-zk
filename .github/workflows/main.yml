@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - deploy/ci
+      - master
   pull_request:
 
 jobs:
