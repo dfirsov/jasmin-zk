@@ -28,7 +28,7 @@ move => &1 &2 H1. split. smt().
 move => q1 r1 r2 r3 . split. simplify. rewrite - r3.
 smt(@W64xN @W64x2N).
    split.  simplify. smt().
-split. simplify. smt.
+split. simplify. smt().
 split.  smt (@W64xN).
 split.  simplify. split. 
 elim r3. move => q q2. rewrite - q. smt(@W64x2N).
