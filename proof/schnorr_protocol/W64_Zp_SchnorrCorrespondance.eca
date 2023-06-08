@@ -279,24 +279,24 @@ call{2} bn_set_bq_correct. simplify.
 call{2} bn_set_q_correct. simplify.
 skip. 
 progress. rewrite H3. rewrite ri_un. rewrite /ri. rewrite H2. rewrite bq_correct.  smt().
-smt. 
+smt (@W64xN q_prime). 
 smt(@W64xN).
 smt(@W64xN).
 rewrite H2.   smt (q_val_prop1).
-smt.
-smt.
-smt(@W64xN).
-smt.
+smt (@W64xN q_prime). 
+rewrite H2. smt(q_less_p p_less_modulusR).
+smt(@W64xN). rewrite H2.
+smt(q_val_prop1).
 smt(@W64xN).
 rewrite H2. smt (q_val_prop1).
 smt(@W64xN).
-rewrite H2. smt.
+rewrite H2. rewrite H28. smt(q_prime @W64xN).
 smt(@W64xN).
-smt.
+rewrite H27. smt(@IntDiv).
 smt(@W64xN).
-rewrite H2. smt.
+rewrite H2. rewrite H19 H2. smt(@IntDiv q_prime).
 smt(@W64xN).
-rewrite H2. smt.
+rewrite H2. rewrite - H34. rewrite H2. smt(@IntDiv q_prime).
 rewrite - H39.
 rewrite - H34. 
 rewrite H2.
@@ -377,7 +377,7 @@ rewrite H7. smt(g_less_p).
   have ->: (ZModpField.exp s{1} q) = s{1} ^^ q. 
     rewrite /(^^). smt(@ZModpField).
     rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPSP.ZPS.ZpF.one xxx.  
-    smt.
+    smt(@IntDiv p_prime).
 rewrite sq_fact.
 have ->: (result12 `&` result15 = W64.one) 
   = (result12 = W64.one /\ result15 = W64.one). 
@@ -437,13 +437,13 @@ skip. move => &1 _ H r qe r2 vr rr iz rp vri.
 split. rewrite qe. simplify. smt(q_prime).
 move => h1. move => rL rR. move => rzrlrr. 
 split. 
-split.  smt. split. rewrite iz. 
+split.  smt(). split. rewrite iz. 
 rewrite inzmodK.
 smt(@IntDiv g_less_p).
-split.  smt. split.  rewrite  iz. smt(g_less_p). rewrite /R.
+split.  smt(). split.  rewrite  iz. smt(g_less_p). rewrite /R.
 rewrite bp_correct'.
 rewrite - vri. smt(@W64x2N @R2).
-move => qo. move => rl rrr ai. smt.
+move => qo. move => rl rrr ai. smt().
 qed.
 
 
@@ -479,5 +479,5 @@ lemma commitment_pr_eq P &m :
   Pr[ ZPSP.SchnorrProver.commitment() @&m : P res ] = Pr[ JProver.commitment() @&m : P (inzmod (W64xN.valR res.`1), (W64xN.valR res.`2)) ].
 byequiv. bypr (res{1}) (inzmod (W64xN.valR res{2}.`1), (W64xN.valR res{2}.`2)).
 auto. progress. byequiv.
-conseq commitment_eq. progress. smt. smt. auto. auto. auto. auto.
+conseq commitment_eq. progress.  rewrite - H. rewrite - H0. smt(@ZPSP.Zp). smt(@ZPSP.Zp). auto. auto. auto. auto.
 qed.
