@@ -32,7 +32,7 @@ rewrite lll'. auto. smt().
 smt(@ZModpField @Sub).       
 qed.
 
-lemma bbb : forall (a b : zmods), (Sub.val a = Sub.val b) <=> (a = b). smt. qed.
+lemma bbb : forall (a b : zmods), (Sub.val a = Sub.val b) <=> (a = b). smt(@Sub). qed.
 lemma aaa : forall (a b : zmod), (unit a) => (unit b) => (Sub.insubd a = Sub.insubd b) => (a = b). smt(@Sub). qed.
 
 lemma completeness_relation_compatible : forall s w, completeness_relationG s w => completeness_relation (Sub.insubd s) (EG.inzmod w).
@@ -63,15 +63,15 @@ qed.
 
 
 lemma llll (x y : zmod) : unit x => unit y => (Zps.( * ) (Sub.insubd x)  (Sub.insubd y) )= Sub.insubd (x * y).
-progress. smt. qed.
+progress. smt(@Sub). qed.
 
 
 lemma exp_lemma4 : forall (x : zmod) (n : int), unit x => (ZModpField.exp x q) = one =>  (ZModpField.exp x n) = Sub.val ((Sub.insubd x) ^^ (EG.inzmod n)). 
 proof. progress. rewrite /(^^). rewrite lll. auto.
 rewrite  EG.inzmodK.
-have ->: (ZModpField.exp x (n %% q)) = (ZModpField.exp x n). smt.
+have ->: (ZModpField.exp x (n %% q)) = (ZModpField.exp x n).  rewrite - exp_mod. auto. auto.
 rewrite Sub.insubdK.
-smt.
+smt(@ZModpField).
 auto.
 qed.
 
@@ -80,10 +80,10 @@ lemma exp_lemma5 : forall (z : zmod) (n : int), unit z => 0 <= n => (ZModpField.
 progress. rewrite /(^^). 
 rewrite lll. auto. 
 rewrite - bbb.
-rewrite Sub.insubdK. rewrite /P. smt.
-have ->: (EG.asint ((EG.inzmod n))%EG) = n %% q. smt.
+rewrite Sub.insubdK. rewrite /P. smt(@ZModpField).
+have ->: (EG.asint ((EG.inzmod n))%EG) = n %% q. smt(@EG).
 rewrite lll. auto.  
-rewrite Sub.insubdK. smt.
+rewrite Sub.insubdK. rewrite /P. apply exp_lemma6. apply H.
 rewrite (Zp.exp_mod z n q _). auto. auto.
 qed. 
 
@@ -167,7 +167,7 @@ rewrite duniform1E_uniq. apply challenges_list_zp_uniq.
 rewrite in_chall_map. smt(@List).
 smt(@Distr @List).
 rewrite EG.inzmodK.
-smt.
+smt(@Distr @IntDiv list_elems).
 qed.
     
 
@@ -230,20 +230,20 @@ rewrite /lift2.
 case ((ZModpField.exp ((Sub.val HV.s{2})) q) = one).
 move => G2. 
 rewrite exp_lemma4. apply g_unit. apply g_q_assumption.
-rewrite exp_lemma4. smt.   assumption. simplify.
+rewrite exp_lemma4. smt(@Sub).   assumption. simplify.
 have  <-: ((Sub.val ((Sub.insubd ((Sub.val HV.s{2}))) ^^ (EG.inzmod q))) = one)
  = ((Zps.(^) HV.s{2}  q) = (Sub.insubd one)).
 rewrite - bbb.
-rewrite exp_lemma5. smt.  smt(q_prime).
+rewrite exp_lemma5. smt(@Sub).  smt(q_prime).
 auto.
-rewrite Sub.insubdK.  rewrite /P. smt.
+rewrite Sub.insubdK.  rewrite /P. smt(@Zp).
 have -> : (Sub.insubd ((Sub.val HV.s{2})))
  = HV.s{2}.
 rewrite Sub.valKd. auto. auto.
 rewrite Sub.valKd.
 have -> : ((Sub.val (HV.s{2} ^^ (EG.inzmod q)%EG))%Sub = one). 
 rewrite - G2.
-smt.
+rewrite  exp_lemma4. smt(@Sub). auto. smt(@Sub).
 simplify.
 rewrite - bbb.
 rewrite Sub.insubdK.
@@ -265,9 +265,9 @@ simplify.
 move => eone.
 have -> : (Zps.(^) HV.s{2} q) <> (Sub.insubd one).
  have->: HV.s{2} = Sub.insubd (Sub.val HV.s{2}).
- smt.
-rewrite lll. smt.
-smt. simplify.
-auto.
+ smt(@Sub).
+rewrite lll. smt(@Sub).
+smt(@Sub @ZModpField aaa).
+smt(@Sub). 
 qed.
 

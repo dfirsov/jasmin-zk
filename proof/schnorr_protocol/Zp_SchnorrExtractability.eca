@@ -111,8 +111,8 @@ proc.
 seq 1 1 : ((z{1} <> zero => z{1} = Sub.val commit{2}) /\ (glob P){1} = (glob P){2} /\ s{1} = sz /\ Sub.val statement{2} = sz).
 inline P'.commitment. wp.
 call (_:true). wp.  skip. progress.
-rewrite Sub.insubdK. smt. auto.
-rewrite Sub.insubdK. smt. auto. 
+rewrite Sub.insubdK. rewrite /P. smt(@Zp). auto.
+rewrite Sub.insubdK. smt(@Zp). auto. 
 case (z{1} = Zp.zero).
 inline*. wp.
 call {1} P_response_ll.
@@ -120,9 +120,11 @@ call {2} P_response_ll. auto.
 rnd {1}.  rnd{2}.
 wp. skip. progress. smt(@Distr challenges_list_zp_size). smt(@Distr challenges_list_zp_size).
 have q : ZModpField.exp g result0  = zero.
-rewrite H4. rewrite H. smt.
-have : false. smt. auto.
-smt. smt.
+rewrite H4. rewrite H. simplify.  
+smt(@Zp @ZModpField g_unit).
+smt(@Zp @ZModpField g_unit).
+smt(@Zp @ZModpField g_unit).
+smt(@Zp @ZModpField g_unit).
 call verify_eq. simplify.
 inline P'.response.
 wp. call (_: true).
@@ -149,7 +151,7 @@ wp. call (_:true). wp.
 call (_:true). rnd EG.inzmod EG.asint. wp.  
 inline P'.commitment. wp.
 call (_:true). wp.  skip. progress.
-smt.
+smt(@EG).
 rewrite duniform1E_uniq. 
 apply map_inj_in_uniq. apply inzmod_inj_on_challanges_list_zp.  apply challenges_list_zp_uniq.
 rewrite duniform1E_uniq. apply challenges_list_zp_uniq.
@@ -172,7 +174,7 @@ have -> : LSP.soundness_relation  =  LSP.completeness_relation. auto.
 rewrite completeness_relation_compatible. simplify.
 rewrite /completeness_relationG. rewrite - H11.  rewrite /special_soundness_extractG /special_soundness_extract. simplify.
 rewrite EG.mulE.
-smt.
+rewrite - exp_mod.  apply g_q_assumption. auto.
 have -: soundness_relation ((Sub.insubd p{1}))%Sub
       (special_soundness_extract ((Sub.insubd p{1}))%Sub
          ((Sub.insubd result_R)%Sub, (EG.inzmod c1L)%EG, (EG.inzmod result_R1)%EG)
@@ -209,11 +211,11 @@ pose b:= Pr[Extractor(P').extract((Sub.insubd sz)%Sub) @ &m :
 pose c := (size challenges_list_zp)%r.
 pose q := Pr[SoundnessG(P, SchnorrVerifier).run(sz) @ &m : res].
 progress.
-case ((q ^ 2 - q / c) <= 0%r). smt.
-move => pos. have impfact :  0%r < q * (q - 1%r / c). timeout 10. smt(@Real @RealOrder).
+case ((q ^ 2 - q / c) <= 0%r). smt(@Distr).
+move => pos. have impfact :  0%r < q * (q - 1%r / c). smt(@RealOrder).
 have : q <= a. auto. move => aq.
-have ls1 : 0%r <= a <= 1%r. smt.
-have ls2 : 0%r <= q <= 1%r. smt.
+have ls1 : 0%r <= a <= 1%r. smt(@Distr).
+have ls2 : 0%r <= q <= 1%r. smt(@Distr).
 have : q ^ 2 - q / c  <=  a ^ 2 - a / c .
  have ->: q ^ 2 - q/c = q * (q  - 1%r/c). smt(@Real).
  have ->: a ^ 2 - a/c = a * (a  - 1%r/c). smt(@Real).

@@ -359,7 +359,7 @@ call {1} Constants.bn_set_bp_correct.
 call {1} Constants.bn_set_g_correct.
 call {1} Constants.bn_set_p_correct.
 call {1} Constants.bn_set_q_correct.
-wp. skip. progress. smt.  smt().
+wp. skip. progress. smt(@W64xN).  smt().
 ecall {1} (bn_expm_correct_ph barrett_parameter{1} group_order{1} group_generator{1} secret_power{1}). skip. progress.
 rewrite H1. auto. rewrite /R /Ri. 
 apply  val_congr2N. rewrite H.

@@ -42,7 +42,9 @@ simplify. apply g_q_assumption. qed.
 
 lemma lll' (z : zmod) : unit z => forall x, 0 <= x 
   => Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
-move => z_unit. apply intind. progress. smt. progress. smt(@Zps @Sub @ZModpField).
+move => z_unit. apply intind. progress. 
+smt(@Zps @ZModpField). 
+progress. smt(@Zps @Sub @ZModpField).
 qed.
 
 clone import Abstract_SchnorrProtocol as LSP with

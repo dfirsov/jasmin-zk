@@ -65,7 +65,7 @@ clone  Zp_SchnorrProtocol as ZPSP with op g <= inzmod g_top,
                                              theory Zp <= ZpC
 proof*.
 realize LSP.challenge_set_size. smt(@EG.DZmodP q_less_p). qed.
-realize LSP.challenge_set_unique. smt. qed.
+realize LSP.challenge_set_unique. smt(@EG @List). qed.
 realize g_q_assumption. rewrite - zp_eq.
 rewrite exps'. smt(q_less_p).
 have ->: (Sub.val (Zp.inzmod g_top)) = (asint (inzmod g_top)). auto.
@@ -78,11 +78,11 @@ realize q_prime. apply q_prime. qed.
 realize ZPS.ge2_p. smt(p_prime). qed.
 realize LSP.ips. apply pair_sibts_inj. qed.
 realize LSP.unpair_pair. apply unpair_pair. qed.
-realize list_elems. smt. qed.
+realize list_elems. simplify. progress. smt(). smt(q_prime). qed.
 realize LSP.challenges_list_size. smt(@List). qed.
 realize challenges_list_zp_uniq. auto. qed.
 realize challenges_list_zp_size. auto. qed.
-realize LSP.challenges_list_uniq. smt. qed.
+realize LSP.challenges_list_uniq. smt(@EG @List). qed.
 
 
 require MontgomeryLadder_Concrete.
@@ -152,11 +152,10 @@ smt(@ZpC @Ring).
 progress.
 have ->: (x ^ (i + 1)) = x * (x^ i). 
  rewrite /(^).
- have ->: asint x ^ (i + 1) = (asint x) * (asint x ^ i). smt.
+ have ->: asint x ^ (i + 1) = (asint x) * (asint x ^ i). smt(@Int).
  rewrite inzmodM. congr. rewrite asintK. auto.
-have ->: (x ^^ (i + 1)) = x * (x ^^ i). smt.
-rewrite H0.
-auto.
+ rewrite H0.
+rewrite /(^^). smt(@ZModpRing).
 qed.
 
 
@@ -168,7 +167,23 @@ rewrite /completeness_relationJ /completeness_relation /IsDL.
 rewrite /completeness_relationG.
 have ->: (ZModpField.exp (inzmod g) (valR w)) = ((inzmod g)  ^^ (valR w)). auto.
 rewrite - exps. smt(@W64xN).
-have ->: inzmod g ^ valR w = inzmod (g ^ valR w). timeout 10. smt.
+have ->: inzmod g ^ valR w = inzmod (g ^ valR w).  
+rewrite  (ZPSP.Zp.inzmod_exp_mod g (valR w) q).
+rewrite /ZpC.one.
+apply ZPSP.Zp.eq_inzmod.
+rewrite  g_correct. smt(@IntDiv p_prime).
+have ->: 0 <= valR w. smt(@W64xN). simplify.
+rewrite ZPSP.Zp.inzmod_exp.
+have ->: 0 <= valR w %% q. smt(@W64xN @IntDiv). simplify.
+rewrite - exp_mod. 
+rewrite  ZPSP.Zp.exp_inzmod. 
+have ->: 0 <= q. smt(q_prime). simplify.
+rewrite /ZpC.one.
+apply ZPSP.Zp.eq_inzmod.
+rewrite  g_correct. smt(@IntDiv p_prime).
+ rewrite exp_inzmod. 
+have ->: 0 <= valR w . smt(@W64xN). simplify.
+smt(@ZPSP.Zp).
 rewrite xxx. auto.
 qed.
 
@@ -204,7 +219,7 @@ lemma challenge_eq :
   equiv [ ZPSP.SchnorrVerifier.challenge ~ JVerifier.challenge :
   true ==> res{1} = (valR res{2}) ].
 symmetry.
-transitivity BUS.BinSampleSpec.spec
+transitivity W64xNChoice.BinSampleSpec.spec
   (arg{2} = (W64xN.R.bn_ofint 0, W64xN.R.bn_ofint 1) ==> res{1} =  res{2} )
   (arg{1} = (W64xN.R.bn_ofint 0, W64xN.R.bn_ofint 1)
   ==> valR res{1} = res{2}). 
