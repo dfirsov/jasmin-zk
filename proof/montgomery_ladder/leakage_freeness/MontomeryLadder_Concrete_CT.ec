@@ -132,6 +132,7 @@ progress.
 rewrite /expm_t. auto.
 qed.
 
+
 lemma bn_expm_ll : islossless M(Syscall).bn_expm.
 proc.
 while (0 <= to_uint i) (to_uint i).
@@ -151,3 +152,22 @@ wp. call bn_set1_ll.
 wp. skip. progress.
 smt(@W64).
 qed.
+
+
+
+lemma bn_expm_leakages_ph start_l :
+   phoare [ M(Syscall).bn_expm : M.leakages = start_l
+     ==> M.leakages = expm_t ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_expm_ll. hoare. conseq (expm_leakages start_l).
+qed.
+
+lemma bn_expm_ct &m l r a b n :  M.leakages{m} = l
+ => Pr[ M(Syscall).bn_expm(r,a,b,n)@&m : M.leakages = expm_t ++ l ] = 1%r.
+move => lh.
+byphoare (_: (glob M) = (glob M){m} ==> _ ).
+conseq (bn_expm_leakages_ph l).
+auto. auto. auto.
+qed.
+
+

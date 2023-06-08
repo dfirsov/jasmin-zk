@@ -41,4 +41,11 @@ phoare split !  1%r 0%r. auto.
 conseq bn_mulm_ll. hoare. conseq (mulm_leakages start_l).
 qed.
 
+lemma bn_mulm_ct &m l r a b n :  M.leakages{m} = l
+ => Pr[ M(Syscall).bn_mulm(r,a,b,n)@&m : M.leakages = mulm_t ++ l ] = 1%r.
+move => lh.
+byphoare (_: (glob M) = (glob M){m} ==> _ ).
+conseq (bn_mulm_leakages_ph l).
+auto. auto. auto.
+qed.
 
