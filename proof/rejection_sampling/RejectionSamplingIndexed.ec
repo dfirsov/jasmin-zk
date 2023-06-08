@@ -94,7 +94,7 @@ proc.  simplify.
 unroll 3. rcondt 3. wp. skip.  auto.
 while (0 < c). wp. rnd. skip. smt().
 wp. rnd. wp. skip. auto. smt().
-smt.
+smt(@Distr).
 qed.
 
     
@@ -191,8 +191,8 @@ lemma prob  &m P1 Q1 : Impl Q1 P1 => forall i ,  0 <= i =>
   = (mu d (predC P1)) ^ i *  (mu d Q1).
 move => H.
 apply intind.
-progress. rewrite ph_l6. auto. auto. smt.
+progress. rewrite ph_l6. auto. auto. smt(@Int).
 progress. 
 rewrite ph_l5. smt(). auto.
-simplify. rewrite H1. smt.
+simplify. rewrite H1. smt(@RealExp @Real).
 qed.
