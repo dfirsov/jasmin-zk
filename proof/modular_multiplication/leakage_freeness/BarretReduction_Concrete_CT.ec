@@ -80,3 +80,11 @@ conseq bn_breduce_ll. hoare. conseq (bn_breduce_leakages start_l).
 qed.
 
 
+lemma bn_breduce_ct &m l r x n :  M.leakages{m} = l
+ => Pr[ M(Syscall).bn_breduce(r,x,n)@&m : M.leakages = bn_breduce_f ++ l ] = 1%r.
+move => lh.
+byphoare (_: (glob M) = (glob M){m} ==> _ ).
+conseq (bn_breduce_leakages_ph l).
+auto. auto. auto.
+qed.
+
