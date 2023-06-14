@@ -992,148 +992,6 @@ module M(SC:Syscall_t) = {
     return (a);
   }
   
-  proc bn_set_ex_w (ex_w:W64.t Array32.t) : W64.t Array32.t = {
-    
-    var tmp:W64.t;
-    
-    tmp <- (W64.of_int 16079707453520027538);
-    ex_w.[0] <- tmp;
-    tmp <- (W64.of_int 9896202453426434722);
-    ex_w.[1] <- tmp;
-    tmp <- (W64.of_int 9734514543779861232);
-    ex_w.[2] <- tmp;
-    tmp <- (W64.of_int 2720597558662080082);
-    ex_w.[3] <- tmp;
-    tmp <- (W64.of_int 5422305391744666469);
-    ex_w.[4] <- tmp;
-    tmp <- (W64.of_int 6284856943141827897);
-    ex_w.[5] <- tmp;
-    tmp <- (W64.of_int 3571931755504819832);
-    ex_w.[6] <- tmp;
-    tmp <- (W64.of_int 8898582908871733242);
-    ex_w.[7] <- tmp;
-    tmp <- (W64.of_int 1704218965307655612);
-    ex_w.[8] <- tmp;
-    tmp <- (W64.of_int 13955911167960165174);
-    ex_w.[9] <- tmp;
-    tmp <- (W64.of_int 1075360349327866006);
-    ex_w.[10] <- tmp;
-    tmp <- (W64.of_int 15655134966529348674);
-    ex_w.[11] <- tmp;
-    tmp <- (W64.of_int 13489896038793457581);
-    ex_w.[12] <- tmp;
-    tmp <- (W64.of_int 9091884461783532811);
-    ex_w.[13] <- tmp;
-    tmp <- (W64.of_int 14839329871522619038);
-    ex_w.[14] <- tmp;
-    tmp <- (W64.of_int 2391092563947328990);
-    ex_w.[15] <- tmp;
-    tmp <- (W64.of_int 8841078175838623648);
-    ex_w.[16] <- tmp;
-    tmp <- (W64.of_int 8090086859770744697);
-    ex_w.[17] <- tmp;
-    tmp <- (W64.of_int 9327323138639727608);
-    ex_w.[18] <- tmp;
-    tmp <- (W64.of_int 15359750175411445414);
-    ex_w.[19] <- tmp;
-    tmp <- (W64.of_int 174800848911598037);
-    ex_w.[20] <- tmp;
-    tmp <- (W64.of_int 9621397252429152621);
-    ex_w.[21] <- tmp;
-    tmp <- (W64.of_int 10251157532981205438);
-    ex_w.[22] <- tmp;
-    tmp <- (W64.of_int 10677669616094657323);
-    ex_w.[23] <- tmp;
-    tmp <- (W64.of_int 6940916673274726784);
-    ex_w.[24] <- tmp;
-    tmp <- (W64.of_int 16707030954547857917);
-    ex_w.[25] <- tmp;
-    tmp <- (W64.of_int 15997033023376387679);
-    ex_w.[26] <- tmp;
-    tmp <- (W64.of_int 1915269043270820409);
-    ex_w.[27] <- tmp;
-    tmp <- (W64.of_int 1075662976884682063);
-    ex_w.[28] <- tmp;
-    tmp <- (W64.of_int 4605192895173857279);
-    ex_w.[29] <- tmp;
-    tmp <- (W64.of_int 13724566221682937013);
-    ex_w.[30] <- tmp;
-    tmp <- (W64.of_int 7741315053003204029);
-    ex_w.[31] <- tmp;
-    return (ex_w);
-  }
-  
-  proc bn_set_ex_s (ex_s:W64.t Array32.t) : W64.t Array32.t = {
-    
-    var tmp:W64.t;
-    
-    tmp <- (W64.of_int 7171969242160550925);
-    ex_s.[0] <- tmp;
-    tmp <- (W64.of_int 8804781220001203743);
-    ex_s.[1] <- tmp;
-    tmp <- (W64.of_int 14594497754230940608);
-    ex_s.[2] <- tmp;
-    tmp <- (W64.of_int 1472392515548218179);
-    ex_s.[3] <- tmp;
-    tmp <- (W64.of_int 4948236216193327450);
-    ex_s.[4] <- tmp;
-    tmp <- (W64.of_int 1031462267516433719);
-    ex_s.[5] <- tmp;
-    tmp <- (W64.of_int 4797027940007565550);
-    ex_s.[6] <- tmp;
-    tmp <- (W64.of_int 16764487674120473874);
-    ex_s.[7] <- tmp;
-    tmp <- (W64.of_int 5584558119897651268);
-    ex_s.[8] <- tmp;
-    tmp <- (W64.of_int 12193031863899618817);
-    ex_s.[9] <- tmp;
-    tmp <- (W64.of_int 4105145217697908108);
-    ex_s.[10] <- tmp;
-    tmp <- (W64.of_int 17298484718723899587);
-    ex_s.[11] <- tmp;
-    tmp <- (W64.of_int 14003085206563225236);
-    ex_s.[12] <- tmp;
-    tmp <- (W64.of_int 967507600631665215);
-    ex_s.[13] <- tmp;
-    tmp <- (W64.of_int 6159932005602028579);
-    ex_s.[14] <- tmp;
-    tmp <- (W64.of_int 17632204334305376028);
-    ex_s.[15] <- tmp;
-    tmp <- (W64.of_int 17465986506102992472);
-    ex_s.[16] <- tmp;
-    tmp <- (W64.of_int 8949836227897206741);
-    ex_s.[17] <- tmp;
-    tmp <- (W64.of_int 16842327390758156857);
-    ex_s.[18] <- tmp;
-    tmp <- (W64.of_int 12801704344442488385);
-    ex_s.[19] <- tmp;
-    tmp <- (W64.of_int 1566856634118248884);
-    ex_s.[20] <- tmp;
-    tmp <- (W64.of_int 11454838073351799762);
-    ex_s.[21] <- tmp;
-    tmp <- (W64.of_int 12515412700129796283);
-    ex_s.[22] <- tmp;
-    tmp <- (W64.of_int 11738035997661530147);
-    ex_s.[23] <- tmp;
-    tmp <- (W64.of_int 6509515618992112762);
-    ex_s.[24] <- tmp;
-    tmp <- (W64.of_int 4087076476951562775);
-    ex_s.[25] <- tmp;
-    tmp <- (W64.of_int 2349864693353382499);
-    ex_s.[26] <- tmp;
-    tmp <- (W64.of_int 15578039638568120178);
-    ex_s.[27] <- tmp;
-    tmp <- (W64.of_int 15424853839367417309);
-    ex_s.[28] <- tmp;
-    tmp <- (W64.of_int 3385351981655818438);
-    ex_s.[29] <- tmp;
-    tmp <- (W64.of_int 1357657197262854114);
-    ex_s.[30] <- tmp;
-    tmp <- (W64.of_int 9959485021998196103);
-    ex_s.[31] <- tmp;
-    return (ex_s);
-  }
-  
   proc commitment_indexed () : int * W64.t Array32.t * W64.t Array32.t = {
     
     var i:int;
@@ -1249,6 +1107,7 @@ module M(SC:Syscall_t) = {
     var group_order:W64.t Array32.t;
     var group_barrett:W64.t Array64.t;
     var group_generator:W64.t Array32.t;
+    var exp_order2:W64.t Array32.t;
     var tmp:W64.t Array32.t;
     var v1:W64.t Array32.t;
     var v2:W64.t Array32.t;
@@ -1257,6 +1116,7 @@ module M(SC:Syscall_t) = {
     var result2:W64.t;
     exp_barrett <- witness;
     exp_order <- witness;
+    exp_order2 <- witness;
     group_barrett <- witness;
     group_generator <- witness;
     group_order <- witness;
@@ -1270,6 +1130,7 @@ module M(SC:Syscall_t) = {
     group_order <- bn_glob_p;
     group_barrett <- bn_glob_bp;
     group_generator <- bn_glob_g;
+    exp_order2 <@ bn_copy (exp_order);
     statement <@ bn_breduce_small (group_barrett, statement, group_order);
     commitment_0 <@ bn_breduce_small (group_barrett, commitment_0,
     group_order);
@@ -1279,7 +1140,7 @@ module M(SC:Syscall_t) = {
     v1 <@ bn_mulm (group_barrett, group_order, commitment_0, tmp);
     v2 <@ bn_expm (group_barrett, group_order, group_generator, response_0);
     result1 <@ bn_eq (v1, v2);
-    v3 <@ bn_expm (group_barrett, group_order, statement, exp_order);
+    v3 <@ bn_expm (group_barrett, group_order, statement, exp_order2);
     v4 <@ bn_set1 (v4);
     result2 <@ bn_eq (v3, v4);
     result1 <- (result1 `&` result2);

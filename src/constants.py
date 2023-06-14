@@ -30,14 +30,8 @@ class Constant:
 
         lines = "\n".join(f"  tmp = {(self.value // 2**(limb_size*i)) % 2**limb_size}; {self.name}[{i}] = tmp;"
                           for i in range(0, self.nlimbs.number))
-        return f"""/* Loads the {self.comment}.
-It returns the value {self.name} = {self.value}.
-*/
-inline fn {proc_name}(stack u64[{self.nlimbs.number}] {self.name}) -> stack u64[{self.nlimbs.number}] {{
-  reg u64 tmp;
-{lines}
-  return {self.name};
-}}
+        return f"""/*  Defines the value {self.name} = {self.value}. */
+
 
 u64[{self.nlimbs.number}] {const_name} = {{ {var_constant} }};
 """

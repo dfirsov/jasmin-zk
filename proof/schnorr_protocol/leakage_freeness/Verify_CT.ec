@@ -21,6 +21,7 @@ op verify_f  : leakages_t =
  LeakAddr [] :: bn_breduce_small_f ++
  LeakAddr [] :: bn_breduce_small_f ++
  LeakAddr [] :: bn_breduce_small_f ++
+ LeakAddr [] :: copy_f 32 ++
  LeakAddr [] :: 
  LeakAddr [] :: 
  LeakAddr [] :: 
@@ -44,6 +45,7 @@ wp. ecall (bn_breduce_small_leakages M.leakages).
 wp. ecall (bn_breduce_small_leakages M.leakages).
 wp. ecall (bn_breduce_small_leakages M.leakages).
 wp. ecall (bn_breduce_small_leakages M.leakages).
+wp. ecall (bn_copy_leakages M.leakages).
 wp. skip. 
 progress.
 rewrite /verify_f.
@@ -65,6 +67,7 @@ wp. call (bn_breduce_small_ll).
 wp. call (bn_breduce_small_ll).
 wp. call (bn_breduce_small_ll).
 wp. call (bn_breduce_small_ll).
+wp. call (bn_copy_ll).
 wp. auto.
 qed.
 

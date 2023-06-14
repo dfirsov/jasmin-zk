@@ -350,7 +350,13 @@ conseq (_:
   W64x2N.valR group_barrett{2} = bp /\
   valR group_generator{2} = g 
    ==> _).
-admit. wp. simplify.
+progress.
+apply bn_glob_q_correct. 
+apply bn_glob_bq_correct. 
+apply bn_glob_p_correct. 
+apply bn_glob_bp_correct. 
+apply bn_glob_g_correct. 
+wp. simplify.
 ecall {2} (bn_eq_correct v3{2} v4{2}). simplify. 
 ecall {2} (bn_set1_correct). simplify. 
 ecall {2} (bn_expm_correct_ph group_barrett{2} group_order{2} statement{2} exp_order{2}). simplify.      
@@ -362,6 +368,7 @@ ecall {2} (bnreduce_small_spec_ph response_0{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph challenge_0{2} exp_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph commitment_0{2} group_order{2}). simplify.
 ecall {2} (bnreduce_small_spec_ph statement{2} group_order{2}). simplify.
+ecall {2} (bn_copy_correct exp_order{2}).
 (* call{2} bn_set_g_correct. *)
 (* call{2} bn_set_bp_correct. *)
 (* call{2} bn_set_p_correct. *)
