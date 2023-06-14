@@ -24,15 +24,9 @@ axiom bp_correct : bp = 4 ^ (64 * nlimbs) %/ p.
 axiom bq_correct : bq = 4 ^ (64 * nlimbs) %/ q.
 axiom g_correct : (g ^ q) %% p = 1.
 
-(* axiom bn_set_p_correct  : phoare[ M.bn_set_p  : true ==> W64xN.valR  res = p  ] = 1%r. *)
-(* axiom bn_set_q_correct  : phoare[ M.bn_set_q  : true ==> W64xN.valR  res = q  ] = 1%r. *)
-(* axiom bn_set_g_correct  : phoare[ M.bn_set_g  : true ==> W64xN.valR  res = g  ] = 1%r. *)
-(* axiom bn_set_bp_correct : phoare[ M.bn_set_bp : true ==> W64x2N.valR res = bp ] = 1%r. *)
-(* axiom bn_set_bq_correct : phoare[ M.bn_set_bq : true ==> W64x2N.valR res = bq ] = 1%r. *)
-
-axiom bn_glob_p_correct: ImplZZ bn_glob_p p.
-axiom bn_glob_q_correct: ImplZZ bn_glob_q q.
-axiom bn_glob_g_correct: ImplZZ bn_glob_g g.
+axiom bn_glob_p_correct: W64xN.valR bn_glob_p =  p.
+axiom bn_glob_q_correct: W64xN.valR bn_glob_q = q.
+axiom bn_glob_g_correct: W64xN.valR bn_glob_g = g.
 axiom bn_glob_bp_correct: W64x2N.valR bn_glob_bp = bp.
 axiom bn_glob_bq_correct: W64x2N.valR bn_glob_bq = bq.
 
