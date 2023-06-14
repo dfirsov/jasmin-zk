@@ -8,7 +8,7 @@ require import BarretReduction_Concrete_CT.
 (* mulm LEAKAGES  *)
 op [opaque] mulm_t : leakages_t = bn_breduce_f ++ [LeakAddr []] ++ bn_muln_f 32  ++
 [LeakAddr []; LeakAddr [] ; LeakAddr []] .
-lemma mulm_leakages start_l :
+lemma bn_mulm_leakages start_l :
    hoare [ M(Syscall).bn_mulm : M.leakages = start_l
                 ==> M.leakages = mulm_t ++ start_l ].
 proof. proc.
@@ -38,7 +38,7 @@ lemma bn_mulm_leakages_ph start_l :
    phoare [ M(Syscall).bn_mulm : M.leakages = start_l
      ==> M.leakages = mulm_t ++ start_l ] = 1%r.
 phoare split !  1%r 0%r. auto.
-conseq bn_mulm_ll. hoare. conseq (mulm_leakages start_l).
+conseq bn_mulm_ll. hoare. conseq (bn_mulm_leakages start_l).
 qed.
 
 lemma bn_mulm_ct &m l r a b n :  M.leakages{m} = l

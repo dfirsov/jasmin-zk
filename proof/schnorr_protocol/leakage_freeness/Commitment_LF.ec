@@ -12,15 +12,16 @@ module M1 = W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).
 require import BigNum_LF.
 require import MontomeryLadder_Concrete_CT.
 require import UniformSampling_Concrete_LeakagesFun.
-require import Constants_CT.
+(* require import Constants_CT. *)
 
 op commitment_t (i_var : int) : leakages_t = 
  expm_t ++
 ([LeakAddr []] ++ samp_t i_var ++
- ([LeakAddr []] ++ bn_set_bp_t ++
-  ([LeakAddr []] ++ bn_set_g_t ++
-   ([LeakAddr []] ++ bn_set_g_t ++
-    ([LeakAddr []] ++ bn_set_q_t ++ [LeakAddr []]))))).
+ ([LeakAddr []] ++ (* bn_set_bp_t ++ *)
+  ([LeakAddr []] ++ (* bn_set_g_t ++ *)
+   ([LeakAddr []] ++ (* bn_set_g_t ++ *)
+    ([LeakAddr []] ++ (* bn_set_q_t ++  *)
+        [LeakAddr []]))))).
 
 lemma commitment_t_inj : injective commitment_t.
 move => x y.
@@ -38,24 +39,24 @@ lemma commitment_leakages1 :
      ==> M.leakages = commitment_t res.`1].
 proc.
 pose suf1 := [LeakAddr []].
-seq 9 : (M.leakages = bn_set_q_t ++ suf1).
-wp.  call (bn_set_q_leakages suf1). wp.  skip. progress.
-pose suf2 :=  [LeakAddr []] ++ bn_set_q_t ++ suf1.
-seq 3 : (M.leakages =  bn_set_p_t ++ suf2).
-wp.  call (bn_set_p_leakages suf2). wp.  skip. progress.
-pose suf3 :=  [LeakAddr []] ++ bn_set_g_t ++ suf2.
-seq 3 : (M.leakages =  bn_set_g_t ++ suf3).
-wp.  call (bn_set_g_leakages suf3). wp.  skip. progress.
-pose suf4 :=  [LeakAddr []] ++ bn_set_g_t ++ suf3.
-seq 3 : (M.leakages = bn_set_bp_t ++ suf4).
-wp.  call (bn_set_bp_leakages suf4). wp.  skip. progress.
-pose suf5 := [LeakAddr []]  ++ bn_set_bp_t ++ suf4.
+seq 9 : (M.leakages = suf1).
+wp.  wp.  skip. progress.
+pose suf2 :=  [LeakAddr []] ++ suf1.
+seq 3 : (M.leakages = suf2).
+wp.  skip. progress.
+pose suf3 :=  [LeakAddr []] ++ suf2.
+seq 3 : (M.leakages = suf3).
+wp.  skip. progress.
+pose suf4 :=  [LeakAddr []] ++ suf3.
+seq 3 : (M.leakages = suf4).
+wp.  skip. progress.
+pose suf5 := [LeakAddr []] ++ suf4.
 seq 3 : (M.leakages = (samp_t i) ++ suf5).
 wp. call (rsample_leakages suf5). wp. skip. progress.
 exists* i. elim*. move => i_var.
 pose suf6 := [LeakAddr []]  ++ samp_t i_var ++ suf5.
 seq 3 : (M.leakages = expm_t ++ suf6 /\ i_var = i).
-wp. call (expm_leakages suf6). wp. skip. progress.
+wp. call (bn_expm_leakages suf6). wp. skip. progress.
 wp. skip. progress.
 qed.
 
@@ -132,11 +133,7 @@ call (_:true). wp. sim. wp.
 call (_:true). wp. sim. wp.
 skip. progress. smt(). wp.
 call (_:true). wp. sim. wp.  skip. progress.
-wp. call(_:true). sim.
-wp. call(_:true). sim.
-wp. call(_:true). sim.
-wp. call(_:true). sim.
-wp. skip. progress.
+wp. skip. progress. 
 auto. auto.
 have -> : Pr[M1.commitment_indexed() @ &m :
    inv (-1) commitment_t l = res.`1 /\ res.`3 = x] 
@@ -152,10 +149,6 @@ call (_:true). wp. sim. wp.
 call (_:true). wp. sim. wp.
 skip. progress. smt(). wp.
 call (_:true). wp. sim. wp.  skip. progress.
-wp. call(_:true). sim.
-wp. call(_:true). sim.
-wp. call(_:true). sim.
-wp. call(_:true). sim.
 wp. skip. progress.
 auto. auto.
 rewrite Pr[mu_eq].
@@ -307,10 +300,6 @@ lemma M1_M2_commitment :
 proc.  
 wp. call M1_M2_expm. simplify.
 wp. call M1_M2_rsample.  
-wp. call (_:true). sim. progress.
-wp. call (_:true). sim. progress.
-wp. call (_:true). sim. progress.
-wp. call (_:true). sim. progress. 
 wp. skip. progress. 
 qed.
 
@@ -355,11 +344,17 @@ seq 11 1 : (exp_order{1} =  byte_z{2}
  /\ W64xN.valR exp_order{1} = Constants.q
  /\ (i, secret_power){1} = r{2}). 
 call (_:true). sim. 
-call {1} Constants.bn_set_bp_correct.
-call {1} Constants.bn_set_g_correct.
-call {1} Constants.bn_set_p_correct.
-call {1} Constants.bn_set_q_correct.
-wp. skip. progress. smt(@W64xN).  smt().
+wp. skip.
+
+rewrite Constants.bn_glob_bp_correct.
+rewrite Constants.bn_glob_g_correct.
+rewrite Constants.bn_glob_p_correct.
+progress. 
+rewrite - W64xN.R.bnK.
+rewrite - H.
+rewrite - Constants.bn_glob_q_correct.
+rewrite  W64xN.R.bnK. auto.
+apply Constants.bn_glob_q_correct. smt().
 ecall {1} (bn_expm_correct_ph barrett_parameter{1} group_order{1} group_generator{1} secret_power{1}). skip. progress.
 rewrite H1. auto. rewrite /R /Ri. 
 apply  val_congr2N. rewrite H.
@@ -421,18 +416,14 @@ seq 11 : (W64xN.valR exp_order = Constants.q
        /\ W64xN.valR group_generator = Constants.g
        /\ barrett_parameter = R).
 call (_:true).  auto.
-call Constants.bn_set_bp_correct_hoare.
-call Constants.bn_set_g_correct_hoare.
-call Constants.bn_set_p_correct_hoare.
-call Constants.bn_set_q_correct_hoare.
-wp. skip. progress. apply (val_congr2N result2 R). rewrite H2.
-rewrite /R.
-rewrite W64x2N.R.bn_ofintK.
-rewrite /Ri. 
-rewrite - bp_correct.
-rewrite nasty_id.
-have : Constants.bp < W64x2N.modulusR. auto.
-smt(@IntDiv).
+wp. skip.
+rewrite Constants.bn_glob_g_correct.
+rewrite Constants.bn_glob_p_correct.
+rewrite Constants.bn_glob_q_correct.
+progress. rewrite /R /Ri.
+rewrite - bp_correct. rewrite nasty_id.
+rewrite - Constants.bn_glob_bp_correct.
+rewrite W64xN.R2.bnK. auto.
 exists* barrett_parameter, group_order, group_generator, secret_power.
 elim*. move => bp p g r.
 call (bn_expm_correct_hoare bp p g r).
@@ -649,18 +640,10 @@ have ->: Pr[M1.commitment() @ &m : res = a]
 byequiv. proc.  simplify. 
 wp. call (_:true). sim. progress.
 wp. call (_:true). sim. progress.
-wp. call (_:true). sim. progress.
-wp. call (_:true). sim. progress.
-wp. call (_:true). sim. progress.
-wp. call (_:true). sim. progress.
 wp. skip. progress. auto. auto.
 have ->: Pr[M1.commitment() @ &m : M1.leakages = l /\ res = a] 
          =  Pr[ M1.commitment_indexed() @ &m :  M1.leakages = l /\ (res.`2, res.`3) = a  ].
 byequiv. proc.  simplify. 
-wp. call (_: ={glob M1}). sim. progress.
-wp. call (_: ={glob M1}). sim. progress.
-wp. call (_: ={glob M1}). sim. progress.
-wp. call (_: ={glob M1}). sim. progress.
 wp. call (_: ={glob M1}). sim. progress.
 wp. call (_: ={glob M1}). sim. progress.
 wp. skip. progress. auto. auto.

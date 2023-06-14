@@ -10,10 +10,10 @@ inline fn commitment_indexed() -> (inline int, stack u64[nlimbs], stack u64[nlim
   stack u64[dnlimbs] barrett_parameter;
   inline int i;
 
-  exp_order         = bn_set_q(exp_order);
-  group_order       = bn_set_p(group_order);
-  group_generator   = bn_set_g(group_generator);
-  barrett_parameter = bn_set_bp(barrett_parameter);
+  exp_order         = bn_glob_q;
+  group_order       = bn_glob_p;
+  group_generator   = bn_glob_g;
+  barrett_parameter = bn_glob_bp;
 
   i, secret_power = bn_rsample(exp_order);
   commitment = bn_expm(barrett_parameter,group_order,group_generator,secret_power);  
@@ -25,10 +25,10 @@ inline fn commitment() -> (stack u64[nlimbs], stack u64[nlimbs]){
   stack u64[nlimbs]  secret_power commitment group_generator group_order exp_order;
   stack u64[dnlimbs] barrett_parameter;
 
-  exp_order         = bn_set_q(exp_order);
-  group_order       = bn_set_p(group_order);
-  group_generator   = bn_set_g(group_generator);
-  barrett_parameter = bn_set_bp(barrett_parameter);
+  exp_order         = bn_glob_q;
+  group_order       = bn_glob_p;
+  group_generator   = bn_glob_g;
+  barrett_parameter = bn_glob_bp;
 
   _, secret_power = bn_rsample(exp_order);
   commitment = bn_expm(barrett_parameter,group_order,group_generator,secret_power);  
@@ -59,8 +59,8 @@ inline fn response(stack u64[nlimbs] witness0 secret_power challenge)
   stack u64[dnlimbs] exp_barrett;
   stack u64[nlimbs]  exp_order response product;
 
-  exp_order   = bn_set_q(exp_order);
-  exp_barrett = bn_set_bq(exp_barrett);
+  exp_order   = bn_glob_q;
+  exp_barrett = bn_glob_bq;
 
   challenge    = bn_breduce_small(exp_barrett, challenge, exp_order);
   secret_power = bn_breduce_small(exp_barrett, secret_power, exp_order);
@@ -96,11 +96,11 @@ inline fn verify(stack u64[nlimbs] statement commitment challenge response)
   stack u64[nlimbs] tmp v1 v2 v3 v4 exp_order group_order group_generator;
   reg u64 result1 result2;
 
-  exp_order         = bn_set_q(exp_order);
-  exp_barrett       = bn_set_bq(exp_barrett);
-  group_order       = bn_set_p(group_order);
-  group_barrett     = bn_set_bp(group_barrett);
-  group_generator   = bn_set_g(group_generator);
+  exp_order         = bn_glob_q;
+  exp_barrett       = bn_glob_bq;
+  group_order       = bn_glob_p;
+  group_barrett     = bn_glob_bp;
+  group_generator   = bn_glob_g;
 
   statement  = bn_breduce_small(group_barrett, statement, group_order);
   commitment = bn_breduce_small(group_barrett, commitment, group_order);

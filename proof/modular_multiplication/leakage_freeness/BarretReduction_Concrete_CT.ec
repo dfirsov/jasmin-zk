@@ -88,3 +88,37 @@ conseq (bn_breduce_leakages_ph l).
 auto. auto. auto.
 qed.
 
+
+
+
+(* bn_breduce LEAKAGES  *)
+op [opaque] bn_breduce_small_f : leakages_t
+ = bn_breduce_f ++
+   [LeakAddr []]  ++ bn_expand_f 32 ++ [LeakAddr []].
+
+lemma bn_breduce_small_leakages start_l :
+   hoare [ M(Syscall).bn_breduce_small : M.leakages = start_l 
+     ==> M.leakages = bn_breduce_small_f ++ start_l ].
+proc.
+wp. ecall (bn_breduce_leakages M.leakages). 
+wp. ecall (bn_expand_leakages M.leakages). 
+wp. skip. progress.
+rewrite /bn_breduce_small_f. 
+smt(@List).
+qed.
+
+
+lemma bn_breduce_small_ll : islossless M(Syscall).bn_breduce_small.
+proc.
+wp. call bn_breduce_ll.
+wp. call bn_expand_ll.
+wp. auto.
+qed.
+
+
+lemma bn_breduce_smal_leakages_ph start_l :
+   phoare [ M(Syscall).bn_breduce_small : M.leakages = start_l 
+     ==> M.leakages = bn_breduce_small_f ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_breduce_small_ll. hoare. conseq (bn_breduce_small_leakages start_l).
+qed.
