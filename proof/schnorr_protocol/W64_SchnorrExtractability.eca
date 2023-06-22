@@ -121,7 +121,7 @@ wp.
 call challenge_eq.
 inline AWrap(A).commitment.
 wp. call (_:true). simplify. skip.
-progress. smt. smt. smt. smt. auto. auto.
+progress. smt(@W64xN). smt(@Zp). smt(@Zp). smt(@W64). auto. auto.
 qed.
 
 

@@ -136,7 +136,7 @@ smt(@Distr byte_distr_uni).
 progress. apply all_256words1_full.
 have : x \in byte_distr.
 apply byte_distr_fu.
-smt.
+progress. apply mem_to_seq.  smt(@Distr byte_distr_uni). auto.
 apply all_256words1_uniq.
 progress. rewrite - H.
 rewrite all_256words1_size. smt().
@@ -150,7 +150,7 @@ proc.
 rnd  toi fri.
 skip. progress.
 rewrite /toi /fri. 
-smt.
+rewrite initE. simplify. smt(@IntDiv @Distr).
 rewrite duniform1E_uniq. smt(@List).
 have ->: xR \in range 0 (255 + 1). smt(@List @Distr).
 simplify. 

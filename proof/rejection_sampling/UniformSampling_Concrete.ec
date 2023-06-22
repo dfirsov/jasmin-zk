@@ -33,14 +33,14 @@ lemma init_ext2:
   forall (f1 f2 : int -> W8.t),
        (init8 f1)%WArray256 = (init8 f2)%WArray256 =>
     (forall (x : int), 0 <= x && x < 256 => f1 x = f2 x).
-smt.
+smt(@WArray256).
 qed.
 
 lemma init_ext31:
   forall (f1 f2 : int -> W64.t),
        (Array32.init f1) = (Array32.init f2) =>
     (forall (x : int), 0 <= x && x < 32 => f1 x = f2 x).
-smt.
+smt(@Array32).
 qed.
 
 lemma init_ext32:
@@ -64,7 +64,7 @@ lemma ext_pack8_1:
   forall (f1 f2 : int -> bool),
        (W64.init f1) = (W64.init f2) =>
     (forall (x : int), 0 <= x && x < 64 => f1 x = f2 x).
-smt.
+smt(@W64).
 qed.
 
 
@@ -115,12 +115,12 @@ have -> : [(init8 ("_.[_]" x)).[8 * v0]; (init8 ("_.[_]" x)).[8 * v0 + 1];
    (init8 ("_.[_]" x)).[8 * v0 + 6]; (init8 ("_.[_]" x)).[8 * v0 + 7]].[
 v1 %/ 8]
  =
-   (init8 ("_.[_]" x)).[8 * v0 + v1 %/ 8]. smt.
+   (init8 ("_.[_]" x)).[8 * v0 + v1 %/ 8]. smt(@W8u8).
 have -> : [(init8 ("_.[_]" y)).[8 * v0]; (init8 ("_.[_]" y)).[8 * v0 + 1];
    (init8 ("_.[_]" y)).[8 * v0 + 2]; (init8 ("_.[_]" y)).[8 * v0 + 3];
    (init8 ("_.[_]" y)).[8 * v0 + 4]; (init8 ("_.[_]" y)).[8 * v0 + 5];
    (init8 ("_.[_]" y)).[8 * v0 + 6]; (init8 ("_.[_]" y)).[8 * v0 + 7]].[
-v1 %/ 8] =    (init8 ("_.[_]" y)).[8 * v0 + v1 %/ 8]. smt.
+v1 %/ 8] =    (init8 ("_.[_]" y)).[8 * v0 + v1 %/ 8]. smt(@W8u8).
 rewrite /init8.
 rewrite initiE. smt().
 rewrite initiE. smt().  rewrite /v0. rewrite /v1.
@@ -141,8 +141,8 @@ have :     x.[8 * (x0 %/ 8) + (x0 %% 8 * 8 + x1) %/ 8].[(x0 %% 8 * 8 + x1) %% 8]
   y.[8 * (x0 %/ 8) + (x0 %% 8 * 8 + x1) %/ 8].[(x0 %% 8 * 8 + x1) %% 8].
 apply (val_of_w x y q x0 ((x0 %% 8) * 8 + x1) _ _).
 smt(). smt().
-have ->: 8 * (x0 %/ 8) + (x0 %% 8 * 8 + x1) %/ 8 = x0. smt.
-have -> : (x0 %% 8 * 8 + x1) %% 8 = x1. smt.
+have ->: 8 * (x0 %/ 8) + (x0 %% 8 * 8 + x1) %/ 8 = x0. smt(@IntDiv).
+have -> : (x0 %% 8 * 8 + x1) %% 8 = x1. smt(@IntDiv).
 auto.
 rewrite /f.
 simplify.
@@ -288,13 +288,13 @@ qed.
 require import Finite List.
 
 
-lemma qqq (l : 'a list) (f : 'a -> 'b) : injective f => size l = size (map f l).
-smt.
+lemma qqq (l : 'a list) (f : 'a -> 'b) : size l = size (map f l).
+smt(@List).
 qed.
 
 
 lemma qq (l1 l2 : 'a list) : uniq l1 => uniq l2 
- => (forall x, x \in l1 <=>  x \in l2) => size l1 = size l2. smt.
+ => (forall x, x \in l1 <=>  x \in l2) => size l1 = size l2. smt(@List).
 qed.
 
 
@@ -308,9 +308,9 @@ lemma jsmd_supp : size (to_seq (support jsmD)) = size (to_seq (support D)).
 rewrite size_map. auto.
  have ->: size (map W64xN.valR (to_seq (support jsmD))) = size (to_seq (support D)). 
 apply qq.  
-rewrite map_inj_in_uniq. progress. clear H H0. smt.
-smt.
-smt.
+rewrite map_inj_in_uniq. progress. clear H H0. smt(@W64xN).
+apply uniq_to_seq. smt(@Distr jsmdD_uni).
+apply uniq_to_seq. smt(@Distr jsmdD_uni).
 progress. 
 have : exists z, z \in (to_seq (support jsmD)) /\ W64xN.valR z = x. smt(@List).
 progress. 
@@ -323,11 +323,12 @@ rewrite ioo.
 exists (W64xN.R.bn_ofint x). split. 
 have mf3 :   (W64xN.R.bn_ofint x)\in jsmD.
 apply (jsmdD_fu (W64xN.R.bn_ofint x)). 
-smt.
+apply mem_to_seq.  smt(@Distr jsmdD_uni).
+auto.    
 rewrite W64xN.R.bn_ofintK.
-have mf2 :  x \in D. smt.
-have mf3 : 0 <= x < W64xN.modulusR. smt.
-smt(@W64xN).
+have mf2 :  x \in D. smt(@Distr @Finite).
+have mf3 : 0 <= x < W64xN.modulusR. smt(@Distr).
+smt(@IntDiv).
 auto.
 qed.
 
@@ -350,9 +351,9 @@ simplify.
 have ->: weight jsmD = 1%r. 
 smt(jsmdD_ll @Distr).
 rewrite jsmd_supp.
-smt.
+smt(@Distr).
 have rval : 0 <= W64xN.valR rL  < W64xN.modulusR. smt(@W64xN).
-smt.
+smt(@Distr).
 smt(@W64xN).
 qed.    
 

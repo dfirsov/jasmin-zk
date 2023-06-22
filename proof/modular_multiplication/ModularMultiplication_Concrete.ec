@@ -47,8 +47,8 @@ proof. bypr. progress.
  have <- : Pr[CSpecFp.mulm(valR a{m}, valR b{m}, valR p{m}) @ &m : (valR a{m} * valR b{m}) %% valR p{m} =  res] = 1%r. 
   byphoare (_: arg = (valR a{m}, valR b{m}, valR p{m}) ==> _).
 proc. inline*. wp. skip. smt(). auto. auto.
-byequiv. conseq mulm_cspec. smt.
-smt.
+byequiv. conseq mulm_cspec. smt().
+smt().
 smt(). smt(). 
 qed.
 

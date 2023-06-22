@@ -30,13 +30,12 @@ call response_eq.
 call challenge_eq.
 call commitment_eq.
 simplify. skip. progress.
-smt. smt. rewrite  H.
+smt(@ZPSP.LSP.EG). smt(@ZpC). rewrite  H.
 have v : valR result_R.`1 < ZpC.p. rewrite - H. smt(@ZpC).
 have : valR result_R.`1 %% ZpC.p = valR result_R.`1. smt (@IntDiv @ZpC).
 smt().
 rewrite - H2.
-smt.
-smt.
+smt(@ZPSP.LSP.EG).  smt(@W64).
 auto. auto.
 qed.
 
@@ -48,15 +47,18 @@ move => xnonzero.
 case ((g ^ x %% ZpC.p = 0)).
 move => q. simplify.
   have : unit (ZModpField.exp (inzmod g) x ).
-  smt.
+   apply ZSC.Zp_SchnorrCorrespondanceProofs.exp_lemma6.
+  apply ZPSP.g_unit.
 rewrite /unit. elim.
 move => y.
 have  : Sub.val (y * (ZModpField.exp (inzmod g) x) )= ((Sub.val y) * (Sub.val (ZModpField.exp (inzmod g) x)) %% ZpC.p).
-smt.
+smt(@ZpC).
 have ->: (Sub.val ((ZModpField.exp (inzmod g) x))) = ((Sub.val (inzmod g)) ^ x) %% ZpC.p.
  have -> : (ZModpField.exp (inzmod g) x) = (inzmod g) ^^ x. auto.
 rewrite  - exps. assumption.
-timeout 10. smt.
+rewrite /ZpC.p.
+rewrite - exps'. auto.
+rewrite  exps. auto. auto.
 move => eq1 eq2.
 have o1 : (Sub.val y) * ((Sub.val (inzmod g)) ^ x %% ZpC.p) %% ZpC.p = 0.
   have -> : (Sub.val (inzmod g)) = g. smt(@Sub g_less_p). rewrite q. simplify. auto.

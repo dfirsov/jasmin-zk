@@ -29,11 +29,11 @@ clone W64_Zp_SchnorrCorrespondance as W64_Zp_Corr with
   op unpair  <= unpair,
   op ZpC.p <= Constants.p
 proof*.
-realize bn_set_p_correct. apply Constants.bn_set_p_correct. qed.
-realize bn_set_q_correct. apply Constants.bn_set_q_correct. qed.
-realize bn_set_bp_correct. apply Constants.bn_set_bp_correct. qed.
-realize bn_set_bq_correct. apply Constants.bn_set_bq_correct. qed.
-realize bn_set_g_correct. apply Constants.bn_set_g_correct. qed.
+realize bn_glob_p_correct. apply Constants.bn_glob_p_correct. qed.
+realize bn_glob_q_correct. apply Constants.bn_glob_q_correct. qed.
+realize bn_glob_g_correct. apply Constants.bn_glob_g_correct. qed.
+realize bn_glob_bp_correct. apply Constants.bn_glob_bp_correct. qed.
+realize bn_glob_bq_correct. apply Constants.bn_glob_bq_correct. qed.
 realize g_less_p. split. auto. auto. qed.
 realize p_less_modulusR. split. auto. auto. qed.
 realize q_val_prop1. move => x.

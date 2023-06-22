@@ -98,7 +98,7 @@ qed.
 
 lemma pow_mod (a : int) :  g ^ a  = g ^ (a %% q).
 have ->: g ^ a = g ^ (a %% q + q * (a %/ q)). 
-have : 0 < q. smt.
+have : 0 < q. smt(@EG).
 smt(jjj). 
 have ->: g ^ (a %% q + q * (a %/ q))
  = g ^ (a %% q) * (g ^ (q * (a %/ q))). smt(@CG).
@@ -128,16 +128,16 @@ have ->: x2 \in challenges_list. smt(@Distr challenges_list_size). simplify.
 rewrite /verify_transcript. simplify.
 rewrite /dl_verify. simplify.   rewrite /(^^).
 pose ch := x2.
-have ->: asint (r0 + ch * w{hr}) = (asint r0 + asint (ch * w{hr})) %% q. smt.
+have ->: asint (r0 + ch * w{hr}) = (asint r0 + asint (ch * w{hr})) %% q. smt(@EG).
 have <-: g ^ ((asint r0 + asint (ch * w{hr})))
  = g ^ ((asint r0 + asint (ch * w{hr})) %% q). smt (pow_mod).
 have ->: g ^ (asint r0 + asint (ch * w{hr}))
  = g ^ asint r0 * g ^  asint (ch * w{hr}).
 smt(@CG).
-have ->: asint (ch * w{hr}) = (asint ch * asint w{hr}) %% q. smt.
+have ->: asint (ch * w{hr}) = (asint ch * asint w{hr}) %% q. smt(@EG).
 have ->: g ^ (asint ch * asint w{hr} %% q) = g ^ (asint ch * asint w{hr}). smt (pow_mod).
 have -> : (asint ch * asint w{hr}) = (asint w{hr} * asint ch). smt().
-have ->: g ^ (asint w{hr} * asint ch) = g ^ asint w{hr} ^ asint ch. smt.
+have ->: g ^ (asint w{hr} * asint ch) = g ^ asint w{hr} ^ asint ch. smt(@CG).
 have ->: g ^ asint w{hr} = s{hr}. smt().
 smt(@CG).
 smt(@CG g_is_generator).
@@ -227,43 +227,43 @@ have fact1 : g ^ (asint t) = z * s ^ (asint c).
 have fact2 : g ^ (asint t') = z * s ^ (asint c'). 
  smt(@CG).
 have : (g ^ asint t) / g ^ (asint t') = (z * s ^ (asint c)) / (z * s ^ (asint c')).
-smt.
-have -> : g ^ asint t / g ^ asint t' = g ^ (asint t - asint t'). smt.
+smt(@CG).
+have -> : g ^ asint t / g ^ asint t' = g ^ (asint t - asint t'). smt(@CG).
 have -> : (z * s ^ asint c) / (z * s ^ asint c') =  (s ^ asint c) / (s ^ asint c'). smt(qqq).
-have -> : (s ^ asint c) / (s ^ asint c') = s ^ (asint c - asint c'). smt.
+have -> : (s ^ asint c) / (s ^ asint c') = s ^ (asint c - asint c'). smt(@CG).
 pose d := one /(c-c').
 have : asint (d * (c-c')) = 1. 
   have : (c - c') <> zero. 
     smt(@EG).
- rewrite /d. simplify. smt.
+ rewrite /d. simplify. smt(@EG).
 move => H5.
 have : exists k, asint  d * ((asint c) - (asint c'))   = 1 + q * k.
-apply (iii (asint d * ((asint c) - (asint c'))) q _ _) .   smt. 
+apply (iii (asint d * ((asint c) - (asint c'))) q _ _) .   smt(@EG). 
 have ->: (asint d * (asint c - asint c')) %% q = (asint d)* ((asint c - asint c') %% q) %% q. smt(@IntDiv).
-have -> : (asint c - asint c') %% q = asint (c - c'). smt.
+have -> : (asint c - asint c') %% q = asint (c - c'). smt(@EG).
 rewrite - mulE. auto.
 elim. progress.
 pose w := d*(t-t').
 have ->: g ^ asint ((t - t') / (c - c')) = g ^ (asint w).
-smt.
+smt(@EG).
 rewrite /w.
-have -> : g ^ asint (d * (t - t')) = g ^ (asint d * asint (t - t')). smt.
-have -> : g ^ (asint d * asint (t - t')) = g ^ asint (t - t') ^ asint d. smt.
+have -> : g ^ asint (d * (t - t')) = g ^ (asint d * asint (t - t')).  rewrite mulE. smt(pow_mod).
+have -> : g ^ (asint d * asint (t - t')) = g ^ asint (t - t') ^ asint d. smt(@CG).
 have ->: g ^ asint (t - t') = g ^ ((asint t) - (asint t')). 
   rewrite addE.
-  have -> : g ^ ((asint t + asint (-t')) %% q) = g ^ ((asint t + asint (-t')) ). smt.
-  have ->: g ^ (asint t - asint t') = g ^ ((asint t - asint t')%% q ). smt.
+  have -> : g ^ ((asint t + asint (-t')) %% q) = g ^ ((asint t + asint (-t')) ). smt(pow_mod).
+  have ->: g ^ (asint t - asint t') = g ^ ((asint t - asint t')%% q ). smt(pow_mod).
   have ->: ((asint t - asint t')%% q ) = ((asint t %%q  + (- asint t') %% q  ) ) %% q. 
   rewrite modzDm. auto.
-  have ->: g ^ (asint t + asint (-t')) = g ^ ((asint t + asint (-t')) %% q). smt.
+  have ->: g ^ (asint t + asint (-t')) = g ^ ((asint t + asint (-t')) %% q). smt(pow_mod).
   rewrite oppE.
   rewrite modzDm.
   have -> : ((asint t + (- asint t') %% q) %% q)  = ((asint t + (- asint t')) %% q). smt(@IntDiv). auto.
 rewrite H7.
 have ->: (s ^ (asint c - asint c')) ^ asint d = s ^ ((asint c - asint c') * asint d). smt(@CG).
-have ->: ((asint c - asint c') * asint d) = ((asint d)  * (asint c - asint c') ). smt.
+have ->: ((asint c - asint c') * asint d) = ((asint d)  * (asint c - asint c') ). smt().
 rewrite  H6. 
-have ->: s ^ (1 + q * k) = s  * (s ^ (q * k)). smt.
+have ->: s ^ (1 + q * k) = s  * (s ^ (q * k)). smt(@CG).
 have ->: s ^ (q * k) = e. 
 have ->: s ^ (q * k) = s ^ q ^ k. smt(@CG).
 have ->: s ^ q = e.
@@ -794,7 +794,7 @@ declare axiom rewindable_V_plus :
 
 
 lemma P_response_ll : islossless HP.response. proc. auto. qed.
-lemma P_commitment_ll : islossless HP.commitment. proc. auto. progress. smt. qed.
+lemma P_commitment_ll : islossless HP.commitment. proc. auto. progress. smt(@DZmodP). qed.
       
 
 lemma Sim1_run_ll : islossless Sim1(V).run.

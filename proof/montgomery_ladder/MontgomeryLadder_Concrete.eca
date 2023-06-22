@@ -103,33 +103,36 @@ wp. simplify.
 call ith_bit_lemma_cspec.
 inline*. wp.  simplify.
 skip. progress.
-have f1 : to_uint i{1} < W64xN.modulusR. smt.
-have -> : (to_uint i{1} - 1) %% W64xN.modulusR = (to_uint i{1} - 1). smt.
+have f1 : to_uint i{1} < W64xN.modulusR. smt(@W64xN).
+have -> : (to_uint i{1} - 1) %% W64xN.modulusR = (to_uint i{1} - 1). smt(@W64xN).
 smt(@W64).
-smt.
-have -> : (to_uint i{1} - 1) %% W64xN.modulusR = (to_uint i{1} - 1). timeout 10. smt.
-smt.
-smt(@W64xN).
-smt(@W64xN).
-smt.
+smt(@IntDiv).
+smt(@IntDiv @W64xN).
 smt().
 smt(@W64xN).
-smt. 
+rewrite H3. smt(gtp_asint).
+smt().
 smt(@W64xN).
-smt.
-timeout 15. smt.
-smt.
-smt.
-smt.
-smt.
+rewrite H3. smt(gtp_asint).
+smt(@W64xN).
+rewrite H3. smt(gtp_asint).
+simplify.
+  case (as_bool result_R). progress. rewrite - H24. rewrite H26. rewrite /as_bool. simplify. 
+  rewrite H3. 
+  have ->: asint (x2{2} * x1{2}) = asint x2{2} * asint x1{2} %% p. smt(@Zp). smt().
+  progress. rewrite - H18. rewrite H26. simplify. rewrite  H3. smt(@Zp).
+smt(@Zp).
+smt(@IntDiv @W64).
+smt(@W64 @IntDiv).
+smt(@W64).
 wp. 
 simplify.
 ecall{1} (bn_copy_correct x1{1}). simplify.
 ecall{1} (bn_copy_correct x{1}). simplify.
 ecall{1} (bn_set1_correct). simplify.
 wp.  skip. progress.
-smt.
-smt.
+smt(@Zp).
+smt(@W64xN).
 qed.
 
 
@@ -169,9 +172,14 @@ local lemma ml_equiv_abs_1 :
   equiv [ML_Abstract.mladder ~ ML_Spec.mladder_1 : ={arg} /\ size n{1} < W64xN.modulusR ==> ={res}].
 proc. inline*.  wp.
 while (={x,n,x1,x2,i,b} /\ i{1} < W64xN.modulusR). 
-wp. skip. progress. timeout 10. smt.
-smt. smt. smt.
-smt. smt. smt.
+wp. skip. progress. 
+smt(@IntDiv @W64).
+smt(@IntDiv @W64).
+smt(@IntDiv @W64).
+smt(@IntDiv @W64).
+smt(@W64).
+smt(@IntDiv @W64).
+smt(@IntDiv @W64).
 wp. skip.  progress.
 qed.
 
@@ -204,10 +212,11 @@ have q2: Ri < W64x2N.modulusR .
     rewrite - exp_lemma1. smt(). smt(). smt().
 smt(@Real).
 rewrite W64x2N.R.bn_ofintK. rewrite - Ri_def.
-smt.
+smt(@IntDiv).
 qed.
 
 
+timeout 3.
 local lemma ml_equiv_abs_conc : 
   equiv [ML_Abstract.iterop_spec ~ M(Syscall).bn_expm : 
   ImplZZ m{2} p 
@@ -224,9 +233,8 @@ transitivity  ML_Abstract.mladder
             asint x{1} = valR x{2} /\
             bs2int n{1} = valR n{2} /\ size n{1} = 64*nlimbs /\ asint x{1} < p /\ r{2} = R  ==>
             asint res{1} = valR res{2}).
-
 progress. 
-exists (arg{1}).  smt.
+exists (arg{1}).  smt().
 auto.
 proc*.
 ecall {2} (mladder_correct_ph x{2} n{2}).
@@ -236,8 +244,8 @@ transitivity ML_Spec.mladder_1
  (ImplZZ m{2} p /\
   asint x{1} = valR x{2} /\
   bs2int n{1} = valR n{2} /\ size n{1} = dnlimbs * nlimbs /\ asint x{1} < p /\ r{2} = R ==> asint res{1} = valR res{2}).
-progress. smt.
-smt().
+progress. 
+exists arg{1}. progress. rewrite H2. auto. auto.
 conseq ml_equiv_abs_1.
 transitivity ML_Spec.mladder_2
   (x{1} = x{2} /\ bs2int n{1} = n{2} /\ size n{1} = nlimbs * 64  ==> ={res})
@@ -254,29 +262,30 @@ transitivity ML_Spec.mladder_3
   asint x{1} = valR x{2} /\
     valR n{2} = valR n{1} /\ (* size n{2} = dnlimbs * nlimbs /\ *)  asint x{1} < p /\ r{2} = R ==> asint res{1} = valR res{2}).
 progress. 
-exists (x{1},  n{2}). progress. smt. auto.
+exists (x{1},  n{2}). progress. smt(). auto.
 conseq ml_equiv_2_3.
 symmetry.
 conseq ml_equiv_M_3.
-progress. smt.
-smt .
+progress. smt().
+rewrite /ri_uncompute. rewrite nasty_id. rewrite H3.
+rewrite R_prop. rewrite /ri. smt().
 progress.
-smt.
+smt().
 qed.
 
 
+lemma exp_unfold x i: 0 <= i => (x ^ (i + 1)) = x * (x ^ i).
+ rewrite /(^). progress.
+ have ->: asint x ^ (i + 1) = (asint x) * (asint x ^ i). smt(@Int).
+ smt(@Zp).
+qed.
 
 lemma exp_same_comp (x : zmod) : forall n, 0 <= n => (x ^ n) = (x ^ n)%Exp.
 apply intind. progress.
 smt(@Zp @Ring).
-progress.
-have ->: (x ^ (i + 1)) = x * (x ^ i).
- rewrite /(^).
- have ->: asint x ^ (i + 1) = (asint x) * (asint x ^ i). smt.
- smt.
-have ->: (x ^ (i + 1))%Exp = x * (x^ i)%Exp. smt.
+progress. rewrite exp_unfold. auto.
 rewrite H0.
-auto.
+smt(@Exp).
 qed.
 
 

@@ -57,7 +57,7 @@ qed.
 
 op [opaque] expm_t : leakages_t = expm_step 2048 ++ expm_t_prefix.
 
-lemma expm_leakages l :
+lemma bn_expm_leakages l :
   hoare [ M(Syscall).bn_expm : M.leakages = l
      ==> M.leakages = expm_t ++ l].
 proc.
@@ -94,11 +94,11 @@ wp.  call (bn_copy_leakages suf3).
 wp. skip. progress.
 pose suf4 :=  [LeakAddr []]  ++ copy_f 32 ++ suf3.
 seq 3 : (M.leakages = mulm_t ++ suf4 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
-wp.  call (mulm_leakages suf4).
+wp.  call (bn_mulm_leakages suf4).
 wp. skip. progress.
 pose suf5 :=  [LeakAddr []]  ++ mulm_t ++ suf4.
 seq 3 : (M.leakages = mulm_t ++ suf5 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
-wp.  call (mulm_leakages suf5).
+wp.  call (bn_mulm_leakages suf5).
 wp. skip. progress.
 pose suf6 :=  [LeakAddr []]  ++ mulm_t ++ suf5.
 seq 3 : (M.leakages = swapr_f 32 ++ suf6 /\ i_var = i + W64.one /\ W64.zero \ult i_var /\ (i + W64.one <> W64.zero => i \ult (W64.of_int 2048))).
@@ -132,6 +132,7 @@ progress.
 rewrite /expm_t. auto.
 qed.
 
+
 lemma bn_expm_ll : islossless M(Syscall).bn_expm.
 proc.
 while (0 <= to_uint i) (to_uint i).
@@ -151,3 +152,22 @@ wp. call bn_set1_ll.
 wp. skip. progress.
 smt(@W64).
 qed.
+
+
+
+lemma bn_expm_leakages_ph start_l :
+   phoare [ M(Syscall).bn_expm : M.leakages = start_l
+     ==> M.leakages = expm_t ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_expm_ll. hoare. conseq (bn_expm_leakages start_l).
+qed.
+
+lemma bn_expm_ct &m l r a b n :  M.leakages{m} = l
+ => Pr[ M(Syscall).bn_expm(r,a,b,n)@&m : M.leakages = expm_t ++ l ] = 1%r.
+move => lh.
+byphoare (_: (glob M) = (glob M){m} ==> _ ).
+conseq (bn_expm_leakages_ph l).
+auto. auto. auto.
+qed.
+
+

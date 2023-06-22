@@ -33,7 +33,7 @@ ecall (commitment_eq s{2} w{2}).
 skip. progress.
 smt(@EG). smt(@EG).
 smt(@EG @IntDiv).
-smt.
+smt(@Zp).
 rewrite Sub.insubdK. assumption. auto.
 smt(@EG).
 auto.

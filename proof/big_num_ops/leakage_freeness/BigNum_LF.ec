@@ -143,7 +143,7 @@ op set0_g (x : int) : leakages_t = iteri x (fun i r => set0_step i ++ r) [].
 lemma set0_g_comp_1 x : x <= 0 => set0_g x = []. by smt(@Int). qed.
 lemma set0_g_comp_2 x : 0 <  x => set0_g x = set0_step (x-1) ++ set0_g (x - 1). by smt(@Int). qed.
 
-op set0_f (x : int) : leakages_t = set0_g x ++ set0_prefix.
+op [opaque] set0_f (x : int) : leakages_t = set0_g x ++ set0_prefix.
 
 lemma bn_set0_leakages start_l :
    hoare [ M(Syscall).bn_set0 : M.leakages = start_l 
@@ -181,7 +181,7 @@ op set1_g (x : int) : leakages_t = iteri (x-1) (fun i r => set1_step (i+1) ++ r)
 lemma set1_g_comp_1 x : x <= 1 => set1_g x = []. by smt(@Int). qed.
 lemma set1_g_comp_2 x : 1 <  x => set1_g x = set1_step (x-1) ++ set1_g (x - 1). rewrite /set1_g. by smt(@Int). qed.
 
-op set1_f (x : int) : leakages_t = set1_g x ++ set1_prefix.
+op [opaque] set1_f (x : int) : leakages_t = set1_g x ++ set1_prefix.
 
 lemma bn_set1_leakages start_l :
    hoare [ M(Syscall).bn_set1 : M.leakages = start_l 
@@ -685,7 +685,7 @@ op bn_shrink_g (x : int) : leakages_t =  iteri x (fun i r => bn_shrink_step i ++
 lemma bn_shrink_g_comp_1 x : x = 0 => bn_shrink_g x = []. smt(@Int). qed.
 lemma bn_shrink_g_comp_2 x : 0 <  x => bn_shrink_g x = bn_shrink_step (x-1) ++ bn_shrink_g (x - 1). smt(@Int). qed.
 
-op bn_shrink_f (x : int) : leakages_t = bn_shrink_g x ++ bn_shrink_prefix.
+op [opaque] bn_shrink_f (x : int) : leakages_t = bn_shrink_g x ++ bn_shrink_prefix.
 
 lemma bn_shrink_leakages start_l :
    hoare [ M(Syscall).bn_shrink : M.leakages = start_l 
@@ -919,7 +919,7 @@ op bn_cmov_g (x : int) : leakages_t = iteri (x) (fun i r => bn_cmov_step (i) ++ 
 lemma bn_cmov_g_comp_1 x : x = 0 => bn_cmov_g x = []. smt(@Int). qed.
 lemma bn_cmov_g_comp_2 x : 0 <  x => bn_cmov_g x = bn_cmov_step (x-1) ++ bn_cmov_g (x - 1). smt(@Int). qed.
 
-op bn_cmov_f (x : int) : leakages_t = bn_cmov_g x ++ bn_cmov_prefix.
+op [opaque] bn_cmov_f (x : int) : leakages_t = bn_cmov_g x ++ bn_cmov_prefix.
 
 lemma bn_cmov_leakages start_l :
    hoare [ M(Syscall).bn_cmov : M.leakages = start_l
@@ -950,4 +950,183 @@ lemma bn_cmov_leakages_ph start_l :
             ==> M.leakages = bn_cmov_f 32 ++ start_l ] = 1%r.
 phoare split !  1%r 0%r. auto.
 conseq bn_cmov_ll. hoare. conseq (bn_cmov_leakages start_l).
+qed.
+
+
+
+(* dbn_addc LEAKAGES  *)
+op dbn_addc_prefix : leakages_t = LeakFor (1, 64) :: LeakAddr [] :: LeakAddr [0] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [0] :: LeakAddr [0] :: [].
+
+op dbn_addc_step (i : int) : leakages_t = LeakAddr [i+1] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [i+1] :: 
+LeakAddr [i+1] :: [].
+
+op dbn_addc_g (x : int) : leakages_t = iteri (x-1) (fun i r => dbn_addc_step (i) ++ r) [].
+lemma dbn_addc_g_comp_1 x : x = 1 => dbn_addc_g x = []. smt(@Int). qed.
+lemma dbn_addc_g_comp_2 x : 1 <  x => dbn_addc_g x = dbn_addc_step (x-2) ++ dbn_addc_g (x - 1).  progress. rewrite /dbn_addc_g. simplify.
+rewrite iteri_red. smt(). simplify. auto.
+qed. 
+
+op [opaque] dbn_addc_f (x : int) : leakages_t = dbn_addc_g x ++ dbn_addc_prefix.
+
+lemma dbn_addc_leakages start_l :
+   hoare [ M(Syscall).dbn_addc : M.leakages = start_l
+     ==> M.leakages = dbn_addc_f 64 ++ start_l ].
+proof.
+proc.
+sp.  elim*. progress.
+conseq (_: M.leakages = dbn_addc_prefix ++ start_l /\ i = 1 /\ aux_1 = 64 ==> _).
+progress.
+while (1 <= i /\ i <= 64 /\ aux_1 = 64 /\ M.leakages = dbn_addc_f i ++ start_l).
+wp.  skip.  progress.
+smt(). smt().
+rewrite /dbn_addc_f. rewrite (dbn_addc_g_comp_2 (i{hr} +1)).  smt(). simplify. rewrite /dbn_addc_step.
+progress. skip. progress.  rewrite /dbn_addc_f. rewrite dbn_addc_g_comp_1. auto. auto.
+smt().
+qed.
+
+
+lemma dbn_addc_ll : islossless M(Syscall).dbn_addc.
+proc. wp. while(1 <= i /\ i <= 64 /\ aux_1 = 64) (64 - i + 1). progress.
+wp. skip. 
+smt(). wp.
+skip. smt().
+qed.
+
+
+lemma dbn_addc_leakages_ph start_l :
+  phoare [ M(Syscall).dbn_addc : M.leakages = start_l
+            ==> M.leakages = dbn_addc_f 64 ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq dbn_addc_ll. hoare. conseq (dbn_addc_leakages start_l).
+qed.
+
+
+
+
+
+(* bn_addm LEAKAGES  *)
+op [opaque] daddm_f : leakages_t = 
+ dcminusP_f ++ [LeakAddr []] ++ dbn_addc_f 64 ++
+                [LeakAddr []; LeakAddr [] ; LeakAddr []].
+
+lemma daddm_leakages start_l :
+   hoare [ M(Syscall).daddm : M.leakages = start_l
+     ==> M.leakages = daddm_f ++ start_l ].
+proof.
+proc.
+sp.  elim*. progress.
+wp. ecall (dcminusP_leakages M.leakages).
+wp. ecall (dbn_addc_leakages M.leakages).
+skip. progress.
+smt(@List).
+qed.
+
+lemma daddm_ll : islossless M(Syscall).daddm.
+proc.
+wp. call dcminusP_ll.
+wp. call dbn_addc_ll.
+wp. auto.
+qed.
+
+lemma daddm_leakages_ph start_l :
+  phoare [ M(Syscall).daddm : M.leakages = start_l
+            ==> M.leakages = daddm_f ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq daddm_ll. hoare. conseq (daddm_leakages start_l).
+qed.
+
+
+(* bn_addm LEAKAGES  *)
+op [opaque] bn_addm_f : leakages_t 
+ = (bn_shrink_f 32) ++
+LeakAddr [] :: (daddm_f ++
+                LeakAddr [] :: ((bn_expand_f 32) ++
+                                LeakAddr [] :: ((bn_expand_f 32) ++
+                                                LeakAddr [] :: ((bn_expand_f
+                                                                   32) ++
+                                                                LeakAddr [] :: [])))).
+
+lemma bn_addm_leakages start_l :
+   hoare [ M(Syscall).bn_addm : M.leakages = start_l
+     ==> M.leakages = bn_addm_f ++ start_l ].
+proof.
+proc.
+sp.  elim*. progress.
+wp. ecall (bn_shrink_leakages M.leakages).
+wp. ecall (daddm_leakages M.leakages).
+wp. ecall (bn_expand_leakages M.leakages).
+wp. ecall (bn_expand_leakages M.leakages).
+wp. ecall (bn_expand_leakages M.leakages).
+skip. progress.
+rewrite /bn_addm_f.
+simplify.
+smt(catA). 
+qed.
+
+
+lemma bn_addm_ll : islossless M(Syscall).bn_addm.
+proc. 
+wp. call bn_shrink_ll.
+wp. call daddm_ll.
+wp. call bn_expand_ll.
+wp. call bn_expand_ll.
+wp. call bn_expand_ll.
+wp. auto.
+qed.
+
+lemma bn_addm_leakages_ph start_l :
+  phoare [ M(Syscall).bn_addm : M.leakages = start_l
+            ==> M.leakages = bn_addm_f  ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_addm_ll. hoare. conseq (bn_addm_leakages start_l).
+qed.
+
+
+
+
+(* bn_eq LEAKAGES  *)
+op bn_eq_prefix : leakages_t = LeakFor (0, 32) :: LeakAddr [] :: LeakAddr [] :: [].
+op bn_eq_step (i : int) : leakages_t = LeakAddr [] :: LeakAddr [] :: LeakAddr [i] :: LeakAddr [i] :: [].
+
+op bn_eq_suffix : leakages_t = LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: 
+LeakAddr [] :: LeakAddr [] :: LeakAddr [] :: [].
+
+op bn_eq_g (x : int) : leakages_t = iteri (x) (fun i r => bn_eq_step (i) ++ r) [].
+lemma bn_eq_g_comp_1 x : x = 0 => bn_eq_g x = []. smt(@Int). qed.
+lemma bn_eq_g_comp_2 x : 0 <  x => bn_eq_g x = bn_eq_step (x-1) ++ bn_eq_g (x - 1). smt(@Int). qed.
+
+op bn_eq_f (x : int) : leakages_t = bn_eq_g x ++ bn_eq_prefix.
+
+op [opaque] bn_eq_t  : leakages_t = bn_eq_suffix ++ bn_eq_g 32 ++ bn_eq_prefix.
+
+lemma bn_eq_leakages start_l :
+   hoare [ M(Syscall).bn_eq : M.leakages = start_l
+     ==> M.leakages = bn_eq_t ++ start_l ].
+proof.
+proc.
+sp.  elim*. progress.
+conseq (_: M.leakages = bn_eq_prefix ++ start_l /\ i = 0  ==> _).
+progress.
+inline M(Syscall).sn_cmov. wp.
+while (0 <= i /\ i <= 32 /\ M.leakages = bn_eq_f i ++ start_l).
+wp.  skip.  progress.
+smt(). smt().
+rewrite /bn_eq_f. rewrite (bn_eq_g_comp_2 (i{hr} +1)).  smt(). simplify. rewrite /bn_eq_step.
+progress. skip. progress.  rewrite /bn_eq_f. rewrite bn_eq_g_comp_1. auto. auto.
+smt().
+qed.
+
+
+lemma bn_eq_ll : islossless M(Syscall).bn_eq.
+proc. wp. inline*. wp. while(0 <= i /\ i <= 32) (32 - i + 1). progress.
+wp. skip. smt(). wp.
+skip. smt().
+qed.
+
+lemma bn_eq_leakages_ph start_l :
+  phoare [ M(Syscall).bn_eq : M.leakages = start_l
+            ==> M.leakages = bn_eq_t ++ start_l ] = 1%r.
+phoare split !  1%r 0%r. auto.
+conseq bn_eq_ll. hoare. conseq (bn_eq_leakages start_l).
 qed.

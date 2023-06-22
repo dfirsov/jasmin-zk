@@ -142,7 +142,7 @@ apply rsample_rec. auto.
 have s2 : Pr[RS.sample(P1,c1) @ &m : P1 res.`2] -
    mu d (predC P1) * Pr[RS.sample(P1,c1) @ &m : P1 res.`2] = mu d P1.
 smt(@Real). clear s1.
-have s3 : Pr[RS.sample(P1,c1) @ &m : P1 res.`2] * (1%r - mu d (predC P1))  = mu d P1. smt.
+have s3 : Pr[RS.sample(P1,c1) @ &m : P1 res.`2] * (1%r - mu d (predC P1))  = mu d P1. smt(@Distr).
 have s4:  Pr[RS.sample(P1,c1) @ &m : P1 res.`2] * mu d P1  = mu d P1.
  have yy : (1%r - mu d (predC P1)) 
    = mu d P1. smt(@Distr dll). smt(@Distr).

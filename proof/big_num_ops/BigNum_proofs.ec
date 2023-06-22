@@ -423,8 +423,8 @@ lemma bn_expand_correct : forall a,
     have -> : mkseq (fun (_ : int) => W64.zero) nlimbs = nseq nlimbs W64.zero.   
      pose s := (nseq nlimbs W64.zero).
     rewrite (eq_mkseq (fun (x: int) => W64.zero) (nth W64.zero s)). 
-   apply fun_ext.    apply fun_ext. progress. move => x. smt.
-   have ->: nlimbs = size s. rewrite /s. rewrite size_nseq. smt.
+   apply fun_ext.    apply fun_ext. progress. move => x. smt(@List).
+   have ->: nlimbs = size s. rewrite /s. rewrite size_nseq. auto. 
 apply mkseq_nth. 
     rewrite /bn_seq.
     rewrite foldr_cat.
@@ -510,10 +510,10 @@ rewrite /as_word.
 rewrite /truncateu8.
 have -> : (to_uint (ctr{hr} `&` (of_int 63)%W64))
   = (to_uint ctr{hr} %% 2 ^ 6).
-rewrite - to_uint_and_mod. auto.
-smt. simplify.
+rewrite - to_uint_and_mod. auto. simplify. auto.
+simplify.
 have -> : (of_int (to_uint ctr{hr} %% 64))%W8 = (of_int (to_uint ctr{hr}))%W8.
-smt.
+smt(@IntDiv).
 rewrite /(`>>`).
 rewrite /(`>>>`).
 rewrite /W64.(`&`).
@@ -527,7 +527,7 @@ simplify.
 rewrite initiE. auto.
 simplify.
 case (x = 0).
-progress. smt.
+progress. smt(@IntDiv).
 progress.
 have -> : W64.one.[x] = false.
 apply w64oneP. smt().
@@ -540,7 +540,7 @@ simplify.
 rewrite initiE. auto.
 simplify.
 case (x = 0).
-progress. smt.
+progress. smt(@IntDiv).
 progress.
 rewrite w64oneP. smt(). simplify.
 auto.
@@ -574,7 +574,7 @@ auto.
 rewrite to_uintB.  rewrite /(\ule).
 rewrite to_uintM_small. rewrite x.  
 rewrite W64.to_uint_small. auto.
-have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt. (* smt (divz_eqP).  *)
+have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt(@IntDiv). 
 have  :  0 <= to_uint ctr{2} && to_uint ctr{2} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{2}). clear x.
 pose x := to_uint ctr{2} %/ 64 * 64.
@@ -584,7 +584,7 @@ rewrite x.  smt(shr_div_le).
 rewrite to_uintM_small. rewrite x.  
 have ->: to_uint ((of_int 64))%W64 = 64.
 rewrite W64.to_uint_small.  auto. auto.
-have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt. (* smt (divz_eqP).  *)
+have  : to_uint ctr{2} %/ 64 * 64 <= to_uint ctr{2}. smt(@IntDiv). (* smt (divz_eqP).  *)
 have  :  0 <= to_uint ctr{2} && to_uint ctr{2} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{2}). clear x.
 pose x := to_uint ctr{2} %/ 64 * 64.
@@ -619,7 +619,7 @@ rewrite to_uintB. rewrite /(\ule).
 have x:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64.
 rewrite shr_div_le. auto. smt(@Ring).
 rewrite W64.to_uint_small. auto.
-have  : to_uint ctr{1} %/ 64 * 64 <= to_uint ctr{1}. (* smt (divz_eqP). *) smt.
+have  : to_uint ctr{1} %/ 64 * 64 <= to_uint ctr{1}. (* smt (divz_eqP). *) smt(@IntDiv).
 have  :  0 <= to_uint ctr{1} && to_uint ctr{1} < W64x2N.M.
 apply (W64.to_uint_cmp ctr{1}).
 pose xx := to_uint ctr{1} %/ 64 * 64.
@@ -628,7 +628,7 @@ smt().
 rewrite W64.to_uint_small. auto.
 have ->:  to_uint (ctr{1} `>>` (of_int 6)%W8) = to_uint ctr{1} %/ 64.
 rewrite shr_div_le. auto. smt(@Ring).
-smt.
+smt(@IntDiv).
 (* smt (divz_eqP). *)
 rewrite shr_div_le.  auto.
 rewrite W64.to_uintM.
@@ -781,7 +781,10 @@ bypr.
 progress.
 have ->: 1%r = Pr[ CSpecFp.swapr(x{m},y{m},as_bool swap_0{m}) @&m : res =  if ss then (yy, xx) else (xx, yy)  ].
 byphoare (_: arg = (x{m},y{m},as_bool swap_0{m}) ==> _). proc.
-skip.  progress. smt. smt(). auto.
+skip.  progress.    rewrite /as_bool.
+ have ->: (swap_0{m} = W64.one) = ss. rewrite H. simplify. rewrite /as_w64. 
+  case ss. auto. smt(@W64). smt().
+  smt(). auto.
 byequiv. conseq swap_lemma_cspec.  smt(). smt(). auto. auto.
 qed.
 
@@ -827,8 +830,8 @@ rewrite H5.
  have fact2 : 2 * W64xN.modulusR <  W64x2N.modulusR. 
  rewrite /W64xN.modulusR.
  rewrite /W64x2N.modulusR.
- have ->: dnlimbs = 2 * nlimbs. auto.
- smt.
+ have ->: dnlimbs = 2 * nlimbs. auto. 
+  simplify. auto.
 smt().
 smt().
 exists* cc{1}. elim*. move => cc_.
