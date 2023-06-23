@@ -36,7 +36,7 @@ move => q.
 elim r3.  move => q2. rewrite - q2. elim H1. progress.
 have ->: valR r1.`4 = (W64xN.R2.bnk dnlimbs r1.`4). auto.
 rewrite H5. smt(@W64xN @Int).
-smt(@W64x2N).
+smt(W64x2N.R.bnk_cmp).
 qed.
 
 
