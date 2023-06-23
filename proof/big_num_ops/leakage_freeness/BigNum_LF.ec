@@ -777,7 +777,7 @@ lemma bn_expand_h_comp_1 x : x = 32 => bn_expand_h x = []. smt(@Int). qed.
 lemma bn_expand_h_comp_2 x : 32 < x => bn_expand_h x = bn_expand_step2 (x-1) ++ bn_expand_h (x - 1). rewrite /bn_expand_h. smt(@Int). qed.
 
 
-op bn_expand_f (x : int) : leakages_t = bn_expand_h (2 * x) ++ [LeakFor (32, 64) ; LeakAddr [] ] ++ bn_expand_g x ++ bn_expand_prefix.
+op [opaque] bn_expand_f (x : int) : leakages_t = bn_expand_h (2 * x) ++ [LeakFor (32, 64) ; LeakAddr [] ] ++ bn_expand_g x ++ bn_expand_prefix.
 
 lemma bn_expand_leakages start_l :
    hoare [ M(Syscall).bn_expand : M.leakages = start_l 
@@ -1061,7 +1061,12 @@ wp. ecall (bn_expand_leakages M.leakages).
 skip. progress.
 rewrite /bn_addm_f.
 simplify.
-smt(catA). 
+rewrite - catA; simplify. 
+rewrite - catA; simplify.
+rewrite - catA; simplify. 
+rewrite - catA; simplify. 
+rewrite - catA; simplify. 
+auto.
 qed.
 
 
