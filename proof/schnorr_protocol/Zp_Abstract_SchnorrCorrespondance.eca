@@ -29,7 +29,7 @@ case (0 <= x).  apply lll'. auto.
 move => xl.
 rewrite lll''. auto. smt().
 rewrite lll'. auto. smt().
-smt(@ZModpField @Sub).       
+smt(@ZModpField @Sub exp_lemma6).
 qed.
 
 lemma bbb : forall (a b : zmods), (Sub.val a = Sub.val b) <=> (a = b). smt(@Sub). qed.
@@ -267,7 +267,8 @@ have -> : (Zps.(^) HV.s{2} q) <> (Sub.insubd one).
  have->: HV.s{2} = Sub.insubd (Sub.val HV.s{2}).
  smt(@Sub).
 rewrite lll. smt(@Sub).
-smt(@Sub @ZModpField aaa).
+print aaa.
+smt(@Sub @ZModpField aaa @Zp).
 smt(@Sub). 
 qed.
 

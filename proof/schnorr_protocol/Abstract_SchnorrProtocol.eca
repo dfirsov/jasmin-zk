@@ -157,7 +157,7 @@ conseq (_: true ==> true). inline*. sp.
 wp.  progress. rnd. simplify.
 conseq (_: true ==> true). progress. apply duniform_ll. smt(challenge_set_size).
 wp.  rnd. skip. simplify.
-smt(@Distr q_prime). skip. auto. skip. auto. auto.
+smt(@Distr @DZmodP q_prime). skip. auto. skip. auto. auto.
 qed.
 
 
@@ -240,7 +240,7 @@ move => H5.
 have : exists k, asint  d * ((asint c) - (asint c'))   = 1 + q * k.
 apply (iii (asint d * ((asint c) - (asint c'))) q _ _) .   smt(@EG). 
 have ->: (asint d * (asint c - asint c')) %% q = (asint d)* ((asint c - asint c') %% q) %% q. smt(@IntDiv).
-have -> : (asint c - asint c') %% q = asint (c - c'). smt(@EG).
+have -> : (asint c - asint c') %% q = asint (c - c'). smt(@EG @IntDiv).
 rewrite - mulE. auto.
 elim. progress.
 pose w := d*(t-t').

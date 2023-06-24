@@ -24,7 +24,7 @@ qed.
 
 
 lemma st1 n (k : real) : (4%r^k / n - 1%r) < r n k <= (4%r^k / n).
-smt(floor_bound).
+smt(floor_bound @RealExp).
 qed.
 
 

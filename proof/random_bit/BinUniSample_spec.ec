@@ -139,7 +139,7 @@ wp.  rnd{2}.
 inline*. wp. rnd {1}. skip. progress.
 smt(@Distr).
 smt(@Distr).
-smt(@Distr).
+smt(@Distr @List).
 progress. apply sat_spec_not_eq. auto.
 qed.
 

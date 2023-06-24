@@ -190,7 +190,7 @@ rewrite EG.mulE.
 rewrite lll. apply g_unit.
 rewrite - exp_mod.  apply g_q_assumption.
 move => q. apply aaa. 
-smt(@ZModpField g_unit).
+smt(@ZModpField g_unit @Zp).
 apply Zp.unitE. auto.
 apply q.
 auto.

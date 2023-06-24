@@ -150,7 +150,9 @@ proc.
 rnd  toi fri.
 skip. progress.
 rewrite /toi /fri. 
-rewrite initE. simplify. smt(@IntDiv @Distr).
+rewrite initE. simplify. 
+  have : 0 <= xR <= 255. smt(@Distr @List).
+  smt(@IntDiv).
 rewrite duniform1E_uniq. smt(@List).
 have ->: xR \in range 0 (255 + 1). smt(@List @Distr).
 simplify. 
@@ -162,7 +164,10 @@ rewrite zzz. auto.
 have : 0 <= toi rL < 256. rewrite /toi. 
 have ->: 256 = W8.modulus. ring.
 apply W8.to_uint_cmp.
-smt(@Distr).
+move => qq.
+ have : toi rL \in range 0 256.
+  smt(@List).
+  smt(@Distr).
 rewrite /fri /toi.
 apply Array1.ext_eq.
 progress.

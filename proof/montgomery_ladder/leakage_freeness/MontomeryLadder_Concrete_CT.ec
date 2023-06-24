@@ -123,11 +123,16 @@ have ->: yyy ++ [LeakAddr []; LeakAddr []] ++ www
    = yyy ++ ([LeakAddr []; LeakAddr []] ++ www). rewrite catA. auto.
 have ->: ([LeakAddr []; LeakAddr []] ++ www) = (LeakAddr [] :: LeakAddr [] :: www). smt(@List).
 auto.
-smt(@W64).
+  have : i{hr} \ult (W64.of_int 2048). smt().
+   rewrite /(\ult).
+  have : 0 <= W64.to_uint i{hr}. smt(@W64).
+  move => q1 q2.
+   rewrite to_uintD.
+   rewrite to_uintN. simplify.   smt(@W64).
 skip.
 progress.
 rewrite expm_step0. simplify. auto.
-have : i0 = W64.zero.  smt(@W64).
+have : i0 = W64.zero.  clear H0 H1. smt(@W64).
 progress.
 rewrite /expm_t. auto.
 qed.
@@ -145,7 +150,8 @@ wp. call swapr_ll.
 wp. call ith_bit_ll.
 wp. skip. progress.
 smt(@W64).
-smt(@W64).
+   rewrite to_uintD.
+   rewrite to_uintN. simplify.   smt(@W64).
 wp. call bn_copy_ll.
 wp. call bn_copy_ll.
 wp. call bn_set1_ll.

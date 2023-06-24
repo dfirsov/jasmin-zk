@@ -148,7 +148,8 @@ rewrite /ZModpField.exp. rewrite /ZModpRing.exp. auto. qed.
 
 lemma exps (x : zmod) : forall n, 0 <= n => (x ^ n) = (x ^^ n). 
 apply intind. progress.
-smt(@ZpC @Ring).
+rewrite /(^) /(^^).
+smt(@ZpC @Ring @Int).
 progress.
 have ->: (x ^ (i + 1)) = x * (x^ i). 
  rewrite /(^).
@@ -183,6 +184,7 @@ apply ZPSP.Zp.eq_inzmod.
 rewrite  g_correct. smt(@IntDiv p_prime).
  rewrite exp_inzmod. 
 have ->: 0 <= valR w . smt(@W64xN). simplify.
+rewrite /(^).
 smt(@ZPSP.Zp).
 rewrite xxx. auto.
 qed.
@@ -237,9 +239,9 @@ proc.
 rnd valR R.bn_ofint.
 skip. progress.
 rewrite R.bn_ofintK.
-have q : cR \in [0;1]. smt(@Distr).
+have q : cR \in [0;1]. smt(@Distr @List).
 smt(@IntDiv @List).
-have q : cR \in [0;1]. smt(@Distr). clear H0 H.
+have q : cR \in [0;1]. smt(@Distr @List). clear H0 H.
 rewrite duniform1E.
 rewrite duniform1E. rewrite q.
 have ->: bn_ofint cR \in [bn_ofint 0; bn_ofint 1]  = true. smt(@List).
@@ -250,7 +252,7 @@ simplify.
      have : valR (bn_ofint 0) = valR (bn_ofint 1). smt().
      rewrite bn_ofintK.      rewrite bn_ofintK. simplify. smt(@IntDiv). simplify. auto.
   simplify. auto. simplify. auto.
-have : rL \in [bn_ofint 0; bn_ofint 1]. smt(@Distr).
+have : rL \in [bn_ofint 0; bn_ofint 1]. smt(@Distr @List).
 simplify.
 elim. progress. rewrite bn_ofintK. smt(@IntDiv @Distr).
  progress. rewrite bn_ofintK. 
@@ -405,7 +407,9 @@ rewrite H7. smt(g_less_p).
   have ->: (ZModpField.exp s{1} q) = s{1} ^^ q. 
     rewrite /(^^). smt(@ZModpField).
     rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPSP.ZPS.ZpF.one xxx.  
+    have -> : 1 %% p = 1.
     smt(@IntDiv p_prime).
+    auto.
 rewrite sq_fact.
 have ->: (result8 `&` result11 = W64.one) 
   = (result8 = W64.one /\ result11 = W64.one). 

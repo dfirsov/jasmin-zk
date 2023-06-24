@@ -118,7 +118,7 @@ progress. byphoare (_: arg = a1 ==> _). hoare. simplify.
 proc.
 while(b /\ a = a1 ).  wp.
 inline ASpecFp.subn. wp.  rnd. 
-skip. progress.
+skip. progress. timeout 5.
 smt(@Distr). auto. auto. 
 auto. qed.
 

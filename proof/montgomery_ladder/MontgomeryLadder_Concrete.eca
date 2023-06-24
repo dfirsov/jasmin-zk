@@ -105,6 +105,8 @@ inline*. wp.  simplify.
 skip. progress.
 have f1 : to_uint i{1} < W64xN.modulusR. smt(@W64xN).
 have -> : (to_uint i{1} - 1) %% W64xN.modulusR = (to_uint i{1} - 1). smt(@W64xN).
+rewrite to_uintD. 
+rewrite to_uintN. 
 smt(@W64).
 smt(@IntDiv).
 smt(@IntDiv @W64xN).
@@ -282,7 +284,7 @@ qed.
 
 lemma exp_same_comp (x : zmod) : forall n, 0 <= n => (x ^ n) = (x ^ n)%Exp.
 apply intind. progress.
-smt(@Zp @Ring).
+smt(@Zp @Int @Ring).
 progress. rewrite exp_unfold. auto.
 rewrite H0.
 smt(@Exp).
