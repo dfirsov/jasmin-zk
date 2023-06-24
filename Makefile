@@ -1,4 +1,4 @@
-TIMEOUT = 20
+TIMEOUT ?= 20
 
 EXTRACTED_FILES = \
     proof/jasmin_extracts/W64_SchnorrExtract.ec \
@@ -31,8 +31,9 @@ PROOF_FILES += $(wildcard proof/auxiliary_lemmas/*.ec)
 PROOF_FILES += $(wildcard proof/auxiliary_lemmas/*.eca)
 
 
-JASMIN_PROGNAME = jasminc
-EASYCRYPT_PROGNAME = easycrypt
+JASMIN ?= jasminc
+EASYCRYPT ?= easycrypt
+ECARGS ?=
 
 EASYCRYPT_REVISION = 860dc3f
 JASMIN_VERSION = 2022.09.3
@@ -79,7 +80,7 @@ update_downloads :
 
 %.eco : %.ec $(PROOF_FILES)
 	echo Checking "$<"
-	easycrypt -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof/auxiliary_lemmas -I ./proof/big_num_ops -I ./proof/big_num_ops/leakage_freeness  -I ./proof/random_bit -I ./proof/random_bit/leakage_freeness -I ./proof -I Jasmin:./proof/eclib  -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/modular_multiplication/leakage_freeness  -I ./proof/montgomery_ladder -I ./proof/montgomery_ladder/leakage_freeness -I ./proof/rejection_sampling -I ./proof/rejection_sampling/leakage_freeness -I ./proof/schnorr_protocol -I ./proof/schnorr_protocol/leakage_freeness -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<" 
+	$(EASYCRYPT) $(ECARGS) -p "CVC4" -p "Z3" -p "Alt-Ergo" -I ./proof/auxiliary_lemmas -I ./proof/big_num_ops -I ./proof/big_num_ops/leakage_freeness  -I ./proof/random_bit -I ./proof/random_bit/leakage_freeness -I ./proof -I Jasmin:./proof/eclib  -I ./proof/jasmin_extracts -I ./proof/modular_multiplication -I ./proof/modular_multiplication/leakage_freeness  -I ./proof/montgomery_ladder -I ./proof/montgomery_ladder/leakage_freeness -I ./proof/rejection_sampling -I ./proof/rejection_sampling/leakage_freeness -I ./proof/schnorr_protocol -I ./proof/schnorr_protocol/leakage_freeness -I ./easycrypt-zk-code/generic -I ./easycrypt-zk-code/rewinding -I ./easycrypt-zk-code/misc -timeout "$(TIMEOUT)" "$<"
 
 # Check all EasyCrypt files from Jasmin sources
 # If you do not have Jasmin, you can remove this block to skip extraction
@@ -87,9 +88,9 @@ EXTRACTED_FUNCTIONS = -ec random_bit_naive -ec random_bit -ec uniform_binary_cho
 extract_all $(EXTRACTED_FILES) : src/schnorr_protocol.jazz src/constants.jazz Makefile
 	rm -rf proof/jasmin_extracts
 	mkdir proof/jasmin_extracts
-	$(JASMIN_PROGNAME)     $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract.ec    -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
-	$(JASMIN_PROGNAME) -CT $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
-	$(JASMIN_PROGNAME) -safety $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract_mem.ec -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
+	$(JASMIN)     $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract.ec    -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
+	$(JASMIN) -CT $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract_ct.ec -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
+	$(JASMIN) -safety $(EXTRACTED_FUNCTIONS) -oec proof/jasmin_extracts/W64_SchnorrExtract_mem.ec -oecarray proof/jasmin_extracts src/schnorr_protocol.jazz
 
 src/constants.jazz : src/constants.py
 	make -C src constants.jazz

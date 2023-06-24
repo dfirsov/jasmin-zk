@@ -1,0 +1,29 @@
+name: main
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+
+  compile-and-run:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: compile and run
+        run: JASMIN=$(which_jasminc) make compile_and_run
+
+  check-all:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: check all
+        run: JASMIN=$(which_jasminc) EASYCRYPT=$(which_easycrypt) ECARGS=-script TIMEOUT=60 make check_all
+
