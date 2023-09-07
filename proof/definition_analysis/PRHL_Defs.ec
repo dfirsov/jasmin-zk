@@ -275,8 +275,8 @@ rewrite (JI_pr_m_m' (pred1 _rl.`1) &1 &2) mulrC; congr => //.
 by rewrite (JR_pr_m_m' (fun x:_*_=>x.`2=_rl.`2) &1 &2).
 qed.
 
-lemma CT'_pr:
- (* CT' *)
+lemma CTplus_pr:
+ (* CTplus *)
  equiv [ RSim'(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res,glob JR} ]
  <=>
@@ -555,30 +555,30 @@ smt(mu_sub mu_bounded).
 qed.
 
 (** Moreover, we get an equivalence from CT to
-  a (apparently) more general definition CT' where
+  a (apparently) more general definition CTplus where
   the "dummy call" on the left-hand side is
   called with arbitrary secret inputs.       *)
-lemma CT_CT':
+lemma CT_CTplus:
  (* CT *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ]
  <=>
- (* CT' *)
+ (* CTplus *)
  equiv [ RSim'(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ].
 proof.
 split.
  move=> CT; have ct:= CT_ct CT.
- move: CT; rewrite CT_pr CT'_pr.
+ move: CT; rewrite CT_pr CTplus_pr.
  move => CT pin sin sin1' sin2' &m rl.
  rewrite (ct_pr_term ct _ _ sin).
  by apply CT.
-rewrite CT_pr CT'_pr => CT' pin sin sin' &m rl.
-by apply CT'.
+rewrite CT_pr CTplus_pr => CTplus pin sin sin' &m rl.
+by apply CTplus.
 qed.
 
-(** Of course, non-interference, which is often
-  trivial to establish, allows us to simplify CT
+(** Of course, non-interference (which is often
+  trivial to establish) allows us to simplify CT
   by factoring out the "independence on secret
   inputs". *)
 lemma ct_CC_CT:
@@ -711,10 +711,6 @@ qed.
   we get a simpler (and much more intuitive) definition of CT.
 *)
 
-(* Assertin failed
-pred pinll = exists f_ll, forall _pin,
- phoare [JI.f : pin=_pin ==> true ] = (b2r (f_ll _pin)).
-*)
 lemma pinll_pr:
  (* pinll *)
  (exists f_ll, forall _pin,
@@ -746,6 +742,44 @@ move: (Hll pin{2} sin{2} &2); rewrite C b2r0.
 rewrite (JI_JR_prE predT).
 smt(mu_sub mu_bounded).
 qed.
+
+lemma pinll_CT:
+ (* pinll *)
+ (exists f_ll, forall _pin,
+  phoare [JI.main : pin=_pin ==> true ] = (b2r (f_ll _pin))) =>
+ (* CT *)
+ equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
+       : ={pin, sin, glob JR} ==> ={res, glob JR} ] =>
+ (* CT' *)
+ equiv [ JR.main ~ SimR(JI,JR).main
+       : ={pin, sin, glob JR} ==> ={res, glob JR} ].
+proof.
+move=> pinll CT.
+transitivity RSim(JI, JR).main
+ ( ={pin, sin, glob JR} ==> ={res, glob JR} )
+ ( ={pin, sin, glob JR} ==> ={res, glob JR} ) => //.
++ by move=> /> &1 &2 -> ->; exists (glob JR){2} (pin,sin){2}.
++ by symmetry; conseq (pinll_RSim pinll) => /#.
+qed.
+
+(* a specialization of the previous lemma for
+ lossless procedures... *)
+lemma ll_CT:
+ (* ll *)
+ islossless JI.main =>
+ (* CT *)
+ equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
+       : ={pin, sin, glob JR} ==> ={res, glob JR} ] =>
+ (* CT' *)
+ equiv [ JR.main ~ SimR(JI,JR).main
+       : ={pin, sin, glob JR} ==> ={res, glob JR} ].
+proof.
+move=> ll CT.
+apply pinll_CT => //.
+exists (fun _ => true) => //= ?.
+by conseq ll.
+qed.
+
 
 (* Combining previously established results we
  get what is perhaps simpler path to establish
