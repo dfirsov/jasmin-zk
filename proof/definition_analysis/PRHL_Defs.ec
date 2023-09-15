@@ -299,25 +299,25 @@ by rewrite (JR_pr_m_m' (fun x:_*_=>x.`2=_rl.`2) &1 &2).
 qed.
 
 
-(* Nice lemmas! but actually we do not rely on them...
+(* Nice lemmas! but actually we do not rely on them...*)
 lemma JI_opsem1E &m:
  exists d, forall _pin _sin &m' r,
-  Pr[JI.f(_pin, _sin) @ &m' : res=r]
+  Pr[JI.main(_pin, _sin) @ &m' : res=r]
   = mu1 (d _pin _sin) r.
 proof.
 pose ff := fun (pin : pin_t) (sin : sin_t) (r : out_t)
- => Pr[JI.f(pin, sin) @ &m : res = r].
+ => Pr[JI.main(pin, sin) @ &m : res = r].
 pose df := fun (pin : pin_t) (sin : sin_t) =>
  mk (fun (x : out_t) => ff pin sin x).
 exists df => pin sin &m' r.
 rewrite -(JI_pr_m_m' (pred1 r) &m) /df muK /ff //=.
 apply Distr => /=; first smt(mu_bounded).
-move => l lU. 
-have ->: (StdBigop.Bigreal.BRA.big predT (fun (x : out_t) => Pr[JI.f(pin, sin) @ &m : res = x]) l)
- = Pr[JI.f(pin, sin) @ &m : List.(\in) res l].
+move => l lU.
+have ->: (StdBigop.Bigreal.BRA.big predT (fun (x : out_t) => Pr[JI.main(pin, sin) @ &m : res = x]) l)
+ = Pr[JI.main(pin, sin) @ &m : List.(\in) res l].
  rewrite Pr [muE] (RealSeries.sumE_fin _ l) //=.
   move=> x; apply contraR => Hx.
-  apply (eq_trans _ Pr[JI.f(pin, sin) @ &m : false]).
+  apply (eq_trans _ Pr[JI.main(pin, sin) @ &m : false]).
    by rewrite Pr [mu_eq] /#. 
   by rewrite Pr [mu_false].
  apply StdBigop.Bigreal.BRA.eq_big_seq => x Hx /=.
@@ -327,7 +327,7 @@ qed.
 
 lemma JI_opsemE &m:
  exists d, forall P _pin _sin &m',
-  Pr[JI.f(_pin, _sin) @ &m' : P res]
+  Pr[JI.main(_pin, _sin) @ &m' : P res]
   = mu (d _pin _sin) P.
 proof.
 have [dI EdI] := JI_opsem1E &m.
@@ -335,11 +335,11 @@ exists dI => P pin sin &m'.
 rewrite Pr [muE] muE; apply RealSeries.eq_sum => x /=.
 case: (P x) => C.
  by rewrite -(EdI _ _ &m') // Pr [mu_eq] /#.
-apply (eq_trans _ Pr[JI.f(pin, sin) @ &m' : false]).
+apply (eq_trans _ Pr[JI.main(pin, sin) @ &m' : false]).
  by rewrite Pr [mu_eq] /#.
 by rewrite Pr [mu_false].
 qed.
-*)
+
 
 (** This is a workaroud for a current limitation of
  EC's "rewrite Pr" mechanism. It can be
@@ -553,6 +553,114 @@ rewrite -!(JI_JR_prE (pred1 r)) /pred1 /= => Hw.
 rewrite -(E pin sin witness); field CT;
 smt(mu_sub mu_bounded).
 qed.
+
+require import StdOrder.
+import RealOrder.
+
+require import List StdBigop. 
+
+import Bigreal.BRA.
+
+
+
+lemma mleakP &m pin sin r f:
+ (f pin = fun l => Pr[ JR.main(pin,sin) @ &m : (res, glob JR)=(r,l) ] / Pr[ JR.main(pin,sin) @ &m : res=r ])
+ => isdistr (f pin).
+proof.
+move=> E; apply Distr.
+ move=> x; rewrite E.
+ smt(divr_ge0 mu_bounded).
+move=> ll Hll; rewrite E -divr_suml.
+case: (Pr[JR.main(pin, sin) @ &m : res = r] = 0%r) => C.
+ by rewrite C /=.
+rewrite -(eq_bigr _ (fun l => Pr[JR.main(pin,sin) @ &m : (res, (glob JR)) = (r,l)])). 
+ by move=> i _ //=.
+rewrite ler_pdivr_mulr /=; first smt(mu_bounded).
+pose ll':= map (fun l=>(l,r)) ll.
+have Hll': uniq ll'.
+ by rewrite /ll' map_inj_in_uniq /#.
+have ->: ll=undup (unzip1 ll').
+ by rewrite undup_id -map_comp /(\o) /= map_id.
+rewrite -(eq_big_seq (fun l=>big predT (fun xy:_*_=>Pr[JR.main(pin, sin) @ &m : res = xy.`2 /\ (glob JR) = xy.`1]) (filter (fun xy:_*_=>xy.`1=l) ll'))).
+ move=> l; rewrite undup_id /ll' -map_comp /(\o) map_id //=.
+ move => Hl.
+ have ->: filter (fun xy:_*_=>xy.`1=l) ll' = [ (l,r) ].
+  rewrite /ll' filter_map /preim /=.
+  by rewrite filter_pred1 count_uniq_mem // Hl b2i1 nseq1 /=.
+ by rewrite big_cons big_nil ifT 1:/#.
+rewrite -big_pair // big_pair_pswap.
+rewrite /predT /(\o) /=.
+pose X:= big _ _ _.
+have ->: X=Pr[JR.main(pin, sin) @ &m : res = r /\ (glob JR)\in ll].
+ rewrite (prMuE (fun xy:_*_=>xy.`1=r /\ xy.`2\in ll) _ _ &m).
+ rewrite /X.
+ rewrite (RealSeries.sumE_fin _ (map pswap ll')) //=.
+   by rewrite -map_comp map_inj_in_uniq /#.
+  move=> [a b] /=.
+  rewrite /ll' /pswap -map_comp /(\o)/=.
+  apply contraR => Hx.
+  have Hx2: a<>r \/ ! b \in ll by smt(mapP).
+  apply (eq_trans _ Pr[JR.main(pin, sin) @ &m  : false]).
+   by rewrite Pr [mu_eq] /#.
+  by rewrite Pr [mu_false].
+ apply eq_big_seq => [[a b]].
+ rewrite /pswap /ll -map_comp /(\o)/= => /mapP [b' /= Hab].
+ by rewrite Pr [mu_eq] /#.
+smt(mu_sub).
+qed.
+
+lemma LF_CT:
+ (* ll *)
+ (forall pin sin &m, Pr[JI.main(pin, sin) @ &m : true]=1%r) =>
+ (* LF *)
+ (forall l, exists f,
+  forall pin sin &m rl,
+   (glob JR){m} = l =>
+   Pr[ JR.main(pin,sin) @ &m : (res,glob JR)=rl ]
+   / Pr[ JR.main(pin,sin) @ &m : res=rl.`1 ]
+   = f pin rl.`2) =>
+ (* CT *)
+ equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
+       : ={pin, sin, glob JR} ==> ={res, glob JR} ].
+proof.
+move => JI_ll Hdef.
+rewrite CT_pr => pin sin sin' &m [r l].
+rewrite JI_ll /=.
+have [dR HdR]:= JR_opsemE &m.
+have [dI HdI]:= JI_opsemE &m.
+pose linit := (glob JR){m}.
+move: (Hdef linit).
+rewrite /linit  => {Hdef} [[fl Hfl]].
+pose dleak := fun pin (sin:sin_t) => mk (fl pin).
+pose DR:= fun pin sin => dI pin sin `*` dleak pin sin.
+have EdR:forall pin sin, dR pin sin = DR pin sin.
+ move=> _pin _sin.
+ apply eq_distr => [[r' l']].
+ rewrite dprod1E.
+ rewrite -(HdI (pred1 r') _ _ &m).
+ rewrite muK.
+  apply (mleakP &m _pin _sin r' _).
+  apply fun_ext => x.
+  by rewrite -(Hfl _pin _sin &m (r',x) _) //.
+ rewrite -(HdR _ _ _ &m) //.
+ rewrite (JI_JR_prE (pred1 r')).
+ case: (Pr[JR.main(_pin, _sin) @ &m : res=r'] = 0%r) => C.
+  rewrite C /=.
+  have ?: Pr[JR.main(_pin, _sin) @ &m : pred1 (r', l') (res, (glob JR))] <= Pr[JR.main(_pin, _sin) @ &m : res = r'].
+   by rewrite Pr [mu_sub] /#.
+  smt(mu_bounded).
+ by rewrite -(Hfl _pin _sin &m (r',l') _) /pred1 //= /#.
+rewrite (HdI (pred1 r) _ _ &m).
+rewrite (HdR (pred1 (r,l)) _ _ &m) //.
+rewrite (HdR (fun xy:_*_=>xy.`2=l) _ _ &m) //.
+rewrite {1}EdR dprod1E.
+rewrite EdR (dprodE predT (pred1 l)) /dleak.
+have ->: weight (dI pin sin') = 1%r.
+ rewrite -(HdI predT _ _ &m).
+ by apply JI_ll.
+done.
+qed.
+
 
 (** Moreover, we get an equivalence from CT to
   a (apparently) more general definition CTplus where
@@ -893,7 +1001,7 @@ declare module JR2 <: F2.JasminProcWrapper {-JR1}.
 (* A note about (glob JR1) and (glob JR2): These modules
  are expected to accumulate the leakage in a global variable.
  Hence, they share the state. This justifies why we
- shall only look only at (glob JR2), and add the
+ shall only look at (glob JR2), and add the
  axiom [globJR_eq] establishing their equality. Again,
  this axiom can be easily discharged during instantiation. *) 
 declare axiom globJR_eq &1 &2:
@@ -932,8 +1040,8 @@ lemma Compositionality:
  equiv [ F.RSim(FComp(JI1,JI2),FComp(JR1,JR2)).main ~ F.SimR(FComp(JI1,JI2),FComp(JR1,JR2)).main
        : ={pin, sin, glob FComp(JR1,JR2)} ==> ={res,glob FComp(JR1,JR2)} ].
 proof.
-rewrite (F1.CT_CT' JR1 JI1 stateless_JI1 proj_JR_JI1 prMuE1) => CT1.
-rewrite (F2.CT_CT' JR2 JI2 stateless_JI2 proj_JR_JI2 prMuE2) => CT2.
+rewrite (F1.CT_CTplus JR1 JI1 stateless_JI1 proj_JR_JI1 prMuE1) => CT1.
+rewrite (F2.CT_CTplus JR2 JI2 stateless_JI2 proj_JR_JI2 prMuE2) => CT2.
 proc*; simplify.
 inline F.RSim(FComp(JI1, JI2), FComp(JR1, JR2)).main.
 inline FComp(JI1, JI2).main FComp(JR1, JR2).main.
@@ -1012,219 +1120,3 @@ end section.
 
 end CT_Comp.
 
-
-(*
-(* testing instantiation...
-
-  obs: this is for testing purposes only -- the actual
- proofs shall appear in a separate file...         *)
-
-from Jasmin require import JModel.
-require W64_SchnorrExtract.
-require W64_SchnorrExtract_ct.
-
-module XtrR = W64_SchnorrExtract_ct.M(W64_SchnorrExtract_ct.Syscall).
-module XtrI = W64_SchnorrExtract.M(W64_SchnorrExtract.Syscall).
-
-require import Array256 Array32 WArray256.
-
-
-theory Bn_rsample.
-
-clone import CT_Meta as Bn_rsample_CT
- with type pin_t <- W64.t Array32.t,
-      type sin_t <- unit,
-      type out_t <- W64.t Array32.t.
-
-module JI = {
- proc main(pin : W64.t Array32.t, sin: unit) : W64.t Array32.t = {
-  var r;
-  r <@ XtrI.bn_rsample(pin);
-  return r.`2;
- }
-}.
-
-lemma stateless_JI &m x: (glob JI){m} = x
-by done.
-
-module JR = {
- proc main(pin : W64.t Array32.t, sin: unit) : W64.t Array32.t = {
-  var r;
-  r <@ XtrR.bn_rsample(pin);
-  return r.`2;
- }
- proc mainG(pin : W64.t Array32.t, sin: unit) : W64.t Array32.t * leakages_t = {
-  var r;
-  r <@ XtrR.bn_rsample(pin);
-  return (r.`2, XtrR.leakages);
- }
-}.
-
-lemma proj_JR_JI:
- equiv [ JR.main ~ JI.main
-       : ={pin, sin} ==> ={res} ].
-proof.
-proc; inline XtrR.bn_rsample XtrI.bn_rsample; simplify.
-sim.
-admit (* This should not occur! it appears that these extractions are not in sync... *).
-qed.
-
-lemma globJR:
- equiv [ JR.main ~ JR.mainG
-       : ={pin,sin,glob JR}
-         ==> ={glob JR} /\ res{2} = (res{1},glob JR){2} ].
-proof.
-proc*; inline JR.main JR.mainG.
-wp; call (: ={arg,glob JR} ==> ={res,glob JR}) => //.
- by proc; sim.
-by auto.
-qed.
-
-lemma prMuE P pin sin &m:
- Pr[ JR.main(pin,sin) @ &m : P (res,glob JR)]
- = RealSeries.sum (fun (x:_*_) => Pr [JR.main(pin,sin) @ &m : P (res,glob JR) /\ res=x.`1 /\ (glob JR)=x.`2]).
-proof.
-have ->: Pr[JR.main(pin, sin) @ &m : P (res,glob JR)]
-  = Pr[JR.mainG(pin, sin) @ &m : P res].
- byequiv => //.
- by conseq globJR => /> // /#.
-rewrite Pr [muE].
-apply RealSeries.eq_sum; move => [r l].
-rewrite eq_sym.
-by byequiv globJR => /> /#.
-qed.
-
-(* to prove CT on Bn_rsample, one could rely on...
- (the interesting part is the proof of CC)        *)
-print Bn_rsample_CT.pinll_ct_CC_CT.
-
-end Bn_rsample.
-
-
-theory Bn_subc.
-
-clone import CT_Meta as Bn_subc_CT
- with type pin_t <- unit,
-      type sin_t <- (W64.t Array32.t * W64.t Array32.t),
-      type out_t <- bool * W64.t Array32.t.
-
-module JI = {
- proc main(pin : unit, sin: W64.t Array32.t * W64.t Array32.t) : bool * W64.t Array32.t = {
-  var r;
-  r <@ XtrI.bn_subc(sin.`1, sin.`2);
-  return r;
- }
-}.
-
-lemma stateless_JI &m x: (glob JI){m} = x
-by done.
-
-module JR = {
- proc main(pin : unit, sin: W64.t Array32.t * W64.t Array32.t) : bool * W64.t Array32.t = {
-  var r;
-  r <@ XtrR.bn_subc(sin.`1, sin.`2);
-  return r;
- }
- proc mainG(pin : unit, sin: W64.t Array32.t * W64.t Array32.t) : (bool * W64.t Array32.t) * leakages_t = {
-  var r;
-  r <@ XtrR.bn_subc(sin.`1, sin.`2);
-  return (r,XtrR.leakages);
- }
-}.
-
-lemma proj_JR_JI:
- equiv [ JR.main ~ JI.main
-       : ={pin, sin} ==> ={res} ].
-proof.
-proc; inline XtrR.bn_subc XtrI.bn_subc; simplify.
-by sim.
-qed.
-
-lemma globJR:
- equiv [ JR.main ~ JR.mainG
-       : ={pin,sin,glob JR}
-         ==> ={glob JR} /\ res{2} = (res{1},glob JR){2} ].
-proof.
-proc*; inline JR.main JR.mainG.
-wp; call (: ={arg,glob JR} ==> ={res,glob JR}) => //.
- by proc; sim.
-by auto.
-qed.
-
-lemma prMuE P pin sin &m:
- Pr[ JR.main(pin,sin) @ &m : P (res,glob JR)]
- = RealSeries.sum (fun (x:_*_) => Pr [JR.main(pin,sin) @ &m : P (res,glob JR) /\ res=x.`1 /\ (glob JR)=x.`2]).
-proof.
-have ->: Pr[JR.main(pin, sin) @ &m : P (res,glob JR)]
-  = Pr[JR.mainG(pin, sin) @ &m : P res].
- byequiv => //.
- by conseq globJR => /> // /#.
-rewrite Pr [muE].
-apply RealSeries.eq_sum; move => [r l].
-rewrite eq_sym.
-by byequiv globJR => /> /#.
-qed.
-
-(* to prove CT on Bn_subc, one could rely on...   *)
-print Bn_subc_CT.ct_det_CT.
-
-end Bn_subc.
-
-theory TestComp.
-
-clone import CT_Comp as TestComp_CT
- with type pin1_t <- W64.t Array32.t,
-      type pin2_t <- unit,
-      type sin1_t <- unit,
-      type sin2_t <- W64.t Array32.t,
-      type out1_t <- W64.t Array32.t,
-      type out2_t <- bool * W64.t Array32.t.
-
-
-module J2R = {
- proc f1 = Bn_rsample.JR.main
- proc f2 = Bn_subc.JR.main
-}.
-
-lemma compCT:
- equiv[ F.RSim(FComp(Bn_rsample.JI,Bn_subc.JI),
-               FComp(Bn_rsample.JR,Bn_subc.JR)).main 
-      ~ F.SimR(FComp(Bn_rsample.JI,Bn_subc.JI),
-               FComp(Bn_rsample.JR,Bn_subc.JR)).main
-      : ={pin,sin, glob Bn_rsample.JR, glob Bn_subc.JR}
-        ==> ={res, glob Bn_rsample.JR, glob Bn_subc.JR} ].
-proof.
-transitivity F.RSim(FComp(Bn_rsample.JI, Bn_subc.JI), FComp(Proc1(J2R), Proc2(J2R))).main
- ( ={pin, sin, glob J2R} ==> ={res, glob J2R} )
- ( ={pin, sin, glob J2R} ==> ={res, glob J2R} ) => //.
-+ move => /> &1 &2 *.
-  by exists W64_SchnorrExtract_ct.M.leakages{2} (pin{1},sin{1}) => //.
-+ proc.
-  inline FComp(Bn_rsample.JR, Bn_subc.JR).main.
-  inline FComp(Proc1(J2R), Proc2(J2R)).main.
-  by sim.
-transitivity F.SimR(FComp(Bn_rsample.JI, Bn_subc.JI), FComp(Proc1(J2R), Proc2(J2R))).main
- ( ={pin, sin, glob J2R} ==> ={res, glob J2R} )
- ( ={pin, sin, sin', glob J2R} ==> ={res, glob J2R} ) => //.
-+ move => /> &1 &2 *.
-  by exists W64_SchnorrExtract_ct.M.leakages{2} (pin{1},sin{1},sin'{2}) => /> //.
-+ apply (Compositionality J2R Bn_rsample.JI Bn_subc.JI _ _ _ _ _ _).
-  (* AXIOMS *)
-  - exact Bn_rsample.stateless_JI.
-  - exact Bn_subc.stateless_JI.
-  - exact Bn_rsample.proj_JR_JI.
-  - exact Bn_subc.proj_JR_JI.
-  - exact Bn_rsample.prMuE.
-  - exact Bn_subc.prMuE.
-  (* PREMISES *)
-  - admit (* CT-1 *). 
-  - admit (* CT-2 *).
-+ proc.
-  inline FComp(Bn_rsample.JR, Bn_subc.JR).main.
-  inline FComp(Proc1(J2R), Proc2(J2R)).main.
-  inline Proc1(J2R).main Proc2(J2R).main.
-  by sim.
-qed.
-
-end TestComp.
-*)
