@@ -37,7 +37,7 @@ import RField.
  typically proved automatically with the [sim]
  tactic.
 
- In what follows, we define an abstract theory [CT_Meta]
+ In what follows, we define an abstract theory [LF_Meta]
  with wrappers that abstracts the Jasmin function under
  consideration -- in there, [JI] and [JR] are
  respectivelly wrappers of the abstract (ideal)
@@ -47,15 +47,15 @@ import RField.
 
 (** This theory establishes the core definitions
  and properties of the PRHL characterisation of
- Leakage-freeness (what we call the CT-property,
- as it extends the standard non-interference
+ Leakage-freeness (what we call LF),
+ which extends the standard non-interference
  based characterisation of the constant-time
- property - here called ct-property).
+ property - here called CT).
  In this theory, we focus on a single Jasmin
  function [f]. Bellow, we shall establish
  a compositionality result that ultimately justifies
  this "local" focus.                           *)
-abstract theory CT_Meta.
+abstract theory LF_Meta.
 
 (** types for public and secret inputs, and output *)
 type pin_t, sin_t, out_t.
@@ -68,7 +68,7 @@ module type JasminProcWrapper = {
 }.
 
 
-(** The CT-property can be understood as an
+(** The LF-property can be understood as an
  instance of the Real/Ideal paradigm. For a
  given Jasmin function (abstracted by modules
  [JI] and [JR], it establishes the equivalence
@@ -83,7 +83,10 @@ module type JasminProcWrapper = {
 (** [SimR] denotes the Simulated side of the
  captured property (where leakage is simulated
  resorting to the real implementation on
- arbitrary secret inputs).                     *)
+ arbitrary secret inputs).
+ Leakage-Freeness (LF) is established by enforcing
+ the equivalence:
+        JR.main ~ SimR(JI,JR).main                    *)
 module SimR(JI: JasminProcWrapper, JR: JasminProcWrapper) = {
  proc main(pin: pin_t, sin sin': sin_t): out_t = {
   var _r, r;
@@ -93,12 +96,13 @@ module SimR(JI: JasminProcWrapper, JR: JasminProcWrapper) = {
  }
 }.
 
-(** On the other side, the real (leaky)
- implementation is conditioned by (a possibly
- faulty) dummy simulator. This is a rather
- artificial (technical) artifact to turn
- the CT-property robust on possibly diverging
- programs.                                     *)
+(** We can define a generalisation of the LF property
+ that enables reasoning about arbritary (possibly divergent)
+ procedures. It consists in conditioning the left-hand
+ side of (the Real, or leaky, implementation) by a (possibly
+ faulty) dummy simulator. This is a rather  artificial
+ (technical) artifact to make the LF-property robust on
+ possibly diverging programs (what we call GenLF property). *)
 module RSim(JI: JasminProcWrapper)(JR: JasminProcWrapper) = {
  proc main(pin: pin_t, sin: sin_t): out_t = {
   var _r, r;
@@ -109,8 +113,8 @@ module RSim(JI: JasminProcWrapper)(JR: JasminProcWrapper) = {
  }
 }.
 
-(** An apparently stronger variant of CT-property
- is based on a more general variant [RSim]. As
+(** An apparently stronger variant of GenLF-property
+ is based on a more general variant of [RSim]. We call this property GenLFplus and, as
  we will see later, it turns out to be provably
  equivalent to the former characterization.    *)
 module RSim'(JI: JasminProcWrapper)(JR: JasminProcWrapper) = {
@@ -125,7 +129,7 @@ module RSim'(JI: JasminProcWrapper)(JR: JasminProcWrapper) = {
 (** Another useful definition simplifies the
  right-hand side (simulated) when it is known
  that leakage does not depend on secret inputs
- (standard non-interference). In that case,
+ (standard non-interference -- CT). In that case,
  running the simulator on arbitrary secret
  inputs is indeed equivalent to run it with
  the given secret inputs. We call this 
@@ -252,12 +256,12 @@ hoare.
 by call (:true); auto => /#.
 qed.
 
-lemma CT_pr:
- (* CT *)
+lemma GenLF_pr:
+ (* GenLF *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res,glob JR} ]
  <=>
- (* CTpr *)
+ (* GenLFpr *)
  forall _pin _sin _sin' &m _rl,
  Pr[ JI.main(_pin,_sin) @ &m : true ]
  * Pr[ JR.main(_pin,_sin) @ &m : (res,glob JR)=_rl]
@@ -275,12 +279,12 @@ rewrite (JI_pr_m_m' (pred1 _rl.`1) &1 &2) mulrC; congr => //.
 by rewrite (JR_pr_m_m' (fun x:_*_=>x.`2=_rl.`2) &1 &2).
 qed.
 
-lemma CTplus_pr:
- (* CTplus *)
+lemma GenLFplus_pr:
+ (* GenLFplus *)
  equiv [ RSim'(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res,glob JR} ]
  <=>
- (* CTpr *)
+ (* GenLFpr *)
  forall _pin _sin _sin1' _sin2' &m _rl,
  Pr[ JI.main(_pin,_sin1') @ &m : true ]
  * Pr[ JR.main(_pin,_sin) @ &m : (res,glob JR)=_rl]
@@ -298,8 +302,9 @@ rewrite (JI_pr_m_m' (pred1 _rl.`1) &1 &2) mulrC; congr => //.
 by rewrite (JR_pr_m_m' (fun x:_*_=>x.`2=_rl.`2) &1 &2).
 qed.
 
-
-(* Nice lemmas! but actually we do not rely on them...*)
+(** OPSEM lemmas
+  These relation bridge assertions at the procedural
+ level with the underlying semantic distributions.                                        *)
 lemma JI_opsem1E &m:
  exists d, forall _pin _sin &m' r,
   Pr[JI.main(_pin, _sin) @ &m' : res=r]
@@ -399,8 +404,8 @@ move=> eq0_pr; rewrite (prMuE predT) /predT /= RealSeries.sum0_eq //.
 by move=> x />; rewrite -(eq0_pr x) Pr [mu_eq] /#.
 qed.
 
-lemma CT_diverg:
- (* CT *)
+lemma GenLF_diverg:
+ (* GenFL *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ]
  =>
@@ -409,7 +414,7 @@ lemma CT_diverg:
  Pr[ JI.main(_pin,_sin) @ &m : true ] = 0%r
  <=> Pr[ JI.main(_pin,_sin') @ &m : true ] = 0%r.
 proof.
-move => /CT_pr H _pin _sin _sin' &m.
+move => /GenLF_pr H _pin _sin _sin' &m.
 have HH: forall _pin _sin _sin' &m,
    Pr[JI.main(_pin, _sin') @ &m : true] = 0%r
    => Pr[JI.main(_pin, _sin) @ &m : true] = 0%r;
@@ -426,12 +431,12 @@ have {H}H: forall _rl,
 by rewrite (prMuE predT) RealSeries.sum0_eq //= /#.
 qed.
 
-lemma ct_pr:
- (* ct *)
+lemma CT_pr:
+ (* CT *)
  equiv [ JR.main ~ JR.main
        : ={pin, glob JR} ==> ={glob JR} ]
  <=>
- (* ctpr *)
+ (* CTpr *)
  forall _pin _sin _sin' &m _l,
   Pr[ JR.main(_pin,_sin) @ &m : (glob JR)=_l]
   = Pr[ JR.main(_pin,_sin') @ &m : (glob JR)=_l ].
@@ -446,18 +451,17 @@ rewrite (JR_pr_m_m' (fun x:_*_=>x.`2=_l) &1 &2) //=.
 by apply ctpr.
 qed.
 
-(** CT implies the standard non-interference property
-  that ensures that secret inputs are not leaked *)
-lemma CT_ct:
- (* CT *)
+(** GenLF implies the standard non-interference property CT *)
+lemma GenLF_CT:
+ (* GenLF *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ]
  =>
- (* ct *)
+ (* CT *)
  equiv [ JR.main ~ JR.main
        : ={pin, glob JR} ==> ={glob JR} ].
 proof.
-rewrite CT_pr ct_pr => CT pin sin sin' &m _l.
+rewrite GenLF_pr CT_pr => CT pin sin sin' &m _l.
 case: (exists x, 0%r < Pr[JI.main(pin, sin) @ &m : res = x]).
  move => [r Hr].
  have XX: forall _sin',
@@ -500,8 +504,8 @@ qed.
  the previously established independence of divergence
  from secret inputs. Indeed, the probability of
  termination is also insensitive to secret inputs. *)
-lemma ct_pr_term:
- (* ct *)
+lemma CT_pr_term:
+ (* CT *)
  equiv [ JR.main ~ JR.main
        : ={pin, glob JR} ==> ={glob JR} ]
  =>
@@ -510,7 +514,7 @@ lemma ct_pr_term:
  Pr[ JI.main(_pin,_sin) @ &m : true]
  = Pr[ JI.main(_pin,_sin') @ &m : true ].
 proof.
-move => /ct_pr Hct _pin _sin _sin' &m.
+move => /CT_pr Hct _pin _sin _sin' &m.
 have [dR HdR]:= JR_opsemE &m.
 rewrite !(JI_JR_prE predT) /predT /=.
 rewrite (HdR predT _ _ &m) //.
@@ -523,14 +527,14 @@ have: dsnd (dR _pin _sin) = dsnd (dR _pin _sin').
 smt(weight_dmap).
 qed.
 
-(* It allow us to recover (an essentially equivalent
+(* Allowing us to recover (an essentially equivalent
   formulation of the) original Leakage-Free definition *)
-lemma CT_LF &m':
- (* CT *)
+lemma GenLF_LFdef &m':
+ (* GenFL *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ]
  =>
- (* LF *)
+ (* LFdef *)
  exists f,
   forall pin sin &m rl,
    (glob JR){m} = (glob JR){m'} =>
@@ -540,12 +544,12 @@ lemma CT_LF &m':
    v / w = f pin rl.`2.
 proof.
 move => CT.
-have /ct_pr_term E:= CT_ct CT.
+have /CT_pr_term E:= GenLF_CT CT.
 pose f := fun pin l =>
            Pr[JR.main(pin,witness) @ &m' : (glob JR)=l]
            / Pr[JI.main(pin,witness) @ &m' : true].
 exists f => pin sin &m [r l] Eg @/f /=.
-rewrite CT_pr in CT.
+rewrite GenLF_pr in CT.
 have {CT}/=CT:= (CT pin sin witness &m (r,l)).
 rewrite -(JR_pr_m_m' (fun x:_*_=>x.`2=l) &m &m') //=.
 rewrite -(JI_pr_m_m' predT &m).
@@ -553,6 +557,8 @@ rewrite -!(JI_JR_prE (pred1 r)) /pred1 /= => Hw.
 rewrite -(E pin sin witness); field CT;
 smt(mu_sub mu_bounded).
 qed.
+
+(** Converse implication *)
 
 require import StdOrder.
 import RealOrder.
@@ -609,28 +615,28 @@ have ->: X=Pr[JR.main(pin, sin) @ &m : res = r /\ (glob JR)\in ll].
 smt(mu_sub).
 qed.
 
-lemma LF_CT:
+lemma LFdef_LF:
  (* ll *)
  (forall pin sin &m, Pr[JI.main(pin, sin) @ &m : true]=1%r) =>
- (* LF *)
+ (* LFdef *)
  (forall l, exists f,
   forall pin sin &m rl,
    (glob JR){m} = l =>
    Pr[ JR.main(pin,sin) @ &m : (res,glob JR)=rl ]
    / Pr[ JR.main(pin,sin) @ &m : res=rl.`1 ]
    = f pin rl.`2) =>
- (* CT *)
+ (* LF *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ].
 proof.
-move => JI_ll Hdef.
-rewrite CT_pr => pin sin sin' &m [r l].
+move => JI_ll LFdef.
+rewrite GenLF_pr => pin sin sin' &m [r l].
 rewrite JI_ll /=.
 have [dR HdR]:= JR_opsemE &m.
 have [dI HdI]:= JI_opsemE &m.
 pose linit := (glob JR){m}.
-move: (Hdef linit).
-rewrite /linit  => {Hdef} [[fl Hfl]].
+move: (LFdef linit).
+rewrite /linit  => {LFdef} [[fl Hfl]].
 pose dleak := fun pin (sin:sin_t) => mk (fl pin).
 pose DR:= fun pin sin => dI pin sin `*` dleak pin sin.
 have EdR:forall pin sin, dR pin sin = DR pin sin.
@@ -662,26 +668,26 @@ done.
 qed.
 
 
-(** Moreover, we get an equivalence from CT to
-  a (apparently) more general definition CTplus where
+(** Moreover, we get an equivalence from GenLF to
+  a (apparently) more general definition GenLFplus where
   the "dummy call" on the left-hand side is
   called with arbitrary secret inputs.       *)
-lemma CT_CTplus:
- (* CT *)
+lemma GenLF_GenLFplus:
+ (* GenLF *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ]
  <=>
- (* CTplus *)
+ (* GenLFplus *)
  equiv [ RSim'(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ].
 proof.
 split.
- move=> CT; have ct:= CT_ct CT.
- move: CT; rewrite CT_pr CTplus_pr.
+ move=> CT; have ct:= GenLF_CT CT.
+ move: CT; rewrite GenLF_pr GenLFplus_pr.
  move => CT pin sin sin1' sin2' &m rl.
- rewrite (ct_pr_term ct _ _ sin).
+ rewrite (CT_pr_term ct _ _ sin).
  by apply CT.
-rewrite CT_pr CTplus_pr => CTplus pin sin sin' &m rl.
+rewrite GenLF_pr GenLFplus_pr => CTplus pin sin sin' &m rl.
 by apply CTplus.
 qed.
 
@@ -689,8 +695,8 @@ qed.
   trivial to establish) allows us to simplify CT
   by factoring out the "independence on secret
   inputs". *)
-lemma ct_CC_CT:
- (* ct *)
+lemma CT_CC_GenLF:
+ (* CT *)
  equiv [ JR.main ~ JR.main
        : ={pin, glob JR} ==> ={glob JR} ]
  /\
@@ -699,7 +705,7 @@ lemma ct_CC_CT:
        : ={pin, sin, glob JR}
          ==> ={res, glob JR} ]
  <=>
- (* CT *)
+ (* GenLF *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR}
          ==> ={res, glob JR} ].
@@ -716,10 +722,10 @@ split.
  call (:true).
  call ct_JR.
  by auto => /> &1 &2; apply stateless_JI.
-(* CT => ct /\ CC *)
+(* GenLF => CT /\ CC *)
 move=> CT_J; rewrite -andaE; split.
- by apply CT_ct.
-(* CT /\ ct => CC *)
+ by apply GenLF_CT.
+(* GenLF /\ CT => CC *)
 move=> ct_J.
 transitivity SimR(JI,JR).main
  (={pin, sin, glob JR} ==> ={res, glob JR})
@@ -748,8 +754,8 @@ qed.
   established correctness lemmas), or to be handled
   by some externally trusted annotation (e.g. established
   by a simple type system -- notice that sources of
-  non-determinism in Jasmin are fairly restricted). Notice that the burden on statically check
-  non-determinism is much lower that full termination (safety) check.
+  non-determinism in Jasmin are fairly restricted). The burden on statically check
+  non-determinism is much lower than a full termination check.
  *)
 lemma JI_det f _pin _sin:
  (* det *)
@@ -786,20 +792,20 @@ by sim => /> *; apply stateless_J.
 qed.
 
 
-lemma ct_det_CT:
- (* ct *)
+lemma CT_det_GenLF:
+ (* CT *)
  equiv [ JR.main ~ JR.main
        : ={pin, glob JR} ==> ={glob JR} ]
  (* det *)
  =>
  (exists f, forall _pin _sin,
    hoare [ JI.main : pin=_pin /\ sin=_sin ==> res = f _pin _sin ])
- (* CT *)
+ (* GenLF *)
  => 
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ].
 proof.
-rewrite CT_pr ct_pr => ct_j [f Hf] pin sin sin' &m rl.
+rewrite GenLF_pr CT_pr => ct_j [f Hf] pin sin sin' &m rl.
 move: (Hf pin sin) => {Hf} Hf.
 case: (rl.`1 = f pin sin) => E.
  rewrite (JI_det _ _ _ Hf &m) E /=; congr.
@@ -814,10 +820,9 @@ apply (eq_trans _ Pr[JR.main(pin, sin) @ &m : res = rl.`1 /\ (glob JR) = rl.`2])
 smt(mu_sub mu_bounded).
 qed.
 
-(** In most cases, the pattern of non-termination
-  is fully determined by public inputs. In that case,
-  we get a simpler (and much more intuitive) definition of CT.
-*)
+(** When the pattern of non-termination is fully
+  determined by public inputs, we get the "oficial"
+  (and more intuitive) definition of LF.          *)
 
 lemma pinll_pr:
  (* pinll *)
@@ -851,14 +856,14 @@ rewrite (JI_JR_prE predT).
 smt(mu_sub mu_bounded).
 qed.
 
-lemma pinll_CT:
+lemma pinll_LF:
  (* pinll *)
  (exists f_ll, forall _pin,
   phoare [JI.main : pin=_pin ==> true ] = (b2r (f_ll _pin))) =>
- (* CT *)
+ (* GenLF *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ] =>
- (* CT' *)
+ (* LF *)
  equiv [ JR.main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ].
 proof.
@@ -872,18 +877,18 @@ qed.
 
 (* a specialization of the previous lemma for
  lossless procedures... *)
-lemma ll_CT:
+lemma ll_LF:
  (* ll *)
  islossless JI.main =>
- (* CT *)
+ (* GenLF *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ] =>
- (* CT' *)
+ (* LF *)
  equiv [ JR.main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ].
 proof.
 move=> ll CT.
-apply pinll_CT => //.
+apply pinll_LF => //.
 exists (fun _ => true) => //= ?.
 by conseq ll.
 qed.
@@ -891,7 +896,7 @@ qed.
 
 (* Combining previously established results we
  get what is perhaps simpler path to establish
- CT for non-deterministic programs (in most common
+ LF for non-deterministic programs (in most common
  cases).
 
    1 - establish termination;
@@ -899,12 +904,12 @@ qed.
    3 - establish Coupled-Composition
         ( r <@ fR  ~  _ <@ fR; r <@ fI )
  *)
-lemma pinll_ct_CC_CT:
+lemma pinll_CT_CC_GenLF:
  (* pinll *)
  (exists f_ll, forall _pin,
   phoare [JI.main : pin=_pin ==> true ] = (b2r (f_ll _pin)))
  =>
- (* ct *)
+ (* CT *)
  equiv [ JR.main ~ JR.main
        : ={pin, glob JR} ==> ={glob JR} ]
  /\
@@ -913,19 +918,19 @@ lemma pinll_ct_CC_CT:
        : ={pin, sin, glob JR}
          ==> ={res, glob JR} ]
  <=> 
- (* CT *)
+ (* GenLF *)
  equiv [ RSim(JI,JR).main ~ SimR(JI,JR).main
        : ={pin, sin, glob JR} ==> ={res, glob JR} ].
 proof.
 move => pinll; split.
  move=> [ct CC].
- rewrite -ct_CC_CT; split => //.
+ rewrite -CT_CC_GenLF; split => //.
  transitivity JR.main
    (={pin, sin, glob JR} ==> ={res, glob JR})
    (={pin, sin, glob JR} ==> ={res, glob JR}) => //.
   by move => /> &1 &2 -> ->; exists (glob JR){2} (pin,sin){2} => /#.
  by apply pinll_RSim.
-rewrite -ct_CC_CT; move => [ct SC]; split => //.
+rewrite -CT_CC_GenLF; move => [ct SC]; split => //.
 transitivity RSim(JI, JR).main
    (={pin, sin, glob JR} ==> ={res, glob JR})
    (={pin, sin, glob JR} ==> ={res, glob JR}) => //.
@@ -935,30 +940,30 @@ qed.
 
 end section.
 
-end CT_Meta.
+end LF_Meta.
 
 (** We now address compositionality (the secret output
  of one function is passed to the secret inputs of
  some other function. For this, we critically rely
  on the strong (equivalent) variant of CT (what we
  have called CT').                                 *)
-theory CT_Comp.
+theory LF_Comp.
 
 type pin1_t, pin2_t, sin1_t, sin2_t, out1_t, out2_t.
 
-clone CT_Meta as F1
+clone LF_Meta as F1
  with type pin_t <- pin1_t,
       type sin_t <- sin1_t,
       type out_t <- out1_t.
 
-clone CT_Meta as F2
+clone LF_Meta as F2
  with type pin_t <- pin2_t,
       type sin_t <- out1_t * sin2_t,
       type out_t <- out2_t.
 
 type pin_t = pin1_t * pin2_t.
 type sin_t = sin1_t * sin2_t.
-clone CT_Meta as F
+clone LF_Meta as F
  with type pin_t <- pin_t,
       type sin_t <- sin_t,
       type out_t <- out2_t.
@@ -1040,8 +1045,8 @@ lemma Compositionality:
  equiv [ F.RSim(FComp(JI1,JI2),FComp(JR1,JR2)).main ~ F.SimR(FComp(JI1,JI2),FComp(JR1,JR2)).main
        : ={pin, sin, glob FComp(JR1,JR2)} ==> ={res,glob FComp(JR1,JR2)} ].
 proof.
-rewrite (F1.CT_CTplus JR1 JI1 stateless_JI1 proj_JR_JI1 prMuE1) => CT1.
-rewrite (F2.CT_CTplus JR2 JI2 stateless_JI2 proj_JR_JI2 prMuE2) => CT2.
+rewrite (F1.GenLF_GenLFplus JR1 JI1 stateless_JI1 proj_JR_JI1 prMuE1) => CT1.
+rewrite (F2.GenLF_GenLFplus JR2 JI2 stateless_JI2 proj_JR_JI2 prMuE2) => CT2.
 proc*; simplify.
 inline F.RSim(FComp(JI1, JI2), FComp(JR1, JR2)).main.
 inline FComp(JI1, JI2).main FComp(JR1, JR2).main.
@@ -1118,5 +1123,5 @@ qed.
 
 end section.
 
-end CT_Comp.
+end LF_Comp.
 

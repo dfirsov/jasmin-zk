@@ -1703,8 +1703,8 @@ require import PRHL_Defs.
 
 (** The following theories instantiate the
  abstract developments for individual procedures.*)
-theory CT_bn_lt.
-clone import CT_Meta as Meta
+theory LF_bn_lt.
+clone import LF_Meta as Meta
  with type pin_t <- unit, (*  *)
       type sin_t <- BN.t*BN.t, (* a, b *)
       type out_t <- bool. (* res *)
@@ -1763,36 +1763,36 @@ rewrite eq_sym.
 by byequiv globJR => /> /#.
 qed.
 
-end CT_bn_lt.
+end LF_bn_lt.
 
-lemma CT_bn_lt:
- equiv[ CT_bn_lt.Meta.RSim(CT_bn_lt.JI, CT_bn_lt.JR).main ~ CT_bn_lt.Meta.SimR(CT_bn_lt.JI, CT_bn_lt.JR).main :
-  ={pin, sin, glob CT_bn_lt.JR} ==> ={res, glob CT_bn_lt.JR}].
+lemma GenLF_bn_lt:
+ equiv[ LF_bn_lt.Meta.RSim(LF_bn_lt.JI, LF_bn_lt.JR).main ~ LF_bn_lt.Meta.SimR(LF_bn_lt.JI, LF_bn_lt.JR).main :
+  ={pin, sin, glob LF_bn_lt.JR} ==> ={res, glob LF_bn_lt.JR}].
 proof.
-apply (CT_bn_lt.Meta.ct_det_CT CT_bn_lt.JR CT_bn_lt.JI).
-+ by apply CT_bn_lt.stateless_JI.
-+ by apply CT_bn_lt.proj_JR_JI.
-+ by apply CT_bn_lt.prMuE.
+apply (LF_bn_lt.Meta.CT_det_GenLF LF_bn_lt.JR LF_bn_lt.JI).
++ by apply LF_bn_lt.stateless_JI.
++ by apply LF_bn_lt.proj_JR_JI.
++ by apply LF_bn_lt.prMuE.
 + by proc; call __bn_lt_cf_ct; auto => />.
 exists (fun _ (x:_*_) => bn x.`1 < bn x.`2) => ? [a b].
 by proc; ecall (__bn_lt_cf_h a b); auto.
 qed.
 
-lemma CT'_bn_lt:
- equiv[ CT_bn_lt.JR.main ~ CT_bn_lt.Meta.SimR(CT_bn_lt.JI, CT_bn_lt.JR).main :
-  ={pin, sin, glob CT_bn_lt.JR} ==> ={res, glob CT_bn_lt.JR}].
+lemma LF_bn_lt:
+ equiv[ LF_bn_lt.JR.main ~ LF_bn_lt.Meta.SimR(LF_bn_lt.JI, LF_bn_lt.JR).main :
+  ={pin, sin, glob LF_bn_lt.JR} ==> ={res, glob LF_bn_lt.JR}].
 proof.
-apply (CT_bn_lt.Meta.ll_CT CT_bn_lt.JR CT_bn_lt.JI _ _ _ _ CT_bn_lt).
-+ by apply CT_bn_lt.stateless_JI.
-+ by apply CT_bn_lt.proj_JR_JI.
-+ by apply CT_bn_lt.prMuE.
+apply (LF_bn_lt.Meta.ll_LF LF_bn_lt.JR LF_bn_lt.JI _ _ _ _ GenLF_bn_lt).
++ by apply LF_bn_lt.stateless_JI.
++ by apply LF_bn_lt.proj_JR_JI.
++ by apply LF_bn_lt.prMuE.
 by proc; call __bn_lt_cf_ll.
 qed.
 
 
-theory CT_bn_rnd.
+theory LF_bn_rnd.
 
-clone import CT_Meta as Meta
+clone import LF_Meta as Meta
  with type pin_t <- unit, (*  *)
       type sin_t <- BN.t, (* a *)
       type out_t <- BN.t. (* res *)
@@ -1851,30 +1851,30 @@ rewrite eq_sym.
 by byequiv globJR => /> /#.
 qed.
 
-end CT_bn_rnd.
+end LF_bn_rnd.
 
-lemma CT_bn_rnd:
- equiv[ CT_bn_rnd.Meta.RSim(CT_bn_rnd.JI, CT_bn_rnd.JR).main ~ CT_bn_rnd.Meta.SimR(CT_bn_rnd.JI, CT_bn_rnd.JR).main :
-  ={pin, sin, glob CT_bn_rnd.JR} ==> ={res, glob CT_bn_rnd.JR}].
+lemma GenLF_bn_rnd:
+ equiv[ LF_bn_rnd.Meta.RSim(LF_bn_rnd.JI, LF_bn_rnd.JR).main ~ LF_bn_rnd.Meta.SimR(LF_bn_rnd.JI, LF_bn_rnd.JR).main :
+  ={pin, sin, glob LF_bn_rnd.JR} ==> ={res, glob LF_bn_rnd.JR}].
 proof. by proc; inline*; auto. qed.
 
-lemma CT'_bn_rnd:
- equiv[ CT_bn_rnd.JR.main ~ CT_bn_rnd.Meta.SimR(CT_bn_rnd.JI, CT_bn_rnd.JR).main :
-  ={pin, sin, glob CT_bn_rnd.JR} ==> ={res, glob CT_bn_rnd.JR}].
+lemma LF_bn_rnd:
+ equiv[ LF_bn_rnd.JR.main ~ LF_bn_rnd.Meta.SimR(LF_bn_rnd.JI, LF_bn_rnd.JR).main :
+  ={pin, sin, glob LF_bn_rnd.JR} ==> ={res, glob LF_bn_rnd.JR}].
 proof.
-apply (CT_bn_rnd.Meta.ll_CT CT_bn_rnd.JR CT_bn_rnd.JI _ _ _ _ CT_bn_rnd).
-+ by apply CT_bn_rnd.stateless_JI.
-+ by apply CT_bn_rnd.proj_JR_JI.
-+ by apply CT_bn_rnd.prMuE.
+apply (LF_bn_rnd.Meta.ll_LF LF_bn_rnd.JR LF_bn_rnd.JI _ _ _ _ GenLF_bn_rnd). 
++ by apply LF_bn_rnd.stateless_JI.
++ by apply LF_bn_rnd.proj_JR_JI.
++ by apply LF_bn_rnd.prMuE.
 by proc; islossless; smt(bn_rnd_ll).
 qed.
 
 
 
 
-theory CT_bn_rsample.
+theory LF_bn_rsample.
 
-clone import CT_Meta as Meta
+clone import LF_Meta as Meta
  with type pin_t <- BN.t, (* bnd *)
       type sin_t <- BN.t, (* a *)
       type out_t <- BN.t. (* res *)
@@ -1933,7 +1933,7 @@ rewrite eq_sym.
 by byequiv globJR => /> /#.
 qed.
 
-end CT_bn_rsample.
+end LF_bn_rsample.
 
 
 (**
@@ -2234,8 +2234,9 @@ qed.
 
 end section.
 
-end RejectionLoop.
+print rejloop_eq.
 
+end RejectionLoop.
 
 (** Instantiation of abstract theories *)
 clone import SampleEventSwap as EvSwap
@@ -2269,17 +2270,17 @@ module RSampleLoop = {
   proc loop_init(b: bool): unit = {
     var r1, _r1;
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    r1 <@ CT_bn_rnd.JR.main(tt, witness);
+    r1 <@ LF_bn_rnd.JR.main(tt, witness);
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    _r1 <@ CT_bn_lt.JR.main(tt, (witness, witness));
+    _r1 <@ LF_bn_lt.JR.main(tt, (witness, witness));
     Mleak.leakages <- LeakCond (!b) :: LeakAddr [] :: Mleak.leakages;
   }
   proc loop_body(b: bool): unit = {
     var r1, _r1;
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    r1 <@ CT_bn_rnd.JR.main(tt, witness);
+    r1 <@ LF_bn_rnd.JR.main(tt, witness);
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    _r1 <@ CT_bn_lt.JR.main(tt, (witness, witness));
+    _r1 <@ LF_bn_lt.JR.main(tt, (witness, witness));
     Mleak.leakages <- LeakCond (!b) :: LeakAddr [] :: Mleak.leakages;
   }
 }.
@@ -2306,26 +2307,26 @@ module RSampleLoop = {
  as instantiations required from the abstract
  theories.                                  *)
 lemma CC_bn_rsample:
- equiv[ CT_bn_rsample.JR.main ~ CT_bn_rsample.Meta.CC(CT_bn_rsample.JI, CT_bn_rsample.JR).main :
-  ={pin, sin, glob CT_bn_rsample.JR} ==> ={res, glob CT_bn_rsample.JR}].
+ equiv[ LF_bn_rsample.JR.main ~ LF_bn_rsample.Meta.CC(LF_bn_rsample.JI, LF_bn_rsample.JR).main :
+  ={pin, sin, glob LF_bn_rsample.JR} ==> ={res, glob LF_bn_rsample.JR}].
 proof.
 proc*; simplify.
-inline CT_bn_rsample.Meta.CC(CT_bn_rsample.JI, CT_bn_rsample.JR).main.
-inline CT_bn_rsample.JR.main CT_bn_rsample.JI.main Mleak.__bn_rsample.
+inline LF_bn_rsample.Meta.CC(LF_bn_rsample.JI, LF_bn_rsample.JR).main.
+inline LF_bn_rsample.JR.main LF_bn_rsample.JI.main Mleak.__bn_rsample.
 
 transitivity {1}
  { bnd <- pin;
    a <- sin;
    Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-   a <@ CT_bn_rnd.JR.main(tt,a);
+   a <@ LF_bn_rnd.JR.main(tt,a);
    Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-   cf <@ CT_bn_lt.JR.main(tt, (a,bnd));
+   cf <@ LF_bn_lt.JR.main(tt, (a,bnd));
    Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
    while (!cf) {
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     a <@ CT_bn_rnd.JR.main(tt,a);
+     a <@ LF_bn_rnd.JR.main(tt,a);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     cf <@ CT_bn_lt.JR.main(tt, (a,bnd));
+     cf <@ LF_bn_lt.JR.main(tt, (a,bnd));
      Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
    }
    r <- a;
@@ -2333,7 +2334,7 @@ transitivity {1}
  ( ={pin, sin, Mleak.leakages} ==> ={r, Mleak.leakages} )
  ( ={pin, sin, Mleak.leakages} ==> ={r, Mleak.leakages} ) => //.
 + move=> /> &2 /#.
-+ inline CT_bn_rnd.JR.main CT_bn_lt.JR.main.
++ inline LF_bn_rnd.JR.main LF_bn_lt.JR.main.
   wp; while(#pre /\ ={a,cf,bnd}).
    wp; call(: ={Mleak.leakages}); first by sim.
    by inline*; auto => />.
@@ -2344,15 +2345,15 @@ transitivity {1}
  { bnd <- pin;
    a <- sin;
    Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-   a <@ CT_bn_rnd.Meta.SimR(CT_bn_rnd.JI, CT_bn_rnd.JR).main(tt,a, witness);
+   a <@ LF_bn_rnd.Meta.SimR(LF_bn_rnd.JI, LF_bn_rnd.JR).main(tt,a, witness);
    Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-   cf <@ CT_bn_lt.Meta.SimR(CT_bn_lt.JI, CT_bn_lt.JR).main(tt, (a,bnd), (witness, witness));
+   cf <@ LF_bn_lt.Meta.SimR(LF_bn_lt.JI, LF_bn_lt.JR).main(tt, (a,bnd), (witness, witness));
    Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
    while (!cf) {
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     a <@ CT_bn_rnd.Meta.SimR(CT_bn_rnd.JI, CT_bn_rnd.JR).main(tt,a, witness);
+     a <@ LF_bn_rnd.Meta.SimR(LF_bn_rnd.JI, LF_bn_rnd.JR).main(tt,a, witness);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     cf <@ CT_bn_lt.Meta.SimR(CT_bn_lt.JI, CT_bn_lt.JR).main(tt, (a,bnd), (witness, witness));
+     cf <@ LF_bn_lt.Meta.SimR(LF_bn_lt.JI, LF_bn_lt.JR).main(tt, (a,bnd), (witness, witness));
      Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
    }
    r <- a;
@@ -2361,12 +2362,12 @@ transitivity {1}
  ( ={pin, sin, Mleak.leakages} ==> ={r, Mleak.leakages} ) => //.
 + move=> /> &2 /#.
 + wp; while(#pre /\ ={a,cf,bnd}).
-   wp; call CT'_bn_lt.
-   by wp; call CT'_bn_rnd; auto => />.
-  wp; call CT'_bn_lt.
-  by wp; call CT'_bn_rnd; auto => />.
-inline CT_bn_rnd.Meta.SimR(CT_bn_rnd.JI, CT_bn_rnd.JR).main.
-inline CT_bn_lt.Meta.SimR(CT_bn_lt.JI, CT_bn_lt.JR).main.
+   wp; call LF_bn_lt.
+   by wp; call LF_bn_rnd; auto => />.
+  wp; call LF_bn_lt.
+  by wp; call LF_bn_rnd; auto => />.
+inline LF_bn_rnd.Meta.SimR(LF_bn_rnd.JI, LF_bn_rnd.JR).main.
+inline LF_bn_lt.Meta.SimR(LF_bn_lt.JI, LF_bn_lt.JR).main.
 swap {1} [4..5] -1.
 swap {1} [8..9] -3.
 swap {1} [11..12] -4.
@@ -2377,16 +2378,16 @@ transitivity {1}
    a <- sin;
    (a, cf) <@ SampleEvent.sample(bnd, (fun _ => bn_rnd), fun bnd x => bn x < bn bnd);
    Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-   r1 <@ CT_bn_rnd.JR.main(tt, witness);
+   r1 <@ LF_bn_rnd.JR.main(tt, witness);
    Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-   _r1 <@ CT_bn_lt.JR.main(tt, (witness,witness));
+   _r1 <@ LF_bn_lt.JR.main(tt, (witness,witness));
    Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
    while (!cf) {
      (a, cf) <@ SampleEvent.sample(bnd, (fun _ => bn_rnd), fun bnd x => bn x < bn bnd);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     r1 <@ CT_bn_rnd.JR.main(tt, witness);
+     r1 <@ LF_bn_rnd.JR.main(tt, witness);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     _r1 <@ CT_bn_lt.JR.main(tt, (witness,witness));
+     _r1 <@ LF_bn_lt.JR.main(tt, (witness,witness));
      Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
    }
    r <- a;
@@ -2402,12 +2403,12 @@ transitivity {1}
    swap {1} [13..14] -6.
    wp; call(: ={Mleak.leakages}); first by sim.
    wp; call(: ={Mleak.leakages}); first by sim.
-   inline CT_bn_lt.JI.main.
+   inline LF_bn_lt.JI.main.
    wp; ecall {1} (__bn_lt_cf_ph sin5.`1{1} sin5.`2{1}).
    by inline*; auto => /> *.
   wp; call(: ={Mleak.leakages}); first by sim.
   wp; call(: ={Mleak.leakages}); first by sim.
-  inline CT_bn_lt.JI.main.
+  inline LF_bn_lt.JI.main.
   wp; ecall {1} (__bn_lt_cf_ph sin5.`1{1} sin5.`2{1}).
   by inline*; auto => /> *.
 
@@ -2416,16 +2417,16 @@ transitivity {1}
    a <- sin;
    (a, cf) <@ SampleEvent.sampleEv(bnd, (fun _ => bn_rnd), fun bnd x => bn x < bn bnd);
    Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-   r1 <@ CT_bn_rnd.JR.main(tt, witness);
+   r1 <@ LF_bn_rnd.JR.main(tt, witness);
    Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-   _r1 <@ CT_bn_lt.JR.main(tt, (witness,witness));
+   _r1 <@ LF_bn_lt.JR.main(tt, (witness,witness));
    Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
    while (!cf) {
      (a, cf) <@ SampleEvent.sampleEv(bnd, (fun _ => bn_rnd), fun bnd x => bn x < bn bnd);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     r1 <@ CT_bn_rnd.JR.main(tt, witness);
+     r1 <@ LF_bn_rnd.JR.main(tt, witness);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     _r1 <@ CT_bn_lt.JR.main(tt, (witness,witness));
+     _r1 <@ LF_bn_lt.JR.main(tt, (witness,witness));
      Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
    }
    r <- a;
@@ -2473,16 +2474,16 @@ seq 9 18: (={Mleak.leakages} /\ bnd0{1}=pin2{2}).
   { bnd0 <- pin;
     (a, b) <@ SampleEvent.sampleEv(bnd0, (fun _ => bn_rnd), fun bnd x => bn x < bn bnd);
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    r10 <@ CT_bn_rnd.JR.main(tt, witness);
+    r10 <@ LF_bn_rnd.JR.main(tt, witness);
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    _r10 <@ CT_bn_lt.JR.main(tt, (witness, witness));
+    _r10 <@ LF_bn_lt.JR.main(tt, (witness, witness));
     Mleak.leakages <- LeakCond (!b) :: LeakAddr [] :: Mleak.leakages;
     while (!b) {
      (a, b) <@ SampleEvent.sampleEv(bnd0, (fun _ => bn_rnd), fun bnd x => bn x < bn bnd);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     r10 <@ CT_bn_rnd.JR.main(tt, witness);
+     r10 <@ LF_bn_rnd.JR.main(tt, witness);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     _r10 <@ CT_bn_lt.JR.main(tt, (witness, witness));
+     _r10 <@ LF_bn_lt.JR.main(tt, (witness, witness));
      Mleak.leakages <- LeakCond (!b) :: LeakAddr [] :: Mleak.leakages;
     }
    }
@@ -2502,16 +2503,16 @@ seq 9 18: (={Mleak.leakages} /\ bnd0{1}=pin2{2}).
   { bnd0 <- pin;
     (a, b) <@ SampleEvent.sample(bnd0, (fun _ => bn_rnd), fun bnd x => bn x < bn bnd);
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    r10 <@ CT_bn_rnd.JR.main(tt, witness);
+    r10 <@ LF_bn_rnd.JR.main(tt, witness);
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    _r10 <@ CT_bn_lt.JR.main(tt, (witness, witness));
+    _r10 <@ LF_bn_lt.JR.main(tt, (witness, witness));
     Mleak.leakages <- LeakCond (!b) :: LeakAddr [] :: Mleak.leakages;
     while (!b) {
      (a, b) <@ SampleEvent.sample(bnd0, (fun _ => bn_rnd), fun bnd x => bn x < bn bnd);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     r10 <@ CT_bn_rnd.JR.main(tt, witness);
+     r10 <@ LF_bn_rnd.JR.main(tt, witness);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     _r10 <@ CT_bn_lt.JR.main(tt, (witness, witness));
+     _r10 <@ LF_bn_lt.JR.main(tt, (witness, witness));
      Mleak.leakages <- LeakCond (!b) :: LeakAddr [] :: Mleak.leakages;
     }
    }
@@ -2531,15 +2532,15 @@ seq 9 18: (={Mleak.leakages} /\ bnd0{1}=pin2{2}).
  inline SampleEvent.sample.
  transitivity {2}
   { Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    a <@ CT_bn_rnd.JR.main(tt,sin);
+    a <@ LF_bn_rnd.JR.main(tt,sin);
     Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-    cf <@ CT_bn_lt.JR.main(tt, (a,pin));
+    cf <@ LF_bn_lt.JR.main(tt, (a,pin));
     Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
     while (!cf) {
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     a <@ CT_bn_rnd.JR.main(tt,sin);
+     a <@ LF_bn_rnd.JR.main(tt,sin);
      Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-     cf <@ CT_bn_lt.JR.main(tt, (a,pin));
+     cf <@ LF_bn_lt.JR.main(tt, (a,pin));
      Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
     }
    }
@@ -2548,23 +2549,23 @@ seq 9 18: (={Mleak.leakages} /\ bnd0{1}=pin2{2}).
  + by move => /> &2; exists Mleak.leakages{2} pin{2} sin{2} => //.
  + transitivity {2}
     { Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-      a <@ CT_bn_rnd.Meta.SimR(CT_bn_rnd.JI, CT_bn_rnd.JR).main(tt,sin,witness);
+      a <@ LF_bn_rnd.Meta.SimR(LF_bn_rnd.JI, LF_bn_rnd.JR).main(tt,sin,witness);
       Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-      cf <@ CT_bn_lt.Meta.SimR(CT_bn_lt.JI, CT_bn_lt.JR).main(tt, (a,pin), (witness,witness));
+      cf <@ LF_bn_lt.Meta.SimR(LF_bn_lt.JI, LF_bn_lt.JR).main(tt, (a,pin), (witness,witness));
       Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
       while (!cf) {
        Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-       a <@ CT_bn_rnd.Meta.SimR(CT_bn_rnd.JI, CT_bn_rnd.JR).main(tt,sin,witness);
+       a <@ LF_bn_rnd.Meta.SimR(LF_bn_rnd.JI, LF_bn_rnd.JR).main(tt,sin,witness);
        Mleak.leakages <- LeakAddr [] :: Mleak.leakages;
-       cf <@ CT_bn_lt.Meta.SimR(CT_bn_lt.JI, CT_bn_lt.JR).main(tt, (a,pin), (witness,witness));
+       cf <@ LF_bn_lt.Meta.SimR(LF_bn_lt.JI, LF_bn_lt.JR).main(tt, (a,pin), (witness,witness));
        Mleak.leakages <- LeakCond (!cf) :: LeakAddr [] :: Mleak.leakages;
       }
      }
      ( ={pin, sin, Mleak.leakages} ==> ={pin, Mleak.leakages} /\ bnd0{1} = pin{2} )
      ( ={pin, sin, Mleak.leakages} ==> ={pin, Mleak.leakages} ) => //.
    - by move => /> &2; exists Mleak.leakages{2} pin{2} sin{2} => //.
-   - inline CT_bn_rnd.Meta.SimR CT_bn_lt.Meta.SimR.
-     inline CT_bn_rnd.JI.main CT_bn_lt.JI.main.
+   - inline LF_bn_rnd.Meta.SimR LF_bn_lt.Meta.SimR.
+     inline LF_bn_rnd.JI.main LF_bn_lt.JI.main.
      while ((b,bnd0){1}=(cf,pin){2} /\ ={Mleak.leakages} ).
       swap {2} [7..10] -3.
       swap {2} [16..20] -2.
@@ -2584,11 +2585,11 @@ seq 9 18: (={Mleak.leakages} /\ bnd0{1}=pin2{2}).
      by inline*; auto => /> *.
    symmetry.
    while (#pre /\ ={cf}).
-    wp; call CT'_bn_lt.
-    by wp; call CT'_bn_rnd; auto.
-   wp; call CT'_bn_lt.
-   by wp; call CT'_bn_rnd; auto.
- inline CT_bn_rnd.JR.main CT_bn_lt.JR.main.
+    wp; call LF_bn_lt.
+    by wp; call LF_bn_rnd; auto.
+   wp; call LF_bn_lt.
+   by wp; call LF_bn_rnd; auto.
+ inline LF_bn_rnd.JR.main LF_bn_lt.JR.main.
  wp; while(#pre /\ ={a,cf} /\ bnd{2}=pin{2}).
   wp; call(: ={Mleak.leakages}); first by sim.
   by inline*; auto => />.
@@ -2622,15 +2623,14 @@ qed.
 
 (** The actual CT property follows from a generic
  property formalised in PRHL_Defs.        *)
-lemma CT_bn_rsample:
- equiv[  CT_bn_rsample.Meta.RSim(CT_bn_rsample.JI, CT_bn_rsample.JR).main ~  CT_bn_rsample.Meta.SimR(CT_bn_rsample.JI, CT_bn_rsample.JR).main :
-  ={pin, sin, glob CT_bn_rsample.JR} ==> ={res, glob CT_bn_rsample.JR}].
+lemma LF_bn_rsample:
+ equiv[  LF_bn_rsample.Meta.RSim(LF_bn_rsample.JI, LF_bn_rsample.JR).main ~  LF_bn_rsample.Meta.SimR(LF_bn_rsample.JI, LF_bn_rsample.JR).main :
+  ={pin, sin, glob LF_bn_rsample.JR} ==> ={res, glob LF_bn_rsample.JR}].
 proof.
-print CT_bn_rsample.Meta.
-apply (CT_bn_rsample.Meta.pinll_ct_CC_CT CT_bn_rsample.JR CT_bn_rsample.JI).
-+ by apply CT_bn_rsample.stateless_JI.
-+ by apply CT_bn_rsample.proj_JR_JI.
-+ by apply CT_bn_rsample.prMuE.
+apply (LF_bn_rsample.Meta.pinll_CT_CC_GenLF LF_bn_rsample.JR LF_bn_rsample.JI).
++ by apply LF_bn_rsample.stateless_JI.
++ by apply LF_bn_rsample.proj_JR_JI.
++ by apply LF_bn_rsample.prMuE.
 + exists (fun bnd => bn bnd <> 0) => /> _bnd.
   case: (bn _bnd=0) => C /=; proc; simplify.
    hoare; inline M.__bn_rsample.
