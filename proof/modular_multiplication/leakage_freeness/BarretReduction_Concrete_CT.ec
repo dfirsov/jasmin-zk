@@ -103,8 +103,8 @@ proc.
 wp. ecall (bn_breduce_leakages M.leakages). 
 wp. ecall (bn_expand_leakages M.leakages). 
 wp. skip. progress.
-rewrite /bn_breduce_small_f. 
-smt(@List).
+rewrite /bn_breduce_small_f.
+smt(catA).
 qed.
 
 

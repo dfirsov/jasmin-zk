@@ -24,7 +24,8 @@ op q : int.
 axiom q_prime : prime q.
 
 op g : ZPS.zmod.
-axiom g_q_assumption: (ZModpField.exp g q) = Zp.one.
+
+axiom g_q_assumption: (exp g q) = Zp.one.
 
 op challenges_list_zp : int list.
 axiom list_elems x : x \in challenges_list_zp => 0 <= x < q.
@@ -32,23 +33,23 @@ axiom challenges_list_zp_uniq : uniq challenges_list_zp.
 axiom challenges_list_zp_size : 0 < size challenges_list_zp.
 
 lemma g_unit : unit g.  
-apply (Zp.ComRing.unitP g (ZModpField.exp g (q-1))).
-have ->: (ZModpField.exp g (q - 1)) * g = (ZModpField.exp g (q - 1)) * (ZModpField.exp g 1). smt(@ZModpField).
-have ->: (ZModpField.exp g (q - 1)) * (ZModpField.exp g 1) = (ZModpField.exp g ((q - 1) + 1)).
+apply (Zp.ComRing.unitP g (exp g (q-1))).
+have ->: (exp g (q - 1)) * g = (exp g (q - 1)) * (exp g 1). smt(@ZModpField).
+have ->: (exp g (q - 1)) * (exp g 1) = (exp g ((q - 1) + 1)).
 rewrite - ZModpField.exprD. 
 apply (ZModpField.unitrX_neq0 g q). smt(q_prime). smt(g_q_assumption @ZModpField).
 simplify. auto.
 simplify. apply g_q_assumption. qed.
 
 lemma lll' (z : zmod) : unit z => forall x, 0 <= x 
-  => Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
+  => Zps.(^) (Sub.insubd z)  x = Sub.insubd (exp z x). 
 move => z_unit. apply intind. progress. 
 smt(@Zps @ZModpField). 
 progress. 
 rewrite ZModpField.exprS. auto.
 rewrite Zps.expS. rewrite H0.
-have ->: (Sub.insubd (z * (ZModpField.exp z i)))
- = Sub.Lift.lift2 Zp.( * ) (Sub.insubd z)  (Sub.insubd (ZModpField.exp z i)).
+have ->: (Sub.insubd (z * (exp z i)))
+ = Sub.Lift.lift2 Zp.( * ) (Sub.insubd z)  (Sub.insubd (exp z i)).
   smt(@Sub @Zp).
 smt().
 qed.
@@ -73,8 +74,8 @@ type secret      = int.
 
 
 
-op completeness_relationG (s:statement) (w:witness) = (ZModpField.exp g w) = s.
-op zk_relationG (s : statement) (w : witness) = 0 <= w < q /\ (ZModpField.exp g w) = s.
+op completeness_relationG (s:statement) (w:witness) = (exp g w) = s.
+op zk_relationG (s : statement) (w : witness) = 0 <= w < q /\ (exp g w) = s.
 
 
 
@@ -93,7 +94,7 @@ module SchnorrProver : ZKProverG = {
   proc commitment() : commitment * secret = {
     var r : secret;
     r <$ [0..q-1]; 
-    return (ZModpField.exp g r, r);
+    return (exp g r, r);
   }
   proc response(w: witness, r:secret, c: challenge) : response = {
     c <- (c %% q \in challenges_list_zp) ? c %% q : head witness challenges_list_zp;
@@ -108,7 +109,7 @@ module SchnorrVerifier : ZKVerifierG = {
     return c;
   }
   proc verify(s: statement, z: commitment, c: challenge, t: response) : bool = {
-    return ((ZModpField.exp g t) = (ZModpField.exp s c) * z) /\ (ZModpField.exp s q) = Zp.one;
+    return ((exp g t) = (exp s c) * z) /\ (exp s q) = Zp.one;
   }
 }.
 

@@ -46,15 +46,15 @@ local lemma qqqq x : 0 <= x => (g ^ x %% ZpC.p) <> 0.
 move => xnonzero.
 case ((g ^ x %% ZpC.p = 0)).
 move => q. simplify.
-  have : unit (ZModpField.exp (inzmod g) x ).
+  have : unit (exp (inzmod g) x ).
    apply ZSC.Zp_SchnorrCorrespondanceProofs.exp_lemma6.
   apply ZPSP.g_unit.
 rewrite /unit. elim.
 move => y.
-have  : Sub.val (y * (ZModpField.exp (inzmod g) x) )= ((Sub.val y) * (Sub.val (ZModpField.exp (inzmod g) x)) %% ZpC.p).
+have  : Sub.val (y * (exp (inzmod g) x) )= ((Sub.val y) * (Sub.val (exp (inzmod g) x)) %% ZpC.p).
 smt(@ZpC).
-have ->: (Sub.val ((ZModpField.exp (inzmod g) x))) = ((Sub.val (inzmod g)) ^ x) %% ZpC.p.
- have -> : (ZModpField.exp (inzmod g) x) = (inzmod g) ^^ x. auto.
+have ->: (Sub.val ((exp (inzmod g) x))) = ((Sub.val (inzmod g)) ^ x) %% ZpC.p.
+ have -> : (exp (inzmod g) x) = (inzmod g) ^^ x. auto.
 rewrite  - exps. assumption.
 rewrite /ZpC.p.
 rewrite - exps'. auto.

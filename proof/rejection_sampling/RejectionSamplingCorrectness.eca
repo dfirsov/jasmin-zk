@@ -41,10 +41,10 @@ auto.
 qed.
 
 
-lemma ph_l2  &m P1 Q1 c1 : Impl Q1 P1 =>
+lemma ph_l2  &m P1 Q1 c1 : (* Impl Q1 P1 => *)
   Pr[ RS.sample1(P1, c1) @ &m : Q1 res.`2 /\ RS.flag = true ] 
   = (mu d (predC P1)) * Pr[ RS.sample(P1,c1) @ &m : Q1 res.`2 ].
-move => H.
+(* move => H. *)
 byphoare (_: arg = (P1, c1) ==> _). proc. sp.
 seq 1 : (!P1 x) (mu d (fun x => ! P1 x)) (Pr[RS.sample(P1,c1) @ &m : Q1 res.`2])
  (mu d P1) 0%r (c1 = c /\ P1 = P /\ RS.flag = false).
@@ -58,16 +58,15 @@ wp. skip. smt().
 progress. progress.  auto. 
 qed.
 
-lemma ph_l3  &m P1 Q1 c1 : Impl Q1 P1 =>
+lemma ph_l3  &m P1 Q1 c1 :
   Pr[ RS.sample1(P1, c1) @ &m : Q1 res.`2 /\ RS.flag = false ] 
-  = (mu d Q1). 
-move => H.
-byphoare (_: arg.`1 = P1 ==> _). proc. sp.
-seq 1 : (Q1 x) (mu d Q1) 1%r
+  = (mu d (fun x => Q1 x /\ P1 x)). 
+byphoare (_: arg.`1 = P1 ==> _). proc. sp. simplify.
+seq 1 : (Q1 x /\ P1 x) (mu d (fun x => Q1 x /\ P1 x)) 1%r
  (mu d P1) 0%r (P1 = P /\ RS.flag = false).
 rnd. skip. auto.
 rnd. skip. progress. 
-rcondf 2. wp. auto. smt(). wp. skip.  auto.
+rcondf 2. wp. auto.  wp. auto. 
 exists* x. elim*. move => xx.
 case (P1 xx).
 rcondf 2. wp. skip. progress. hoare. wp. skip. smt().
@@ -83,9 +82,9 @@ byequiv (_: ={arg} ==> _). symmetry. conseq rj_eq1. auto.
 auto. auto. auto.
 qed.
 
-lemma rsample1_rsample  &m P1 Q1 c1 : Impl Q1 P1 =>
+lemma rsample1_rsample  &m P1 Q1 c1 : (* Impl Q1 P1 => *)
   Pr[ RS.sample1(P1,c1) @ &m : Q1 res.`2 ] 
-  =  (mu d (predC P1)) * Pr[ RS.sample(P1,c1) @ &m : Q1 res.`2 ] + (mu d Q1).
+  =  (mu d (predC P1)) * Pr[ RS.sample(P1,c1) @ &m : Q1 res.`2 ] + (mu d (fun x => Q1 x /\ P1 x)).
 progress.
 rewrite Pr[mu_split RS.flag = true]. 
 rewrite ph_l2. auto.
@@ -93,26 +92,24 @@ have ->: Pr[RS.sample1(P1,c1) @ &m : Q1 res.`2 /\ RS.flag <> true]
   = Pr[RS.sample1(P1,c1) @ &m : Q1 res.`2 /\ RS.flag = false].
 rewrite Pr[mu_eq]. smt(). auto.
 rewrite ph_l3.
-auto. auto.
+auto. 
 qed.
 
-
-lemma rsample_rec &m P1 Q1 c1 : Impl Q1 P1 =>
+lemma rsample_rec &m P1 Q1 c1 : 
   Pr[ RS.sample(P1,c1) @ &m : Q1 res.`2 ] 
   = (mu d (predC P1)) * Pr[ RS.sample(P1,c1) @ &m : Q1 res.`2 ]
-    + mu d Q1.
-move => H.
+    + (mu d (fun x => Q1 x /\ P1 x)).
 rewrite - rsample1_rsample. auto. 
-rewrite   (samples_eq &m (P1, c1) (fun (x : int * X) => Q1 x.`2) ). auto.
+rewrite  (samples_eq &m (P1, c1) (fun (x : int * X) => Q1 x.`2) ). auto.
 qed.
 
 
-lemma rsample_pmf &m P1 Q1 c1 : Impl Q1 P1 => mu d (predC P1) < 1%r =>
+lemma rsample_pmf_gen &m P1 Q1 c1 : mu d (predC P1) < 1%r =>
   Pr[ RS.sample(P1, c1) @ &m : Q1 res.`2 ] = 
- (mu d Q1) / (1%r - (mu d (predC P1))).
-proof. move => iqp.
+ (mu d (fun (x0 : X) => Q1 x0 /\ P1 x0)) / (1%r - (mu d (predC P1))).
+proof. 
 pose p := Pr[RS.sample(P1,c1) @ &m : Q1 res.`2].
-pose q := mu d Q1.
+pose q := mu d (fun (x0 : X) => Q1 x0 /\ P1 x0).
 pose x := mu d (predC P1).
 move => xnon1.
 have E1 : p = x * p + q.
@@ -132,20 +129,22 @@ smt(@Real).
 qed.
 
 
+ 
+lemma rsample_pmf &m P1 Q1 c1 : Impl Q1 P1 => mu d (predC P1) < 1%r =>
+  Pr[ RS.sample(P1, c1) @ &m : Q1 res.`2 ] = 
+ (mu d Q1) / (1%r - (mu d (predC P1))).
+move => implh mud.
+rewrite rsample_pmf_gen. auto.
+have ->: mu d (fun (x0 : X) => Q1 x0 /\ P1 x0) = mu d Q1.
+apply mu_eq_support. smt().
+auto.
+qed.
+
+
 lemma rj_lossless &m P1 c1 : mu d P1 > 0%r =>
   Pr[ RS.sample(P1,c1) @ &m : P1 res.`2 ] = 1%r.
 progress.
-have s1 :   Pr[ RS.sample(P1,c1) @ &m : P1 res.`2 ] 
-  = (mu d (predC P1)) * Pr[ RS.sample(P1,c1) @ &m : P1 res.`2 ]
-    + mu d P1.
-apply rsample_rec. auto.
-have s2 : Pr[RS.sample(P1,c1) @ &m : P1 res.`2] -
-   mu d (predC P1) * Pr[RS.sample(P1,c1) @ &m : P1 res.`2] = mu d P1.
-smt(@Real). clear s1.
-have s3 : Pr[RS.sample(P1,c1) @ &m : P1 res.`2] * (1%r - mu d (predC P1))  = mu d P1. smt(@Distr).
-have s4:  Pr[RS.sample(P1,c1) @ &m : P1 res.`2] * mu d P1  = mu d P1.
- have yy : (1%r - mu d (predC P1)) 
-   = mu d P1. smt(@Distr dll). smt(@Distr).
-smt().
+rewrite rsample_pmf. auto. smt (@Distr dll).
+smt(@Real @Distr dll).
 qed.
 

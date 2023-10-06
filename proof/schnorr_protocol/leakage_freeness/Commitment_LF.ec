@@ -66,7 +66,7 @@ lemma commitment_leakages2 &m : (glob M1){m} = [] =>
   Pr[ M1.commitment_indexed() @ &m : M1.leakages <> commitment_t res.`1 ] = 0%r.
 progress. byphoare (_: glob M1 = [] ==> _).
 hoare. simplify.
-conseq commitment_leakages1. auto. auto. auto. qed.
+conseq commitment_leakages1. auto. auto.  qed.
 
 lemma commitment_leakages3 l x &m : (glob M1){m} = [] =>
   Pr[ M1.commitment_indexed() @ &m : M1.leakages = l  /\ res.`3 = x ]

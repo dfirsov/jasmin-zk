@@ -66,7 +66,8 @@ rewrite  (rsample_pr2 P &m (fun (rres : int * int) => rres.`2 = x)).
 simplify.
 rewrite (RSC.rsample_pmf  &m (RSP P)  (fun rres => rres = x) ). smt().
  have -> : mu D (predC (RSP P)) = 1%r - mu D (RSP P).
-rewrite mu_not. smt(@Distr). 
+rewrite mu_not. 
+rewrite D_ll. auto.
  have q : mu D (RSP P) > 0%r. 
  apply witness_support.
   exists 0. smt(@Distr).

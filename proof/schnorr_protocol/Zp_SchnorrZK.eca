@@ -32,7 +32,7 @@ declare axiom rewindable_V_plus :
 
 
 op zk_relationG (s : statement) (w : witness) = 
-   0 <= w < q /\ ZModpField.exp g w = s.
+   0 <= w < q /\ exp g w = s.
 
 
 lemma zk_relationG_implies_unit_s s w : 
@@ -49,7 +49,7 @@ lemma zk_relations_compatible (s : statement) (w : witness) :
   zk_relationG s w => zk_relation (Sub.insubd s) (EG.inzmod w).
 progress. rewrite /zk_relation /IsDL.
 elim H. elim. progress.
-have ->: ZModpField.exp g w = ZModpField.exp g (w %% q).
+have ->: exp g w = exp g (w %% q).
 rewrite - (exp_mod g w q). apply g_q_assumption. auto.
 rewrite - lll.  apply g_unit.
 rewrite /(^^).

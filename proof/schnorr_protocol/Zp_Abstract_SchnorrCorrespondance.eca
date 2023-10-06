@@ -13,7 +13,7 @@ clone import Zp_SchnorrProtocol as Zp_SchnorrInstance.
 
 import Zp ZPS LSP.
 
-lemma exp_lemma6 (z : zmod) : unit z => forall n,  unit (ZModpField.exp z n).
+lemma exp_lemma6 (z : zmod) : unit z => forall n,  unit (exp z n).
 progress. apply ZModpRing.unitrX. auto.
 qed.
 
@@ -22,7 +22,7 @@ lemma lll'' (z : zmod) : unit z => forall x, x < 0 => Zps.(^) (Sub.insubd z) x =
 smt().
 qed.
 
-lemma lll (z : zmod) : unit z => forall x, Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpField.exp z x). 
+lemma lll (z : zmod) : unit z => forall x, Zps.(^) (Sub.insubd z)  x = Sub.insubd (ZModpRing.exp z x). 
 move => zu.
 move => x.
 case (0 <= x).  apply lll'. auto.
@@ -54,7 +54,7 @@ rewrite - pow_mod.
 rewrite lll. apply g_unit. auto.
 rewrite - bbb.
 rewrite Sub.val_insubd.
-have ->: (Sub.P ((ZModpField.exp g w))). rewrite /P. 
+have ->: (Sub.P ((ZModpRing.exp g w))). rewrite /P. 
 apply exp_lemma6. apply g_unit. simplify.
 rewrite Sub.insubdK. rewrite /P. 
 assumption. auto.
@@ -66,17 +66,17 @@ lemma llll (x y : zmod) : unit x => unit y => (Zps.( * ) (Sub.insubd x)  (Sub.in
 progress. smt(@Sub). qed.
 
 
-lemma exp_lemma4 : forall (x : zmod) (n : int), unit x => (ZModpField.exp x q) = one =>  (ZModpField.exp x n) = Sub.val ((Sub.insubd x) ^^ (EG.inzmod n)). 
+lemma exp_lemma4 : forall (x : zmod) (n : int), unit x => (ZModpRing.exp x q) = one =>  (ZModpRing.exp x n) = Sub.val ((Sub.insubd x) ^^ (EG.inzmod n)). 
 proof. progress. rewrite /(^^). rewrite lll. auto.
 rewrite  EG.inzmodK.
-have ->: (ZModpField.exp x (n %% q)) = (ZModpField.exp x n).  rewrite - exp_mod. auto. auto.
+have ->: (ZModpRing.exp x (n %% q)) = (ZModpRing.exp x n).  rewrite - exp_mod. auto. auto.
 rewrite Sub.insubdK.
 smt(@ZModpField).
 auto.
 qed.
 
 
-lemma exp_lemma5 : forall (z : zmod) (n : int), unit z => 0 <= n => (ZModpField.exp z q) = one  => Sub.insubd z ^^ (EG.inzmod n) = (Zps.(^) (Sub.insubd z) n).
+lemma exp_lemma5 : forall (z : zmod) (n : int), unit z => 0 <= n => (ZModpRing.exp z q) = one  => Sub.insubd z ^^ (EG.inzmod n) = (Zps.(^) (Sub.insubd z) n).
 progress. rewrite /(^^). 
 rewrite lll. auto. 
 rewrite - bbb.
@@ -88,12 +88,12 @@ rewrite (Zp.exp_mod z n q _). auto. auto.
 qed. 
 
 
-lemma nosmt dokas : forall s w, s = ZModpField.exp g w => ZModpField.exp s q = one.
+lemma nosmt dokas : forall s w, s = ZModpRing.exp g w => ZModpRing.exp s q = one.
 progress. 
-have ->: (ZModpField.exp ((ZModpField.exp g w)) q) = (((ZModpField.exp g (w * q)))). 
+have ->: (ZModpRing.exp ((ZModpRing.exp g w)) q) = (((ZModpRing.exp g (w * q)))). 
  rewrite - ZModpField.exprM. auto.
 have -> : w * q = q * w. smt().
-have ->: (ZModpField.exp g (q * w)) = (ZModpField.exp ((ZModpField.exp g q)) w).
+have ->: (ZModpRing.exp g (q * w)) = (ZModpRing.exp ((ZModpRing.exp g q)) w).
 rewrite  ZModpField.exprM. auto.
 rewrite  g_q_assumption. smt(@ZModpField).
 qed.
@@ -227,7 +227,7 @@ proc. simplify. skip.
 move => &1 &2 [h1]. progress.
 rewrite /verify_transcript. simplify.
 rewrite /lift2.
-case ((ZModpField.exp ((Sub.val HV.s{2})) q) = one).
+case ((ZModpRing.exp ((Sub.val HV.s{2})) q) = one).
 move => G2. 
 rewrite exp_lemma4. apply g_unit. apply g_q_assumption.
 rewrite exp_lemma4. smt(@Sub).   assumption. simplify.

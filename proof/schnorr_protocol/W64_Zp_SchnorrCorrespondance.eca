@@ -47,7 +47,7 @@ realize prime_p. apply p_prime. qed.
 lemma zp_mul (z1 z2 : zmod) : Sub.val (z1 * z2) = (Sub.val z1 * Sub.val z2) %% p. by smt(@ZpC). qed.
 lemma zp_eq z1 z2 : (Sub.val z1 = Sub.val z2) = (z1 = z2). by smt(@ZpC). qed.
 
-lemma exps' (s : zmod) : forall n, 0 <= n => Sub.val (ZModpField.exp s n) = (Sub.val s ^ n) %% p.
+lemma exps' (s : zmod) : forall n, 0 <= n => Sub.val (ZModpRing.exp s n) = (Sub.val s ^ n) %% p.
 apply intind. progress. smt(@ZModpField @Sub).
 progress. rewrite exprSr. auto.
 rewrite ZModpField.exprSr. auto. rewrite zp_mul H0. smt(@IntDiv). 
@@ -141,8 +141,8 @@ lemma w64_and_false (x y : W64.t) : (x = W64.one \/ x = W64.zero)
  => (y = W64.one \/ y = W64.zero) => (x `&` y = W64.zero) = ((x = W64.one /\ y = W64.zero)  \/  (x = W64.zero /\ y = W64.one) \/ (x = W64.zero /\ y = W64.zero)). smt(@W64).
 qed.
 
-lemma exps_same (g : zmod) : ZModpField.exp g = ZModpRing.exp g.
-rewrite /ZModpField.exp. rewrite /ZModpRing.exp. auto. qed.
+(* lemma exps_same (g : zmod) : ZModpRing.exp g = ZModpRing.exp g. *)
+(* rewrite /ZModpField.exp. rewrite /ZModpRing.exp. auto. qed. *)
 
 
 
@@ -156,7 +156,7 @@ have ->: (x ^ (i + 1)) = x * (x^ i).
  have ->: asint x ^ (i + 1) = (asint x) * (asint x ^ i). smt(@Int).
  rewrite inzmodM. congr. rewrite asintK. auto.
  rewrite H0.
-rewrite /(^^). smt(@ZModpRing).
+rewrite /(^^). smt(@ZModpField).
 qed.
 
 
@@ -166,7 +166,7 @@ lemma completness_compat s w :
 (* move => s_not_zero. *)
 rewrite /completeness_relationJ /completeness_relation /IsDL.
 rewrite /completeness_relationG.
-have ->: (ZModpField.exp (inzmod g) (valR w)) = ((inzmod g)  ^^ (valR w)). auto.
+have ->: (exp (inzmod g) (valR w)) = ((inzmod g)  ^^ (valR w)). auto.
 rewrite - exps. smt(@W64xN).
 have ->: inzmod g ^ valR w = inzmod (g ^ valR w).  
 rewrite  (ZPSP.Zp.inzmod_exp_mod g (valR w) q).
@@ -400,11 +400,11 @@ smt().
 smt(@W64xN).
 smt().
 rewrite H7. smt(g_less_p).
-  have sq_fact: ((ZModpField.exp s{1} q) = ZPSP.ZPS.ZpF.one)
+  have sq_fact: ((exp s{1} q) = ZPSP.ZPS.ZpF.one)
             = (result11 = W64.one). 
   rewrite H58. rewrite H56. rewrite H15. rewrite H5. rewrite H3. rewrite H57.
   have ->: (valR statement{2} %% p) = val s{1}. smt().
-  have ->: (ZModpField.exp s{1} q) = s{1} ^^ q. 
+  have ->: (exp s{1} q) = s{1} ^^ q. 
     rewrite /(^^). smt(@ZModpField).
     rewrite - exps. smt(q_prime). rewrite /(^) /asint /ZPSP.ZPS.ZpF.one xxx.  
     have -> : 1 %% p = 1.
@@ -425,14 +425,14 @@ congr.
 congr.
 congr. auto.
 rewrite /(^^).
-have ->: (ZModpRing.exp s{1} c{1}) = (ZModpField.exp s{1} c{1}). 
-rewrite exps_same. auto.
-have  <- : (ZModpField.exp s{1} (c{1} %% q)) = (ZModpField.exp s{1} c{1}). 
+(* have ->: (exp s{1} c{1}) = (ZModpRing.exp s{1} c{1}).  *)
+(* rewrite exps_same. auto. *)
+have  <- : (exp s{1} (c{1} %% q)) = (exp s{1} c{1}). 
 rewrite (exp_mod s{1} c{1} q). rewrite sq_fact. auto. auto.
 rewrite exps'. smt(@IntDiv).
 auto. auto.
 rewrite /(^).
-have ->: val (ZModpField.exp (inzmod g) t{1})  = val (ZModpField.exp (inzmod g) (t{1} %% q)).
+have ->: val (exp (inzmod g) t{1})  = val (exp (inzmod g) (t{1} %% q)).
 rewrite /(^^).
 rewrite (exp_mod (inzmod g) t{1} q). rewrite ZPSP.g_q_assumption. auto.
 auto.
